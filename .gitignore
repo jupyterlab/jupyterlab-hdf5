@@ -1,0 +1,24 @@
+lib/
+node_modules/
+
+# build/test cruft
+*.bundle.*
+.cache
+.vscode
+*.py[co]
+.pytest_cache
+__pycache__
+*.egg-info
+
+# temp/system files
+*~
+*.bak
+.ipynb_checkpoints
+.DS_Store
+\#*#
+.#*
+
+# jetbrains stuff
+*.iml
+.idea/
+
