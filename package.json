@@ -1,6 +1,6 @@
 {
   "name": "jupyterlab-hdf5",
-  "version": "0.1.0",
+  "version": "0.1.0-alpha",
   "description": "Open and explore HDF5 files in Jupyterlab",
   "keywords": [
     "jupyter",
@@ -24,13 +24,15 @@
     "url": "https://github.com/telamonian/jupyterlab-hdf5.git"
   },
   "scripts": {
-    "build": "tsc",
-    "build:test": "cd test && ./build-tests.sh",
+    "build": "jlpm install && tsc",
+    "build:dev": "jlpm run build && jlpm run link",
+    "build:watch": "jlpm run build --watch",
+    "clean": "rimraf lib",
+    "clean:slate": "jlpm run clean && rimraf node_modules",
     "precommit": "lint-staged",
     "prettier": "prettier --write '**/*{.ts,.tsx,.js,.jsx,.css,.json,.md}'",
-    "test": "cd test && ./run-tests.sh",
-    "clean": "rimraf lib",
-    "watch": "tsc -w"
+    "link": "jupyter labextension link .",
+    "unlink": "jupyter labextension unlink jupyterlab-hdf5"
   },
   "dependencies": {
     "@jupyterlab/application": "^0.19.1",
@@ -42,7 +44,7 @@
     "@jupyterlab/fileeditor": "^0.19.1",
     "@jupyterlab/services": "^3.2.1",
     "@phosphor/coreutils": "^1.3.0",
-    "@phosphor/datagrid": "^1.1.2",
+    "@phosphor/datagrid": "^0.1.5",
     "@phosphor/disposable": "^1.1.2",
     "@phosphor/domutils": "^1.1.2",
     "@phosphor/messaging": "^1.2.2",

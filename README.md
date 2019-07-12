@@ -1,11 +1,12 @@
 # jupyterlab-hdf5
 
-Open and explore HDF5 files in Jupyterlab
+Open and explore HDF5 files in Jupyterlab.
 
+Currently pre-pre-alpha and totally non-functional.
 
 ## Prerequisites
 
-* JupyterLab
+- JupyterLab
 
 ## Installation
 
@@ -29,4 +30,3 @@ To rebuild the package and the JupyterLab app:
 npm run build
 jupyter lab build
 ```
-

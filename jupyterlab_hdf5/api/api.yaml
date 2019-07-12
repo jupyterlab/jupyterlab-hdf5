@@ -1,0 +1,25 @@
+openapi: 3.0.0
+info:
+  title: JupyterLab HDF5 proxy
+  description: Proxies HDF5 API requests from JupyterLab to HDF5, optionally adding credentials to the request.
+  version: 0.1.0
+  
+paths:
+  /hdf5/{apiPath}:
+    get:
+      summary: Gets the resource at the apiPath for the HDF5 API.
+      parameters:
+        - name: apiPath
+          in: path
+          required: true
+          description: API path for HDF5.
+          schema:
+            type: string
+            format: uri
+      responses:
+        '200':
+          description: OK
+        '404':
+          description: Not found
+        '403':
+          description: Not authorized
