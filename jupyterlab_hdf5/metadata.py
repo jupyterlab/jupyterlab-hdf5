@@ -1,58 +1,35 @@
-""" JupyterLab LaTex : live LaTeX editing for JupyterLab """
+""" JupyterLab HDF : HDF5 file viewer for Jupyterlab """
 
-import glob, json, re, os
-from contextlib import contextmanager
-
+from collections import namedtuple
+import glob
+import h5py
+import os
+import re
 from tornado import gen, web
 
 from notebook.base.handlers import APIHandler
 
-from .config import LatexConfig
-from .util import run_command
+# from .config import HdfConfig
 
-@contextmanager
-def latex_cleanup(workdir='.', whitelist=None, greylist=None):
-    """Context manager for changing directory and removing files when done.
+MetaHdf = namedtuple('Meta', ('kind', 'name', 'uri'))
 
-    By default it works in the current directory, and removes all files that
-    were not present in the working directory.
+_emptyUriRe = re.compile('//')
+def uriJoin(*parts):
+    return _emptyUriRe.sub('/', '/'.join(parts))
 
-    Parameters
-    ----------
+def genMetaHdf(group, prefix='/'):
+    return (MetaHdf(
+        'group' if isinstance(val, h5py.Group) else 'dataset',
+        key,
+        uriJoin(prefix, key)
+    ) for key,val in group.items())
 
-    workdir = string, optional
-        This represents a path to the working directory for running LaTeX (the
-        default is '.').
-    whitelist = list or None, optional
-        This is the set of files not present before running the LaTeX commands
-        that are not to be removed when cleaning up. Defaults to None.
-    greylist = list or None, optional
-        This is the set of files that need to be removed before running LaTeX
-        commands but which, if present, will not by removed when cleaning up.
-        Defaults to None.
-    """
-    orig_work_dir = os.getcwd()
-    os.chdir(os.path.abspath(workdir))
+def genMetaAllHdf(group, prefix='/'):
+    yield from genMetaHdf(group, prefix)
 
-    keep_files = set()
-    for fp in greylist:
-        try:
-            os.remove(fp)
-            keep_files.add(fp)
-        except FileNotFoundError:
-            pass
-
-    before = set(glob.glob("*"))
-    keep_files = keep_files.union(before,
-                                  set(whitelist if whitelist else [])
-                                  )
-    yield
-    after = set(glob.glob("*"))
-    for fn in set(after-keep_files):
-        os.remove(fn)
-    os.chdir(orig_work_dir)
-
-
+    for key,val in group.items():
+        if isinstance(val, h5py.Group):
+            yield from genMetaAllHdf(val, uriJoin(prefix, key))
 
 class HdfMetadataHandler(APIHandler):
     """
@@ -164,6 +141,25 @@ class HdfMetadataHandler(APIHandler):
 
         return "LaTeX compiled"
 
+    @web.authenticated
+    @gen.coroutine
+    def wrapperHDF(self, func, mode='r', **kwargs):
+        """if self.file==None, run the function (with *args) inside a 'with' block that assigns the hdf5 file object to self.file, then resets self.file to None
+        else (self.file already contains something (hopefully the relevant hdf5 file)), just run the function (with *args)
+        """
+        if self.file==None:
+            try:
+                with h5py.File(self.fpathStr, mode) as self.file:
+                    retVal = func(**kwargs)
+            except OSError:
+                retVal = False
+            # not entirely sure why this has to be a finally: block, but without it there do seem to be cases where .file doesn't get Noned out
+            finally:
+                # be sure there are no return statements anywhere in the try-except-finally or else the finally will eat any fatal exceptions
+                self.file = None
+        else:
+            retVal = func(**kwargs)
+        return retVal
 
     @web.authenticated
     @gen.coroutine
