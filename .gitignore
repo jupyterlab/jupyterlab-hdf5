@@ -10,6 +10,9 @@ node_modules/
 __pycache__
 *.egg-info
 
+# scratch cruft
+/scratch/*.hdf5
+
 # temp/system files
 *~
 *.bak
