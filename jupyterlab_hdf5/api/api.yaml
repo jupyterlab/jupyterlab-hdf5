@@ -5,12 +5,12 @@ info:
   version: 0.0.1
   
 paths:
-  /hdf5/{apiPath}:
+  /hdf5/{apipath}:
     get:
       summary: Gets the metadata at the apiPath for the HDF5 API.
       parameters:
-        - name: apiPath
-          in: path
+        - name: apipath
+          in: apipath
           required: true
           description: API path for HDF5.
           schema:
@@ -35,4 +35,4 @@ paths:
         '403':
           description: The request specified a file that did not exist.
         '500':
-          description: Found file, error getting metadata.
+          description: Found and opened file, error getting metadata.
