@@ -1,4 +1,4 @@
-""" JupyterLab LaTex : live LaTeX editing for JupyterLab """
+""" JupyterLab HDF : HDF5 file viewer for Jupyterlab """
 
 from notebook.utils import url_path_join
 

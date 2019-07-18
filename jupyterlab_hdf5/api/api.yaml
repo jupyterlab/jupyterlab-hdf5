@@ -28,6 +28,8 @@ paths:
                   type: string
                 name:
                   type: string
+                uri:
+                  type: string
         '400':
           description: The request did not specify a file that `h5py` could understand.
         '403':
