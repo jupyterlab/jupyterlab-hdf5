@@ -1,13 +1,13 @@
 openapi: 3.0.0
 info:
   title: JupyterLab HDF5 proxy
-  description: Proxies HDF5 API requests from JupyterLab to HDF5, optionally adding credentials to the request.
-  version: 0.1.0
+  description: Proxies HDF5 API requests from JupyterLab to HDF5.
+  version: 0.0.1
   
 paths:
   /hdf5/{apiPath}:
     get:
-      summary: Gets the resource at the apiPath for the HDF5 API.
+      summary: Gets the metadata at the apiPath for the HDF5 API.
       parameters:
         - name: apiPath
           in: path
@@ -18,8 +18,19 @@ paths:
             format: uri
       responses:
         '200':
-          description: OK
-        '404':
-          description: Not found
+          description: Found hdf file, got metadata.
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                kind:
+                  type: string
+                name:
+                  type: string
+        '400':
+          description: The request did not specify a file that `h5py` could understand.
         '403':
-          description: Not authorized
+          description: The request specified a file that did not exist.
+        '500':
+          description: Found file, error getting metadata.
