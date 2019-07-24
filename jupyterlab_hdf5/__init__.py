@@ -9,7 +9,7 @@ path_regex = r'(?P<path>(?:(?:/[^/]+)+|/?))'
 
 def _jupyter_server_extension_paths():
     return [{
-        'module': 'jupyterlab_latex'
+        'module': 'jupyterlab_hdf'
     }]
 
 def load_jupyter_server_extension(nb_server_app):
