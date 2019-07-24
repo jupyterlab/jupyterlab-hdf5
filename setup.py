@@ -8,13 +8,14 @@ from setupbase import (
 
 data_files_spec = [
     ('etc/jupyter/jupyter_notebook_config.d',
-     'jupyter-config/jupyter_notebook_config.d', 'jupyterlab_hdf5.json'),
+     'jupyter-config/jupyter_notebook_config.d',
+     'jupyterlab_hdf.json'),
 ]
 
 cmdclass = create_cmdclass(data_files_spec=data_files_spec)
 
 setup_dict = dict(
-    name='jupyterlab_hdf5',
+    name='jupyterlab_hdf',
     description='A Jupyter Notebook server extension which uses h5serv to open HDF5 files.',
     packages=find_packages(),
     cmdclass=cmdclass,
@@ -40,13 +41,13 @@ setup_dict = dict(
 try:
     ensure_python(setup_dict["python_requires"].split(','))
 except ValueError as e:
-    raise  ValueError("{:s}, to use {} you must use python {} ".format(
-                          e,
-                          setup_dict["name"],
-                          setup_dict["python_requires"])
-                     )
+    raise ValueError("{:s}, to use {} you must use python {} ".format(
+                         e,
+                         setup_dict["name"],
+                         setup_dict["python_requires"])
+                    )
 
-from jupyterlab_hdf5 import __version__
+from jupyterlab_hdf import __version__
 
 setuptools.setup(
     version=__version__,

@@ -1,4 +1,7 @@
-import { JupyterLab, JupyterLabPlugin } from "@jupyterlab/application";
+import {
+  JupyterFrontEnd,
+  JupyterFrontEndPlugin
+} from "@jupyterlab/application";
 
 import { URLExt } from "@jupyterlab/coreutils";
 
@@ -18,7 +21,7 @@ namespace CommandIDs {
 /**
  * Initialization data for the jupyterlab-hdf5 extension.
  */
-const extension: JupyterLabPlugin<void> = {
+const extension: JupyterFrontEndPlugin<void> = {
   id: hdf5PluginId,
   autoStart: true,
   activate: activateHdfPlugin
@@ -45,7 +48,7 @@ function metadHdfRequest(
 /**
  * Activate the file browser.
  */
-function activateHdfPlugin(app: JupyterLab): void {
+function activateHdfPlugin(app: JupyterFrontEnd): void {
   const { commands } = app;
 
   // Settings for the notebook server.
