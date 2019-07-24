@@ -1,4 +1,4 @@
-# jupyterlab-hdf5
+# jupyterlab-hdf
 
 Open and explore HDF5 files in Jupyterlab.
 
