@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="500" height="280">
+<defs>
+  <linearGradient id="linearGradientStops">
+    <stop offset="0" style="stop-color:#0515fe"/>
+    <stop offset="1" style="stop-color:#2cab28"/>
+  </linearGradient>
+  <linearGradient id="BlueGreen" gradientUnits="userSpaceOnUse" y1="20" x1="0" y2="180" x2="0" xlink:href="#linearGradientStops"/>
+</defs>
+<path style="fill:url(#BlueGreen)" d="M 166.09991,4.2648628 A 24.0024,24.0024 0 0 0 142.4612,28.604703 l 0,85.285167 -89.517566,0 0,-84.949227 A 24.0024,24.0024 0 0 0 28.582304,4.6008028 24.0024,24.0024 0 0 0 4.9436344,28.940643 l 0,219.347667 a 24.0024,24.0024 0 1 0 47.9999996,0 l 0,-86.39843 137.517576,0 0,-108.191427 c 72.9063,6.88849 101.24551,48.693657 100.91011,86.699227 -0.3698,41.9162 -35.34671,87.66903 -126.28121,84.7481 a 24.0024,24.0024 0 1 0 -1.541,47.97463 c 66.7689,2.1447 117.38341,-21.4777 146.78121,-56.25003 l 0,33.39063 a 24.0024,24.0024 0 1 0 48,0 l 0,-87.16803 79.9551,0 a 24.0024,24.0024 0 1 0 0,-47.99999 l -79.9551,0 0,-62.488287 112.2852,0 a 24.0024,24.0024 0 1 0 0,-48.0000002 l -300.23051,0 a 24.0024,24.0024 0 0 0 -4.2851,-0.33984 z"/>
+</svg>
