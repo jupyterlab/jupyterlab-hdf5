@@ -25,10 +25,10 @@ export class HdfFileBrowser extends Widget {
     this._browser = browser;
     this._drive = drive;
 
-    // Create an editable name for the user/org name.
+    // Create an editable name for the Hdf file path.
     this.fpath = new hdfFpathInput();
-    this.fpath.node.title = "Click to edit user/organization";
-    this._browser.toolbar.addItem("user", this.fpath);
+    this.fpath.node.title = "Click to edit file path";
+    this._browser.toolbar.addItem("fpath", this.fpath);
     this.fpath.nameChanged.connect(this._onFpathChanged, this);
 
     // // Add our own refresh button, since the other one is hidden
@@ -40,17 +40,17 @@ export class HdfFileBrowser extends Widget {
     //   },
     //   tooltip: 'Refresh File List'
     // });
-    // refresher.addClass('jp-GitHub-toolbar-item');
+    // refresher.addClass('jp-Hdf-toolbar-item');
     // this._browser.toolbar.addItem('gh-refresher', refresher);
   }
 
   /**
-   * An editable widget hosting the current user name.
+   * An editable widget hosting the current file path.
    */
   readonly fpath: hdfFpathInput;
 
   /**
-   * React to a change in user.
+   * React to a change in fpath.
    */
   private _onFpathChanged() {
     if (this._changeGuard) {
@@ -111,7 +111,7 @@ export class HdfFileBrowser extends Widget {
       this._errorPanel = null;
     }
 
-    // If we have an invalid user, make an error panel.
+    // If we have an invalid file path, make an error panel.
     if (!validFile) {
       const message = `No file found at path: ${resource.fpath}`;
       this._errorPanel = new HdfErrorPanel(message);
@@ -129,19 +129,19 @@ export class HdfFileBrowser extends Widget {
 
 /**
  * A widget that hosts an editable field,
- * used to host the currently active GitHub
- * user name.
+ * used to host the currently active Hdf
+ * file path.
  */
 export class hdfFpathInput extends Widget {
   constructor() {
     super();
-    this.addClass("jp-GitHubUserInput");
+    this.addClass("jp-HdfUserInput");
     const layout = (this.layout = new PanelLayout());
     const wrapper = new Widget();
-    wrapper.addClass("jp-GitHubUserInput-wrapper");
+    wrapper.addClass("jp-HdfUserInput-wrapper");
     this._input = document.createElement("input");
-    this._input.placeholder = "GitHub User";
-    this._input.className = "jp-GitHubUserInput-input";
+    this._input.placeholder = "Hdf User";
+    this._input.className = "jp-HdfUserInput-input";
     wrapper.node.appendChild(this._input);
     layout.addWidget(wrapper);
   }
@@ -244,11 +244,11 @@ export class hdfFpathInput extends Widget {
 export class HdfErrorPanel extends Widget {
   constructor(message: string) {
     super();
-    this.addClass("jp-GitHubErrorPanel");
+    this.addClass("jp-HdfErrorPanel");
     const image = document.createElement("div");
     const text = document.createElement("div");
-    image.className = "jp-GitHubErrorImage";
-    text.className = "jp-GitHubErrorText";
+    image.className = "jp-HdfErrorImage";
+    text.className = "jp-HdfErrorText";
     text.textContent = message;
     this.node.appendChild(image);
     this.node.appendChild(text);

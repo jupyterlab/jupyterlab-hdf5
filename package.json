@@ -31,8 +31,8 @@
     "clean:slate": "jlpm run clean && rimraf node_modules",
     "precommit": "lint-staged",
     "prettier": "prettier --write '**/*{.ts,.tsx,.js,.jsx,.css,.json,.md}'",
-    "link": "jupyter labextension link .",
-    "unlink": "jupyter labextension unlink jupyterlab-hdf5",
+    "link": "jupyter labextension link . --no-build",
+    "unlink": "jupyter labextension unlink jupyterlab-hdf5 --no-build",
     "watch": "tsc -w"
   },
   "dependencies": {

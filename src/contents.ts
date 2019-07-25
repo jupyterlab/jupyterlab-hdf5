@@ -359,9 +359,9 @@ export interface IHdfResource {
  */
 export function parsePath(path: string): IHdfResource {
   return {
-    apipath: path,
+    apipath: path + (path.split("::")[1] ? "" : "::"),
     fpath: path.split("::")[0],
-    uri: path.split("::")[1]
+    uri: path.split("::")[1] || "/"
   };
 }
 

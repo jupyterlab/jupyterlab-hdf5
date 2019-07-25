@@ -26,10 +26,9 @@ def load_jupyter_server_extension(nb_server_app):
     meta = url_path_join(hdf, 'meta')
     # data = url_path_join(hdf, 'data')
 
-    print(meta)
-
     handlers = [
-        (f'{meta}/{path_regex}',
+        #(f'{meta}/{path_regex}',
+        (meta + '/(.*)',
          HdfMetadataHandler,
          {"notebook_dir": nb_server_app.notebook_dir}),
         # (f'{dataset}{path_regex}',
@@ -37,3 +36,5 @@ def load_jupyter_server_extension(nb_server_app):
         #  {"notebook_dir": nb_server_app.notebook_dir})
     ]
     web_app.add_handlers('.*$', handlers)
+
+print('INFO: jupyterlab_hdf python package imported')

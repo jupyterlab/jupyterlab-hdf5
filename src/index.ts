@@ -18,6 +18,8 @@ import { HdfDrive } from "./contents";
 
 import { metadHdfRequest } from "./meta";
 
+import "../style/index.css";
+
 /**
  * Hdf filebrowser plugin state namespace.
  */
@@ -40,8 +42,10 @@ namespace CommandIDs {
  */
 const extension: JupyterFrontEndPlugin<void> = {
   id: hdf5PluginId,
-  autoStart: true,
-  activate: activateHdfPlugin
+  requires: [IDocumentManager, IFileBrowserFactory, ILayoutRestorer],
+
+  activate: activateHdfPlugin,
+  autoStart: true
 };
 
 export default extension;
@@ -76,7 +80,7 @@ function activateHdfPlugin(
   hdfBrowser.title.iconClass = "jp-HdfIcon jp-SideBar-tabIcon";
   hdfBrowser.title.caption = "Browse Hdf";
 
-  hdfBrowser.id = NAMESPACE;
+  hdfBrowser.id = "hdf-file-browser";
 
   // Add the file browser widget to the application restorer.
   restorer.add(hdfBrowser, NAMESPACE);

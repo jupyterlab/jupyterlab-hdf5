@@ -22,7 +22,9 @@ def metaDict(tipe, name, uri):
     ])
 
 def apiSplit(apipath):
-    return apipath.split('::')
+    fpath,uri = apipath.split('::')
+    uri = '/' + uri.lstrip('/')
+    return fpath,uri
 
 _emptyUriRe = re.compile('//')
 def uriJoin(*parts):
@@ -85,6 +87,7 @@ class HdfMetadataHandler(APIHandler):
         try:
             relpath,uri = apiSplit(apipath)
         except Exception as e:
+            self.set_status(400)
             out = (f'The request {apipath} was malformed; should be of the format "<file-path>::<uri-path>"')
             self.finish(json.dumps(out))
             return
@@ -92,7 +95,7 @@ class HdfMetadataHandler(APIHandler):
         fpath = url_path_join(self.notebook_dir, relpath)
 
         if not os.path.exists(fpath):
-            self.set_status(404)
+            self.set_status(403)
             out = f'Request cannot be completed; no file at `{fpath}`.'
             self.finish(json.dumps(out))
             return
@@ -101,7 +104,7 @@ class HdfMetadataHandler(APIHandler):
                 # test opening the file with h5py
                 with h5py.File(fpath, 'r') as f: pass
             except Exception as e:
-                self.set_status(403)
+                self.set_status(401)
                 out = (f'The file at `{fpath}` could not be opened by h5py.\n'
                        f'Error: {e}')
                 self.finish(json.dumps(out))

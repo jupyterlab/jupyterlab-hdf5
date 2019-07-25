@@ -24,7 +24,7 @@ paths:
             items:
               type: object
               properties:
-                type:
+                kind:
                   type: string
                 name:
                   type: string
@@ -32,9 +32,9 @@ paths:
                   type: string
         '400':
           description: The request was malformed; should be of the format "<file-path>::<uri-path>"
-        '403':
+        '401':
           description: The request did not specify a file that `h5py` could understand.
-        '404':
+        '403':
           description: The request specified a file that did not exist.
         '500':
           description: Found and opened file, error getting metadata.
