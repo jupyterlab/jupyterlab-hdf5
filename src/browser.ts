@@ -101,8 +101,7 @@ export class HdfFileBrowser extends Widget {
       this._browser.model.path
     );
     const resource = parsePath(localPath);
-    const rateLimited = this._drive.rateLimitedState.get();
-    const validUser = this._drive.validUser;
+    const validFile = this._drive.validFile;
 
     // If we currently have an error panel, remove it.
     if (this._errorPanel) {
@@ -112,23 +111,9 @@ export class HdfFileBrowser extends Widget {
       this._errorPanel = null;
     }
 
-    // If we are being rate limited, make an error panel.
-    if (rateLimited) {
-      this._errorPanel = new HdfErrorPanel(
-        "You have been rate limited by GitHub! " +
-          "You will need to wait about an hour before " +
-          "continuing"
-      );
-      const listing = (this._browser.layout as PanelLayout).widgets[2];
-      listing.node.appendChild(this._errorPanel.node);
-      return;
-    }
-
     // If we have an invalid user, make an error panel.
-    if (!validUser) {
-      const message = resource.user
-        ? `"${resource.user}" appears to be an invalid user name!`
-        : "Please enter a GitHub user name";
+    if (!validFile) {
+      const message = `No file found at path: ${resource.fpath}`;
       this._errorPanel = new HdfErrorPanel(message);
       const listing = (this._browser.layout as PanelLayout).widgets[2];
       listing.node.appendChild(this._errorPanel.node);

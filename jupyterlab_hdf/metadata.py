@@ -12,7 +12,14 @@ from notebook.utils import url_path_join
 
 # from .config import HdfConfig
 
-MetaHdf = namedtuple('Meta', ('kind', 'name', 'uri'))
+MetaHdf = namedtuple('Meta', ('tipe', 'name', 'uri'))
+
+def metaDict(tipe, name, uri):
+    return dict([
+        ('type', tipe),
+        ('name', name),
+        ('uri', uri)
+    ])
 
 def apiSplit(apipath):
     return apipath.split('::')
@@ -24,7 +31,7 @@ def uriJoin(*parts):
 
 ## eagerly get metadata
 def getMetaHdf(group, prefix='/'):
-    return [MetaHdf(
+    return [metaDict(
         'group' if isinstance(val, h5py.Group) else 'dataset',
         key,
         uriJoin(prefix, key)
@@ -46,7 +53,7 @@ def getMetaAllHdf(group, prefix='/', meta=None):
 
 ## lazily generate metadata
 def genMetaHdf(group, prefix='/'):
-    return (MetaHdf(
+    return (metaDict(
         'group' if isinstance(val, h5py.Group) else 'dataset',
         key,
         uriJoin(prefix, key)

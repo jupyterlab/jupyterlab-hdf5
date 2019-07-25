@@ -2,10 +2,12 @@ import { URLExt } from "@jupyterlab/coreutils";
 
 import { ServerConnection } from "@jupyterlab/services";
 
+import { HdfDirectoryListing } from "./hdf";
+
 export function metadHdfRequest(
   path: string,
   settings: ServerConnection.ISettings
-): Promise<any> {
+): Promise<HdfDirectoryListing> {
   let fullUrl = URLExt.join(settings.baseUrl, "hdf", "metadata", path);
 
   return ServerConnection.makeRequest(fullUrl, {}, settings).then(response => {
@@ -14,7 +16,7 @@ export function metadHdfRequest(
         throw new ServerConnection.ResponseError(response, data);
       });
     }
-    return response.text();
+    return response.json();
   });
 }
 

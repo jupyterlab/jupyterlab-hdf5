@@ -4,7 +4,7 @@ import {
   JupyterFrontEndPlugin
 } from "@jupyterlab/application";
 
-import { ISettingRegistry } from "@jupyterlab/coreutils";
+// import { ISettingRegistry } from "@jupyterlab/coreutils";
 
 import { IDocumentManager } from "@jupyterlab/docmanager";
 
@@ -53,8 +53,8 @@ function activateHdfPlugin(
   app: JupyterFrontEnd,
   manager: IDocumentManager,
   factory: IFileBrowserFactory,
-  restorer: ILayoutRestorer,
-  settingRegistry: ISettingRegistry
+  restorer: ILayoutRestorer
+  // settingRegistry: ISettingRegistry
 ): void {
   const { commands } = app;
 
