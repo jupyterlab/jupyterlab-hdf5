@@ -125,7 +125,7 @@ export class HdfDrive implements Contents.IDrive {
       })
       .catch((err: ServerConnection.ResponseError) => {
         this._validFile = false;
-        if (err.response.status === 404) {
+        if (err.response.status === 403) {
           console.warn(err.message);
           return Private.dummyDirectory;
         } else {
@@ -424,44 +424,19 @@ namespace Private {
           );
         })
       } as Contents.IModel;
-    }
-    // else if (contents.type === "dataset") {
-    //   // If it is a file or blob, convert to a file
-    //   const fileType = fileTypeForPath(path);
-    //   const fileContents = (contents as GitHubFileContents).content;
-    //   let content: any;
-    //   switch (fileType.fileFormat) {
-    //     case "text":
-    //       content =
-    //         fileContents !== undefined
-    //           ? Private.b64DecodeUTF8(fileContents)
-    //           : null;
-    //       break;
-    //     case "base64":
-    //       content = fileContents !== undefined ? fileContents : null;
-    //       break;
-    //     case "json":
-    //       content =
-    //         fileContents !== undefined
-    //           ? JSON.parse(Private.b64DecodeUTF8(fileContents))
-    //           : null;
-    //       break;
-    //     default:
-    //       throw new Error(`Unexpected file format: ${fileType.fileFormat}`);
-    //   }
-    //   return {
-    //     name: PathExt.basename(path),
-    //     path: path,
-    //     format: fileType.fileFormat,
-    //     type: "file",
-    //     created: "",
-    //     writable: false,
-    //     last_modified: "",
-    //     mimetype: fileType.mimeTypes[0],
-    //     content
-    //   };
-    // }
-    else if (contents.type === "group") {
+    } else if (contents.type === "dataset") {
+      return {
+        name: contents.name,
+        path: path,
+        format: "json",
+        type: "file",
+        created: "",
+        writable: false,
+        last_modified: "",
+        mimetype: "",
+        content: null
+      };
+    } else if (contents.type === "group") {
       // If it is a directory, convert to that.
       return {
         name: contents.name,
