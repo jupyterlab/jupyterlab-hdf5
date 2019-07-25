@@ -5,17 +5,41 @@ info:
   version: 0.0.1
   
 paths:
-  /hdf/meta/{apiPath}:
+  /hdf/meta/{fpath}:
     get:
       summary: Gets the metadata at the apiPath for the HDF5 API.
       parameters:
-        - name: apiPath
+        - name: fpath
           in: path
           required: true
-          description: API path for HDF5.
+          description: "Path on disk to an HDF5 file."
           schema:
             type: string
             format: uri
+        - name: uri
+          in: query
+          description: "Path within an HDF5 file to a specific group or dataset."
+          schema:
+            type: string
+        - name: rowSlice
+            in: query
+            description: "Row slice (eg '30:45')."
+            schema:
+              type: string
+        - name: colSlice
+            in: query
+            description: "Col slice (eg '30:45')."
+            schema:
+              type: string
+        - name: rows
+          in: query
+          description: "Slice defined by one or more integers."
+          schema:
+            type: array
+            style: pipeDelimited
+            explode: false
+            items:
+              type: integer
       responses:
         '200':
           description: Found hdf file, got metadata.

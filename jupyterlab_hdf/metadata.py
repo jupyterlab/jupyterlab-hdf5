@@ -82,21 +82,17 @@ class HdfMetadataHandler(APIHandler):
     def get(self, path=''):
         """Given a path, fetch HDF metadata and respond when done.
         """
-        # Parse the apipath into the file path and uri
-        apipath = path
-        try:
-            relpath,uri = apiSplit(apipath)
-        except Exception as e:
+        uri = '/' + self.get_query_argument('uri', default='').lstrip('/')
+        if not path:
             self.set_status(400)
-            out = (f'The request {apipath} was malformed; should be of the format "<file-path>::<uri-path>"')
+            out = (f'The request was malformed; fpath should not be empty. fpath: {path} uri: {uri}')
             self.finish(json.dumps(out))
             return
-
-        fpath = url_path_join(self.notebook_dir, relpath)
+        fpath = url_path_join(self.notebook_dir, path)
 
         if not os.path.exists(fpath):
             self.set_status(403)
-            out = f'Request cannot be completed; no file at `{fpath}`.'
+            out = f'Request cannot be completed; no file at {fpath}.'
             self.finish(json.dumps(out))
             return
         else:
@@ -105,7 +101,7 @@ class HdfMetadataHandler(APIHandler):
                 with h5py.File(fpath, 'r') as f: pass
             except Exception as e:
                 self.set_status(401)
-                out = (f'The file at `{fpath}` could not be opened by h5py.\n'
+                out = (f'The file at {fpath} could not be opened by h5py.\n'
                        f'Error: {e}')
                 self.finish(json.dumps(out))
                 return
@@ -115,7 +111,7 @@ class HdfMetadataHandler(APIHandler):
                     out = getMetaHdf(f[uri], uri)
             except Exception as e:
                 self.set_status(500)
-                out = (f'Opened the file at `{fpath}` but could not retrieve valid metadata.\n'
+                out = (f'Opened the file at {fpath} but could not retrieve valid metadata from {uri}.\n'
                        f'Error: {e}')
                 self.finish(json.dumps(out))
                 return
