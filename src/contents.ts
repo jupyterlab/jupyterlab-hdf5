@@ -110,15 +110,15 @@ export class HdfDrive implements Contents.IDrive {
    */
   get(
     path: string,
-    options?: Contents.IFetchOptions
+    options?: HdfDrive.IFetchOptions
   ): Promise<Contents.IModel> {
-    const resource = parsePath(path);
+    const resource = HdfDrive.parsePath(path, options);
 
     if (!resource.fpath) {
       return Promise.resolve(Private.dummyDirectory);
     }
 
-    return metadHdfRequest(resource.apipath, this._serverSettings)
+    return metadHdfRequest(resource.fpath, resource.uri, this._serverSettings)
       .then(contents => {
         this._validFile = true;
         return Private.hdfContentsToJupyterContents(
@@ -151,15 +151,10 @@ export class HdfDrive implements Contents.IDrive {
    */
   getDownloadUrl(path: string): Promise<string> {
     // Parse the path into user/repo/path
-    const resource = parsePath(path);
+    // const resource = parsePath(path);
 
     return Promise.resolve(
-      URLExt.join(
-        this._serverSettings.baseUrl,
-        'hdf',
-        'metadata',
-        resource.apipath
-      )
+      URLExt.join(this._serverSettings.baseUrl, 'hdf', 'metadata', path)
     );
   }
 
@@ -344,29 +339,38 @@ export class HdfDrive implements Contents.IDrive {
   private _fileChanged = new Signal<this, Contents.IChangedArgs>(this);
 }
 
-/**
- * Specification for a file in a repository.
- */
-export interface IHdfResource {
+export namespace HdfDrive {
+  export interface IFetchOptions extends Contents.IFetchOptions {
+    uri?: string;
+  }
+
   /**
-   * The apipath to to the Hdf resource.
+   * Specification for a file in a repository.
    */
-  readonly apipath: string;
+  export interface IHdfResource {
+    /**
+     * The apipath to to the Hdf resource.
+     */
+    readonly path: string;
 
-  readonly fpath: string;
+    readonly fpath: string;
 
-  readonly uri: string;
-}
+    readonly uri: string;
+  }
 
-/**
- * Parse a path into a IHdfResource.
- */
-export function parsePath(path: string): IHdfResource {
-  return {
-    apipath: path + (path.split('::')[1] ? '' : '::'),
-    fpath: path.split('::')[0],
-    uri: path.split('::')[1] || '/'
-  };
+  /**
+   * Parse a path into a IHdfResource.
+   */
+  export function parsePath(
+    path: string,
+    options: IFetchOptions = {}
+  ): IHdfResource {
+    return {
+      path: path,
+      fpath: path,
+      uri: options.uri || '/'
+    };
+  }
 }
 
 /**
@@ -412,7 +416,7 @@ namespace Private {
       // If we have an array, it is a directory of HdfContents.
       // Iterate over that and convert all of the items in the array/
       return {
-        name: PathExt.basename(path),
+        name: PathExt.basename(path.split('?')[0]),
         path: path,
         format: 'json',
         type: 'directory',
@@ -421,8 +425,9 @@ namespace Private {
         last_modified: '',
         mimetype: '',
         content: contents.map(c => {
+          const { uri } = c;
           return hdfContentsToJupyterContents(
-            PathExt.join(path, c.name),
+            path + URLExt.objectToQueryString({ uri }),
             c,
             fileTypeForPath
           );

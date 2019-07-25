@@ -30,6 +30,7 @@
     "build:watch": "jlpm run build --watch",
     "clean": "rimraf lib",
     "clean:slate": "jlpm run clean && rimraf node_modules",
+    "integrity": "echo integrity",
     "link": "jupyter labextension link . --no-build",
     "precommit": "lint-staged",
     "prepublishOnly": "npm run build",

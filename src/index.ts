@@ -89,9 +89,10 @@ function activateHdfPlugin(
 
   commands.addCommand(CommandIDs.fetchMetaHdf, {
     execute: args => {
-      const path = args['path'] as string;
-      const meta = metadHdfRequest(path, serverSettings);
-      console.log(meta);
+      const fpath = args['fpath'] as string;
+      const uri = args['uri'] as string;
+
+      return metadHdfRequest(fpath, uri, serverSettings);
     },
     label: 'Fetch HDF5 metadata'
   });
