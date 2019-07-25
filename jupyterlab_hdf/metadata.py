@@ -8,6 +8,7 @@ import re
 from tornado import gen, web
 
 from notebook.base.handlers import APIHandler
+from notebook.utils import url_path_join
 
 # from .config import HdfConfig
 
@@ -69,32 +70,45 @@ class HdfMetadataHandler(APIHandler):
 
     @web.authenticated
     @gen.coroutine
-    def get(self, apipath=''):
+    def get(self, path=''):
         """Given a path, fetch HDF metadata and respond when done.
         """
         # Parse the apipath into the file path and uri
-        relpath,uri = apiSplit(apipath)
-        path = os.path.join(self.notebook_dir, relpath)
+        apipath = path
+        try:
+            relpath,uri = apiSplit(apipath)
+        except Exception as e:
+            out = (f'The request {apipath} was malformed; should be of the format "<file-path>::<uri-path>"')
+            self.finish(json.dumps(out))
+            return
 
-        if not os.path.exists(path):
-            self.set_status(403)
-            out = f"Request cannot be completed; no file at `{path}`."
+        fpath = url_path_join(self.notebook_dir, relpath)
+
+        if not os.path.exists(fpath):
+            self.set_status(404)
+            out = f'Request cannot be completed; no file at `{fpath}`.'
+            self.finish(json.dumps(out))
+            return
         else:
             try:
                 # test opening the file with h5py
-                with h5py.File(path, 'r') as f: pass
-            finally:
-                self.set_status(400)
-                out = (f"The file at `{path}` could not be opened by h5py.")
-                self.finish(out)
+                with h5py.File(fpath, 'r') as f: pass
+            except Exception as e:
+                self.set_status(403)
+                out = (f'The file at `{fpath}` could not be opened by h5py.\n'
+                       f'Error: {e}')
+                self.finish(json.dumps(out))
+                return
 
             try:
-                with h5py.File(path, 'r') as f:
-                    meta = getMetaHdf(f[uri], uri)
-            finally:
+                with h5py.File(fpath, 'r') as f:
+                    out = getMetaHdf(f[uri], uri)
+            except Exception as e:
                 self.set_status(500)
-                out = (f"Opened the file at `{path}` but could not retrieve valid metadata.")
-                self.finish(out)
+                out = (f'Opened the file at `{fpath}` but could not retrieve valid metadata.\n'
+                       f'Error: {e}')
+                self.finish(json.dumps(out))
+                return
 
-            out = json.dumps(meta)
-        self.finish(out)
+        self.finish(json.dumps(out))
+        return

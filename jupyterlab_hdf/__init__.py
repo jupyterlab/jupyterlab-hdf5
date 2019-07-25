@@ -23,11 +23,13 @@ def load_jupyter_server_extension(nb_server_app):
     # Prepend the base_url so that it works in a jupyterhub setting
     base_url = web_app.settings['base_url']
     hdf = url_path_join(base_url, 'hdf')
-    metadata = url_path_join(hdf, 'metadata')
-    # dataset = url_path_join(hdf, 'dataset')
+    meta = url_path_join(hdf, 'meta')
+    # data = url_path_join(hdf, 'data')
+
+    print(meta)
 
     handlers = [
-        (f'{metadata}{path_regex}',
+        (f'{meta}/{path_regex}',
          HdfMetadataHandler,
          {"notebook_dir": nb_server_app.notebook_dir}),
         # (f'{dataset}{path_regex}',
@@ -35,3 +37,5 @@ def load_jupyter_server_extension(nb_server_app):
         #  {"notebook_dir": nb_server_app.notebook_dir})
     ]
     web_app.add_handlers('.*$', handlers)
+
+print('INFO: jupyterlab_hdf imported')

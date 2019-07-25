@@ -5,12 +5,12 @@ info:
   version: 0.0.1
   
 paths:
-  /hdf5/{apipath}:
+  /hdf/meta/{apiPath}:
     get:
       summary: Gets the metadata at the apiPath for the HDF5 API.
       parameters:
-        - name: apipath
-          in: apipath
+        - name: apiPath
+          in: path
           required: true
           description: API path for HDF5.
           schema:
@@ -31,8 +31,10 @@ paths:
                 uri:
                   type: string
         '400':
-          description: The request did not specify a file that `h5py` could understand.
+          description: The request was malformed; should be of the format "<file-path>::<uri-path>"
         '403':
+          description: The request did not specify a file that `h5py` could understand.
+        '404':
           description: The request specified a file that did not exist.
         '500':
           description: Found and opened file, error getting metadata.

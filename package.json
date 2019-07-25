@@ -32,7 +32,8 @@
     "precommit": "lint-staged",
     "prettier": "prettier --write '**/*{.ts,.tsx,.js,.jsx,.css,.json,.md}'",
     "link": "jupyter labextension link .",
-    "unlink": "jupyter labextension unlink jupyterlab-hdf5"
+    "unlink": "jupyter labextension unlink jupyterlab-hdf5",
+    "watch": "tsc -w"
   },
   "dependencies": {
     "@jupyterlab/application": "^1.0.1",

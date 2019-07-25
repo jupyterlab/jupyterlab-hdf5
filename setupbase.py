@@ -228,6 +228,8 @@ def is_stale(target, source):
 
 class BaseCommand(Command):
     """Empty command because Command needs subclasses to override too much"""
+    command_consumes_arguments = False  # override base
+
     user_options = []
 
     def initialize_options(self):
@@ -247,22 +249,27 @@ def combine_commands(*commands):
     """Return a Command that combines several commands."""
 
     class CombinedCommand(Command):
-        user_options = []
-
-        def initialize_options(self):
-            self.commands = []
-            for C in commands:
-                self.commands.append(C(self.distribution))
-            for c in self.commands:
-                c.initialize_options()
-
-        def finalize_options(self):
-            for c in self.commands:
-                c.finalize_options()
-
-        def run(self):
-            for c in self.commands:
-                c.run()
+        sub_commands = [(C.__name__, None) for C in commands]
+        # command_consumes_arguments = False  # override base
+        #
+        # # merge the user_options
+        # user_options = list(({opt[0]:opt for C in commands for opt in C.user_options}).values())
+        #
+        # def initialize_options(self):
+        #     self.commands = []
+        #     for C in commands:
+        #         self.commands.append(C(self.distribution))
+        #     for c in self.commands:
+        #         c.initialize_options()
+        #         c.__class__.initialize_options(self)
+        #
+        # def finalize_options(self):
+        #     for c in self.commands:
+        #         c.__class__.finalize_options(self)
+        #
+        # def run(self):
+        #     for c in self.commands:
+        #         c.run()
     return CombinedCommand
 
 
