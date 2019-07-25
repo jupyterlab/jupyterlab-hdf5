@@ -2,39 +2,37 @@ import {
   ILayoutRestorer,
   JupyterFrontEnd,
   JupyterFrontEndPlugin
-} from "@jupyterlab/application";
+} from '@jupyterlab/application';
 
 // import { ISettingRegistry } from "@jupyterlab/coreutils";
 
-import { IDocumentManager } from "@jupyterlab/docmanager";
+import { IDocumentManager } from '@jupyterlab/docmanager';
 
-import { IFileBrowserFactory } from "@jupyterlab/filebrowser";
+import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 
-import { ServerConnection } from "@jupyterlab/services";
+import { ServerConnection } from '@jupyterlab/services';
 
-import { HdfFileBrowser } from "./browser";
+import { HdfFileBrowser } from './browser';
 
-import { HdfDrive } from "./contents";
+import { HdfDrive } from './contents';
 
-import { metadHdfRequest } from "./meta";
-
-import "../style/index.css";
+import { metadHdfRequest } from './meta';
 
 /**
  * Hdf filebrowser plugin state namespace.
  */
-const NAMESPACE = "hdf-filebrowser";
+const NAMESPACE = 'hdf-filebrowser';
 
 /**
  * The ID for the plugin.
  */
-const hdf5PluginId = "jupyterlab-hdf:plugin";
+const hdf5PluginId = 'jupyterlab-hdf:plugin';
 
 namespace CommandIDs {
   /**
    * Fetch metadata from an hdf5 file
    */
-  export const fetchMetaHdf = "hdf:fetchMeta";
+  export const fetchMetaHdf = 'hdf:fetchMeta';
 }
 
 /**
@@ -77,25 +75,25 @@ function activateHdfPlugin(
 
   const hdfBrowser = new HdfFileBrowser(browser, drive);
 
-  hdfBrowser.title.iconClass = "jp-HdfIcon jp-SideBar-tabIcon";
-  hdfBrowser.title.caption = "Browse Hdf";
+  hdfBrowser.title.iconClass = 'jp-HdfIcon jp-SideBar-tabIcon';
+  hdfBrowser.title.caption = 'Browse Hdf';
 
-  hdfBrowser.id = "hdf-file-browser";
+  hdfBrowser.id = 'hdf-file-browser';
 
   // Add the file browser widget to the application restorer.
   restorer.add(hdfBrowser, NAMESPACE);
-  app.shell.add(hdfBrowser, "left", { rank: 103 });
+  app.shell.add(hdfBrowser, 'left', { rank: 103 });
 
   // Settings for the notebook server.
   const serverSettings = ServerConnection.makeSettings();
 
   commands.addCommand(CommandIDs.fetchMetaHdf, {
     execute: args => {
-      const path = args["path"] as string;
+      const path = args['path'] as string;
       const meta = metadHdfRequest(path, serverSettings);
       console.log(meta);
     },
-    label: "Fetch HDF5 metadata"
+    label: 'Fetch HDF5 metadata'
   });
 
   return;
