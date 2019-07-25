@@ -7,8 +7,6 @@ import { PathExt, URLExt } from "@jupyterlab/coreutils";
 
 import { DocumentRegistry } from "@jupyterlab/docregistry";
 
-import { ObservableValue } from "@jupyterlab/observables";
-
 import { Contents, ServerConnection } from "@jupyterlab/services";
 
 import { metadHdfRequest } from "./meta";
@@ -236,7 +234,7 @@ export class HdfDrive implements Contents.IDrive {
    *    file is created.
    */
   newUntitled(options: Contents.ICreateOptions = {}): Promise<Contents.IModel> {
-    return Promise.reject("Repository is read only");
+    return Promise.reject("Hdf file is read only");
   }
 
   /**
@@ -247,7 +245,7 @@ export class HdfDrive implements Contents.IDrive {
    * @returns A promise which resolves when the file is deleted.
    */
   delete(path: string): Promise<void> {
-    return Promise.reject("Repository is read only");
+    return Promise.reject("Hdf file is read only");
   }
 
   /**
@@ -261,7 +259,7 @@ export class HdfDrive implements Contents.IDrive {
    *   the file is renamed.
    */
   rename(path: string, newPath: string): Promise<Contents.IModel> {
-    return Promise.reject("Repository is read only");
+    return Promise.reject("Hdf file is read only");
   }
 
   /**
@@ -278,7 +276,7 @@ export class HdfDrive implements Contents.IDrive {
     path: string,
     options: Partial<Contents.IModel>
   ): Promise<Contents.IModel> {
-    return Promise.reject("Repository is read only");
+    return Promise.reject("Hdf file is read only");
   }
 
   /**
@@ -292,7 +290,7 @@ export class HdfDrive implements Contents.IDrive {
    *  file is copied.
    */
   copy(fromFile: string, toDir: string): Promise<Contents.IModel> {
-    return Promise.reject("Repository is read only");
+    return Promise.reject("Hdf file is read only");
   }
 
   /**
@@ -304,7 +302,7 @@ export class HdfDrive implements Contents.IDrive {
    *   checkpoint is created.
    */
   createCheckpoint(path: string): Promise<Contents.ICheckpointModel> {
-    return Promise.reject("Repository is read only");
+    return Promise.reject("Hdf file is read only");
   }
 
   /**
@@ -329,7 +327,7 @@ export class HdfDrive implements Contents.IDrive {
    * @returns A promise which resolves when the checkpoint is restored.
    */
   restoreCheckpoint(path: string, checkpointID: string): Promise<void> {
-    return Promise.reject("Repository is read only");
+    return Promise.reject("Hdf file is read only");
   }
 
   /**
@@ -345,59 +343,59 @@ export class HdfDrive implements Contents.IDrive {
     return Promise.reject("Read only");
   }
 
-  /**
-   * If a file is too large (> 1Mb), we need to access it over the
-   * GitHub Git Data API.
-   */
-  private _getBlob(path: string): Promise<Contents.IModel> {
-    let blobData: GitHubFileContents;
-    // Get the contents of the parent directory so that we can
-    // get the sha of the blob.
-    const resource = parsePath(path);
-    const dirname = PathExt.dirname(resource.path);
-    const dirApiPath = URLExt.encodeParts(
-      URLExt.join(
-        "repos",
-        resource.user,
-        resource.repository,
-        "contents",
-        dirname
-      )
-    );
-    return this._apiRequest<GitHubDirectoryListing>(dirApiPath)
-      .then(dirContents => {
-        for (let item of dirContents) {
-          if (item.path === resource.path) {
-            blobData = item as GitHubFileContents;
-            return item.sha;
-          }
-        }
-        throw Error("Cannot find sha for blob");
-      })
-      .then(sha => {
-        // Once we have the sha, form the api url and make the request.
-        const blobApiPath = URLExt.encodeParts(
-          URLExt.join(
-            "repos",
-            resource.user,
-            resource.repository,
-            "git",
-            "blobs",
-            sha
-          )
-        );
-        return this._apiRequest<GitHubBlob>(blobApiPath);
-      })
-      .then(blob => {
-        // Convert the data to a Contents.IModel.
-        blobData.content = blob.content;
-        return Private.gitHubContentsToJupyterContents(
-          path,
-          blobData,
-          this._fileTypeForPath
-        );
-      });
-  }
+  // /**
+  //  * If a file is too large (> 1Mb), we need to access it over the
+  //  * GitHub Git Data API.
+  //  */
+  // private _getBlob(path: string): Promise<Contents.IModel> {
+  //   let blobData: GitHubFileContents;
+  //   // Get the contents of the parent directory so that we can
+  //   // get the sha of the blob.
+  //   const resource = parsePath(path);
+  //   const dirname = PathExt.dirname(resource.path);
+  //   const dirApiPath = URLExt.encodeParts(
+  //     URLExt.join(
+  //       "repos",
+  //       resource.user,
+  //       resource.repository,
+  //       "contents",
+  //       dirname
+  //     )
+  //   );
+  //   return this._apiRequest<GitHubDirectoryListing>(dirApiPath)
+  //     .then(dirContents => {
+  //       for (let item of dirContents) {
+  //         if (item.path === resource.path) {
+  //           blobData = item as GitHubFileContents;
+  //           return item.sha;
+  //         }
+  //       }
+  //       throw Error("Cannot find sha for blob");
+  //     })
+  //     .then(sha => {
+  //       // Once we have the sha, form the api url and make the request.
+  //       const blobApiPath = URLExt.encodeParts(
+  //         URLExt.join(
+  //           "repos",
+  //           resource.user,
+  //           resource.repository,
+  //           "git",
+  //           "blobs",
+  //           sha
+  //         )
+  //       );
+  //       return this._apiRequest<GitHubBlob>(blobApiPath);
+  //     })
+  //     .then(blob => {
+  //       // Convert the data to a Contents.IModel.
+  //       blobData.content = blob.content;
+  //       return Private.gitHubContentsToJupyterContents(
+  //         path,
+  //         blobData,
+  //         this._fileTypeForPath
+  //       );
+  //     });
+  // }
 
   /**
    * List the repositories for the currently active user.
@@ -467,52 +465,10 @@ export class HdfDrive implements Contents.IDrive {
       });
   }
 
-  /**
-   * Determine whether to make the call via the
-   * notebook server proxy or not.
-   */
-  private _apiRequest<T>(apiPath: string): Promise<T> {
-    return this._useProxy.then(result => {
-      let parts = apiPath.split("?");
-      let path = parts[0];
-      let query = (parts[1] || "").split("&");
-      let params: { [key: string]: string } = {};
-      for (const param of query) {
-        if (param) {
-          let [key, value] = param.split("=");
-          params[key] = value;
-        }
-      }
-      let requestUrl: string;
-      if (result === true) {
-        requestUrl = URLExt.join(this._serverSettings.baseUrl, "github");
-        // add the access token if defined
-        if (this.accessToken) {
-          params["access_token"] = this.accessToken;
-        }
-      } else {
-        requestUrl = DEFAULT_GITHUB_API_URL;
-      }
-      if (path) {
-        requestUrl = URLExt.join(requestUrl, path);
-      }
-      let newQuery = Object.keys(params)
-        .map(key => `${key}=${params[key]}`)
-        .join("&");
-      requestUrl += "?" + newQuery;
-      if (result === true) {
-        return proxiedApiRequest<T>(requestUrl, this._serverSettings);
-      } else {
-        return browserApiRequest<T>(requestUrl);
-      }
-    });
-  }
-
   private _baseUrl: string;
   private _accessToken: string | null | undefined;
   private _validUser = false;
   private _serverSettings: ServerConnection.ISettings;
-  private _useProxy: Promise<boolean>;
   private _fileTypeForPath: (path: string) => DocumentRegistry.IFileType;
   private _isDisposed = false;
   private _fileChanged = new Signal<this, Contents.IChangedArgs>(this);
