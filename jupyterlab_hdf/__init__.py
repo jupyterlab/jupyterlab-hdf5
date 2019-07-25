@@ -37,5 +37,3 @@ def load_jupyter_server_extension(nb_server_app):
         #  {"notebook_dir": nb_server_app.notebook_dir})
     ]
     web_app.add_handlers('.*$', handlers)
-
-print('INFO: jupyterlab_hdf imported')

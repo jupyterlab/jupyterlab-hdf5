@@ -9,6 +9,7 @@ node_modules/
 .pytest_cache
 __pycache__
 *.egg-info
+*.tsbuildinfo
 
 # scratch cruft
 /scratch/*.hdf5

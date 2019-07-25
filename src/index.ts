@@ -73,14 +73,14 @@ function activateHdfPlugin(
 
   const hdfBrowser = new HdfFileBrowser(browser, drive);
 
-  hdfBrowser.title.iconClass = "jp-Hdf-icon jp-SideBar-tabIcon";
+  hdfBrowser.title.iconClass = "jp-HdfIcon jp-SideBar-tabIcon";
   hdfBrowser.title.caption = "Browse Hdf";
 
   hdfBrowser.id = NAMESPACE;
 
   // Add the file browser widget to the application restorer.
   restorer.add(hdfBrowser, NAMESPACE);
-  app.shell.add(hdfBrowser, "left", { rank: 102 });
+  app.shell.add(hdfBrowser, "left", { rank: 103 });
 
   // Settings for the notebook server.
   const serverSettings = ServerConnection.makeSettings();

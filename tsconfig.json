@@ -1,16 +1,11 @@
 {
+  "extends": "./tsconfigbase",
   "compilerOptions": {
-    "declaration": true,
-    "lib": ["es2015", "dom"],
+    "lib": ["es2017", "dom"],
+    "outDir": "lib",
+    "rootDir": "src",
     "module": "commonjs",
-    "moduleResolution": "node",
-    "noEmitOnError": true,
-    "noUnusedLocals": true,
-    "outDir": "./lib",
-    "target": "es2015",
-    "strict": true,
-    "strictNullChecks": false,
-    "types": []
+    "types": ["node"]
   },
-  "include": ["src/*"]
+  "include": ["src/**/*"]
 }
