@@ -1,4 +1,4 @@
-// Copyright (c) Jupyter Development Team.
+// Copyright (c) Max Klein.
 // Distributed under the terms of the Modified BSD License.
 
 // import { ToolbarButton } from '@jupyterlab/apputils';

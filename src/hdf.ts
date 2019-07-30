@@ -1,4 +1,4 @@
-// Copyright (c) Jupyter Development Team.
+// Copyright (c) Max Klein.
 // Distributed under the terms of the Modified BSD License.
 
 /**
@@ -8,7 +8,7 @@ export class HdfContents {
   /**
    * The type of the file.
    */
-  type: "dataset" | "group";
+  type: 'dataset' | 'group';
 
   /**
    * The name of the file.
@@ -21,26 +21,21 @@ export class HdfContents {
   uri: string;
 }
 
-// /**
-//  * Typings representing file contents
-//  */
-// export class HdfFileContents extends HdfContents {
-//   /**
-//    * The type of the contents.
-//    */
-//   type: 'file';
-//
-//   /**
-//    * Encoding of the content. All files are base64 encoded.
-//    */
-//   encoding: 'base64';
-//
-//   /**
-//    * The actual base64 encoded contents.
-//    */
-//   content?: string;
-// }
-//
+/**
+ * Typings representing hdf dataset contents
+ */
+export class HdfDatasetContents extends HdfContents {
+  /**
+   * The type of the contents.
+   */
+  type: 'dataset';
+
+  /**
+   * The actual base64 encoded contents.
+   */
+  content?: string;
+}
+
 // /**
 //  * Typings representing a directory from the Hdf
 //  */

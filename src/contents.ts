@@ -9,7 +9,7 @@ import { DocumentRegistry } from '@jupyterlab/docregistry';
 
 import { Contents, ServerConnection } from '@jupyterlab/services';
 
-import { HdfContents, HdfDirectoryListing } from './hdf';
+import { HdfContents, HdfDatasetContents, HdfDirectoryListing } from './hdf';
 
 import { metadHdfRequest } from './meta';
 
@@ -121,11 +121,7 @@ export class HdfDrive implements Contents.IDrive {
     return metadHdfRequest(resource.fpath, resource.uri, this._serverSettings)
       .then(contents => {
         this._validFile = true;
-        return Private.hdfContentsToJupyterContents(
-          path,
-          contents,
-          this._fileTypeForPath
-        );
+        return Private.hdfContentsToJupyterContents(path, contents);
       })
       .catch((err: ServerConnection.ResponseError) => {
         this._validFile = false;
@@ -280,7 +276,6 @@ export class HdfDrive implements Contents.IDrive {
   private _accessToken: string | null | undefined;
   private _validFile = false;
   private _serverSettings: ServerConnection.ISettings;
-  private _fileTypeForPath: (path: string) => DocumentRegistry.IFileType;
   private _isDisposed = false;
   private _fileChanged = new Signal<this, Contents.IChangedArgs>(this);
 }
@@ -341,23 +336,18 @@ namespace Private {
   };
 
   /**
-   * Given a JSON GitHubContents object returned by the GitHub API v3,
+   * Given a JSON HdfContents object returned by our Hdf api,
    * convert it to the Jupyter Contents.IModel.
    *
    * @param path - the path to the contents model in the repository.
    *
-   * @param contents - the GitHubContents object.
-   *
-   * @param fileTypeForPath - a function that, given a path, returns
-   *   a DocumentRegistry.IFileType, used by JupyterLab to identify different
-   *   openers, icons, etc.
+   * @param contents - the HdfContents object.
    *
    * @returns a Contents.IModel object.
    */
   export function hdfContentsToJupyterContents(
     path: string,
-    contents: HdfContents | HdfDirectoryListing,
-    fileTypeForPath: (path: string) => DocumentRegistry.IFileType
+    contents: HdfContents | HdfDirectoryListing
   ): Contents.IModel {
     if (Array.isArray(contents)) {
       // If we have an array, it is a directory of HdfContents.
@@ -373,40 +363,23 @@ namespace Private {
         last_modified: '',
         mimetype: '',
         content: contents.map(c => {
-          return hdfContentsToJupyterContents(
-            fpath + `?uri=${c.uri}`,
-            c,
-            fileTypeForPath
-          );
+          return hdfContentsToJupyterContents(fpath + `?uri=${c.uri}`, c);
         })
       } as Contents.IModel;
     } else if (contents.type === 'dataset') {
+      const dsetContents = contents as HdfDatasetContents;
       return {
-        name: contents.name,
+        name: dsetContents.name,
         path: path,
         format: 'json',
-        type: 'external/hdf.dataset',
+        type: 'file',
         created: '',
         writable: false,
         last_modified: '',
-        mimetype: '',
-        content: null
+        mimetype: 'application/x-hdf5.dataset',
+        content: dsetContents.content
       };
-    }
-    // else if (contents.type === 'external/hdf.dataset') {
-    //   return {
-    //     name: contents.name,
-    //     path: path,
-    //     format: 'json',
-    //     type: 'file',
-    //     created: '',
-    //     writable: false,
-    //     last_modified: '',
-    //     mimetype: 'application/x-hdf5.dataset',
-    //     content: null
-    //   };
-    // }
-    else if (contents.type === 'group') {
+    } else if (contents.type === 'group') {
       // If it is a directory, convert to that.
       return {
         name: contents.name,

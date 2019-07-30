@@ -1,3 +1,6 @@
+// Copyright (c) Max Klein.
+// Distributed under the terms of the Modified BSD License.
+
 import { URLExt } from '@jupyterlab/coreutils';
 
 import { ServerConnection } from '@jupyterlab/services';
