@@ -1,3 +1,8 @@
+# jupyterLab_hdf : HDF5 api for Jupyter/Jupyterlab
+#
+# Copyright (c) Max Klein.
+# Distributed under the terms of the Modified BSD License.
+
 openapi: 3.0.0
 info:
   title: JupyterLab HDF5 proxy
@@ -18,6 +23,26 @@ components:
       description: "Path within an HDF5 file to a specific group or dataset."
       schema:
         type: string
+    - name: row
+      in: query
+      description: "Row slice. Up to 3 integers, same syntax as for Python `slice` function`."
+      explode: false
+      schema:
+        type: array
+        items:
+          type: integer
+        nullable: true
+        maxItems: 3
+    - name: col
+      in: query
+      description: "Column slice. Up to 3 integers, same syntax as for Python `slice` function`."
+      explode: false
+      schema:
+        type: array
+        items:
+          type: integer
+        nullable: true
+        maxItems: 3
 
 paths:
   /hdf/meta/{fpath}{?uri}:
@@ -56,26 +81,8 @@ paths:
       parameters:
         - $ref: '#/components/parameters/fpath'
         - $ref: '#/components/parameters/uri'
-        - name: row
-          in: query
-          description: "Row slice. Up to 3 integers, same syntax as for Python `slice` function`."
-          explode: false
-          schema:
-            type: array
-            items:
-              type: integer
-            nullable: true
-            maxItems: 3
-        - name: col
-          in: query
-          description: "Column slice. Up to 3 integers, same syntax as for Python `slice` function`."
-          explode: false
-          schema:
-            type: array
-            items:
-              type: integer
-            nullable: true
-            maxItems: 3
+        - $ref: '#/components/parameters/row'
+        - $ref: '#/components/parameters/col'
       responses:
         '200':
           description: Found hdf dataset, got data.
@@ -94,3 +101,36 @@ paths:
           description: The request specified a file that did not exist.
         '500':
           description: Found and opened file, error getting data from dataset.
+
+  /hdf/contents/{fpath}{?uri,row,col}:
+    get:
+      summary: Get the contents of the hdf object pointed to by the uri in the file at fpath.
+      parameters:
+        - $ref: '#/components/parameters/fpath'
+        - $ref: '#/components/parameters/uri'
+        - $ref: '#/components/parameters/row'
+        - $ref: '#/components/parameters/col'
+      responses:
+        '200':
+          description: Found hdf dataset, got data.
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                type:
+                  type: string
+                name:
+                  type: string
+                uri:
+                  type: string
+                content:
+                  type: string
+        '400':
+          description: The request was malformed; should be of the format "file/path?uri=uri/path&row=[start,stop,step]&col=[start,stop,step]"
+        '401':
+          description: The request did not specify a file that `h5py` could understand.
+        '403':
+          description: The request specified a file that did not exist.
+        '500':
+          description: Found and opened file, error getting contents from object.

@@ -1,4 +1,8 @@
-""" JupyterLab HDF : HDF5 file viewer for Jupyterlab """
+""" jupyterLab_hdf : HDF5 api for Jupyter/Jupyterlab
+
+Copyright (c) Max Klein.
+Distributed under the terms of the Modified BSD License.
+"""
 
 # from traitlets import Unicode, CaselessStrEnum
 from traitlets.config import Configurable

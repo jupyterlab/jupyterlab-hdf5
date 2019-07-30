@@ -1,4 +1,8 @@
-""" JupyterLab HDF : HDF5 file viewer for Jupyterlab """
+""" jupyterLab_hdf : HDF5 api for Jupyter/Jupyterlab
+
+Copyright (c) Max Klein.
+Distributed under the terms of the Modified BSD License.
+"""
 
 from collections import namedtuple
 import h5py
@@ -12,6 +16,10 @@ from notebook.utils import url_path_join
 
 # from .config import HdfConfig
 
+_emptyUriRe = re.compile('//')
+def uriJoin(*parts):
+    return _emptyUriRe.sub('/', '/'.join(parts))
+
 MetaHdf = namedtuple('Meta', ('tipe', 'name', 'uri'))
 
 def metaDict(tipe, name, uri):
@@ -20,15 +28,6 @@ def metaDict(tipe, name, uri):
         ('name', name),
         ('uri', uri)
     ])
-
-def apiSplit(apipath):
-    fpath,uri = apipath.split('::')
-    uri = '/' + uri.lstrip('/')
-    return fpath,uri
-
-_emptyUriRe = re.compile('//')
-def uriJoin(*parts):
-    return _emptyUriRe.sub('/', '/'.join(parts))
 
 
 ## eagerly get metadata

@@ -1,4 +1,8 @@
-""" JupyterLab HDF : HDF5 file viewer for Jupyterlab """
+""" jupyterLab_hdf : HDF5 api for Jupyter/Jupyterlab
+
+Copyright (c) Max Klein.
+Distributed under the terms of the Modified BSD License.
+"""
 
 # def enableAutoreload():
 #     from IPython import get_ipython
@@ -15,8 +19,9 @@
 from notebook.utils import url_path_join
 
 from ._version import __version__
-from .dataset import HdfDatasetManager, HdfDatasetHandler
-from .meta import HdfMetaHandler
+from .contents import HdfContentsManager, HdfContentsHandler
+# from .dataset import HdfDatasetManager, HdfDatasetHandler
+# from .meta import HdfMetaHandler
 
 path_regex = r'(?P<path>(?:(?:/[^/]+)+|/?))'
 
@@ -26,32 +31,37 @@ def _jupyter_server_extension_paths():
     }]
 
 def _load_external_types(nb_server_app, web_app):
-    # from traitlets.config import get_config
-    # c = get_config()
-    # c.ContentsManager.external_types = {'external+hdf5': hdf5_external_handler}
-
-    datasetManager = HdfDatasetManager(nb_server_app.notebook_dir)
-    def hdf_external_dataset_handler(model):
+    hdfContentsManager = HdfContentsManager(nb_server_app.notebook_dir)
+    def hdf_external_contents_handler(model):
         if model['content']:
-            model['content'] = datasetManager.get(model['path'], '/leaf01/leaf02/data02', 100, 100)
+            model['content'] = hdfContentsManager.get(model['path'], '/leaf01/leaf02/data02', 100, 100)
 
-    web_app.settings['contents_manager'].external_types.update({'external/hdf.dataset': hdf_external_dataset_handler})
+    web_app.settings['contents_manager'].external_types.update({'external/hdf': hdf_external_contents_handler})
 
 def _load_handlers(nb_server_app, web_app):
     # Prepend the base_url so that it works in a jupyterhub setting
     base_url = web_app.settings['base_url']
     hdf = url_path_join(base_url, 'hdf')
-    meta = url_path_join(hdf, 'meta')
-    dataset = url_path_join(hdf, 'dataset')
+    contents = url_path_join(hdf, 'contents')
 
     handlers = [
-        (meta + '/(.*)',
-         HdfMetaHandler,
+        (contents + '/(.*)',
+         HdfContentsHandler,
          {"notebook_dir": nb_server_app.notebook_dir}),
-        (dataset + '/(.*)',
-         HdfDatasetHandler,
-         {"notebook_dir": nb_server_app.notebook_dir})
     ]
+
+    # meta = url_path_join(hdf, 'meta')
+    # dataset = url_path_join(hdf, 'dataset')
+    #
+    # handlers = [
+    #     (meta + '/(.*)',
+    #      HdfMetaHandler,
+    #      {"notebook_dir": nb_server_app.notebook_dir}),
+    #     (dataset + '/(.*)',
+    #      HdfDatasetHandler,
+    #      {"notebook_dir": nb_server_app.notebook_dir})
+    # ]
+
     web_app.add_handlers('.*$', handlers)
 
 def load_jupyter_server_extension(nb_server_app):
