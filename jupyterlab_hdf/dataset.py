@@ -25,7 +25,6 @@ def uriJoin(*parts):
     return _emptyUriRe.sub('/', '/'.join(parts))
 
 
-## eagerly get datasetdata
 def getDatasetHdf(group, prefix='/'):
     return [datasetDict(
         'group' if isinstance(val, h5py.Group) else 'dataset',
