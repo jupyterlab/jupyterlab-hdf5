@@ -276,60 +276,6 @@ export class HdfDrive implements Contents.IDrive {
     return Promise.reject('Read only');
   }
 
-  // /**
-  //  * If a file is too large (> 1Mb), we need to access it over the
-  //  * GitHub Git Data API.
-  //  */
-  // private _getBlob(path: string): Promise<Contents.IModel> {
-  //   let blobData: GitHubFileContents;
-  //   // Get the contents of the parent directory so that we can
-  //   // get the sha of the blob.
-  //   const resource = parsePath(path);
-  //   const dirname = PathExt.dirname(resource.path);
-  //   const dirApiPath = URLExt.encodeParts(
-  //     URLExt.join(
-  //       "repos",
-  //       resource.user,
-  //       resource.repository,
-  //       "contents",
-  //       dirname
-  //     )
-  //   );
-  //   return this._apiRequest<GitHubDirectoryListing>(dirApiPath)
-  //     .then(dirContents => {
-  //       for (let item of dirContents) {
-  //         if (item.path === resource.path) {
-  //           blobData = item as GitHubFileContents;
-  //           return item.sha;
-  //         }
-  //       }
-  //       throw Error("Cannot find sha for blob");
-  //     })
-  //     .then(sha => {
-  //       // Once we have the sha, form the api url and make the request.
-  //       const blobApiPath = URLExt.encodeParts(
-  //         URLExt.join(
-  //           "repos",
-  //           resource.user,
-  //           resource.repository,
-  //           "git",
-  //           "blobs",
-  //           sha
-  //         )
-  //       );
-  //       return this._apiRequest<GitHubBlob>(blobApiPath);
-  //     })
-  //     .then(blob => {
-  //       // Convert the data to a Contents.IModel.
-  //       blobData.content = blob.content;
-  //       return Private.gitHubContentsToJupyterContents(
-  //         path,
-  //         blobData,
-  //         this._fileTypeForPath
-  //       );
-  //     });
-  // }
-
   private _baseUrl: string;
   private _accessToken: string | null | undefined;
   private _validFile = false;
@@ -466,44 +412,6 @@ namespace Private {
       );
     }
   }
-
-  // /**
-  //  * Given an array of JSON GitHubRepo objects returned by the GitHub API v3,
-  //  * convert it to the Jupyter Contents.IModel conforming to a directory of
-  //  * those repositories.
-  //  *
-  //  * @param repo - the GitHubRepo object.
-  //  *
-  //  * @returns a Contents.IModel object.
-  //  */
-  // export function reposToDirectory(repos: GitHubRepo[]): Contents.IModel {
-  //   // If it is a directory, convert to that.
-  //   let content: Contents.IModel[] = repos.map(repo => {
-  //     return {
-  //       name: repo.name,
-  //       path: repo.name,
-  //       format: "json",
-  //       type: "directory",
-  //       created: "",
-  //       writable: false,
-  //       last_modified: "",
-  //       mimetype: "",
-  //       content: null
-  //     } as Contents.IModel;
-  //   });
-  //
-  //   return {
-  //     name: "",
-  //     path: "",
-  //     format: "json",
-  //     type: "directory",
-  //     created: "",
-  //     last_modified: "",
-  //     writable: false,
-  //     mimetype: "",
-  //     content
-  //   };
-  // }
 
   /**
    * Wrap an API error in a hacked-together error object

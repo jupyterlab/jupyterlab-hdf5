@@ -29,7 +29,7 @@ export class HdfFileBrowser extends Widget {
     this.fpath = new hdfFpathInput();
     this.fpath.node.title = 'Click to edit file path';
     this._browser.toolbar.addItem('fpath', this.fpath);
-    this.fpath.nameChanged.connect(this._onFpathChanged, this);
+    this.fpath.pathChanged.connect(this._onFpathChanged, this);
 
     // // Add our own refresh button, since the other one is hidden
     // // via CSS.
@@ -57,7 +57,7 @@ export class HdfFileBrowser extends Widget {
       return;
     }
     this._changeGuard = true;
-    this._browser.model.cd(`/${this.fpath.name}`).then(() => {
+    this._browser.model.cd(`/${this.fpath.path}`).then(() => {
       this._changeGuard = false;
       this._updateErrorPanel();
       // Once we have the new listing, maybe give the file listing
@@ -140,7 +140,7 @@ export class hdfFpathInput extends Widget {
     const wrapper = new Widget();
     wrapper.addClass('jp-HdfUserInput-wrapper');
     this._input = document.createElement('input');
-    this._input.placeholder = 'Hdf User';
+    this._input.placeholder = 'HDF5 Path';
     this._input.className = 'jp-HdfUserInput-input';
     wrapper.node.appendChild(this._input);
     layout.addWidget(wrapper);
@@ -149,17 +149,17 @@ export class hdfFpathInput extends Widget {
   /**
    * The current name of the field.
    */
-  get name(): string {
-    return this._name;
+  get path(): string {
+    return this._path;
   }
-  set name(value: string) {
-    if (value === this._name) {
+  set path(value: string) {
+    if (value === this._path) {
       return;
     }
-    const old = this._name;
-    this._name = value;
+    const old = this._path;
+    this._path = value;
     this._input.value = value;
-    this._nameChanged.emit({
+    this._pathChanged.emit({
       oldValue: old,
       newValue: value
     });
@@ -168,8 +168,8 @@ export class hdfFpathInput extends Widget {
   /**
    * A signal for when the name changes.
    */
-  get nameChanged(): ISignal<this, { newValue: string; oldValue: string }> {
-    return this._nameChanged;
+  get pathChanged(): ISignal<this, { newValue: string; oldValue: string }> {
+    return this._pathChanged;
   }
 
   /**
@@ -189,7 +189,7 @@ export class hdfFpathInput extends Widget {
           case 13: // Enter
             event.stopPropagation();
             event.preventDefault();
-            this.name = this._input.value;
+            this.path = this._input.value;
             this._input.blur();
             break;
           default:
@@ -199,7 +199,7 @@ export class hdfFpathInput extends Widget {
       case 'blur':
         event.stopPropagation();
         event.preventDefault();
-        this.name = this._input.value;
+        this.path = this._input.value;
         break;
       case 'focus':
         event.stopPropagation();
@@ -229,8 +229,8 @@ export class hdfFpathInput extends Widget {
     this._input.removeEventListener('focus', this);
   }
 
-  private _name = '';
-  private _nameChanged = new Signal<
+  private _path = '';
+  private _pathChanged = new Signal<
     this,
     { newValue: string; oldValue: string }
   >(this);
