@@ -13,19 +13,19 @@ import {
 } from '@jupyterlab/docregistry';
 
 /**
- * The MIME type for HDF5.
+ * The MIME type for an HDF5 dataset.
  */
-export const MIME_TYPE = 'application/x-hdf5';
+export const MIME_TYPE = 'application/x-hdf5.dataset';
 
 /**
- * The CSS class for the viewer.
+ * The CSS class for the dataset grid widget.
  */
-export const HDF_CLASS = 'hdfViewer';
+export const HDF_CLASS = 'jp-HdfDatasetGrid';
 
 /**
  * The CSS class for our HDF container.
  */
-export const HDF_CONTAINER_CLASS = 'jp-HDFContainer';
+export const HDF_CONTAINER_CLASS = 'jp-HdfContainer';
 
 class H5ServDataModel extends DataModel {
   constructor(context: DocumentRegistry.Context) {

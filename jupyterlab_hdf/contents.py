@@ -100,7 +100,7 @@ class HdfContentsManager:
             return out
 
 
-## handl
+## handler
 class HdfContentsHandler(APIHandler):
     """A handler for HDF5 contents
     """

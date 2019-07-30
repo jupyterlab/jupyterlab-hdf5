@@ -24,37 +24,36 @@ import { metadHdfRequest } from './meta';
 /**
  * Hdf filebrowser plugin state namespace.
  */
-const NAMESPACE = 'hdf-filebrowser';
+const HDF_BROWSER_NAMESPACE = 'hdf-filebrowser';
 
 /**
- * The ID for the plugin.
+ * The IDs for the plugins.
  */
-const hdf5PluginId = 'jupyterlab-hdf:plugin';
+const hdf5BrowserPluginId = 'jupyterlab-hdf:browser';
+// const hdf5DatasetPluginId = 'jupyterlab-hdf:dataset';
 
 namespace CommandIDs {
   /**
    * Fetch metadata from an hdf5 file
    */
-  export const fetchMetaHdf = 'hdf:fetchMeta';
+  export const fetchHdfContents = 'hdf:fetchContents';
 }
 
 /**
  * Initialization data for the jupyterlab-hdf5 extension.
  */
-const extension: JupyterFrontEndPlugin<void> = {
-  id: hdf5PluginId,
+const hdfBrowserExtension: JupyterFrontEndPlugin<void> = {
+  id: hdf5BrowserPluginId,
   requires: [IDocumentManager, IFileBrowserFactory, ILayoutRestorer],
 
-  activate: activateHdfPlugin,
+  activate: activateHdfBrowserPlugin,
   autoStart: true
 };
-
-export default extension;
 
 /**
  * Activate the file browser.
  */
-function activateHdfPlugin(
+function activateHdfBrowserPlugin(
   app: JupyterFrontEnd,
   manager: IDocumentManager,
   factory: IFileBrowserFactory,
@@ -67,13 +66,12 @@ function activateHdfPlugin(
   const drive = new HdfDrive(app.docRegistry);
   manager.services.contents.addDrive(drive);
 
-  // Create the embedded filebrowser. Hdf repos likely
-  // don't need as often of a refresh interval as normal ones,
-  // and rate-limiting can be an issue, so we give a 5 minute
-  // refresh interval.
-  const browser = factory.createFileBrowser(NAMESPACE, {
+  // Create the embedded filebrowser. Hdf files likely
+  // don't need as often of a refresh interval as standard
+  // filesystem dirs, so we give a 5 second refresh interval.
+  const browser = factory.createFileBrowser(HDF_BROWSER_NAMESPACE, {
     driveName: drive.name,
-    refreshInterval: 300000
+    refreshInterval: 5000
   });
 
   const hdfBrowser = new HdfFileBrowser(browser, drive);
@@ -84,21 +82,29 @@ function activateHdfPlugin(
   hdfBrowser.id = 'hdf-file-browser';
 
   // Add the file browser widget to the application restorer.
-  restorer.add(hdfBrowser, NAMESPACE);
+  restorer.add(hdfBrowser, HDF_BROWSER_NAMESPACE);
   app.shell.add(hdfBrowser, 'left', { rank: 103 });
 
   // Settings for the notebook server.
   const serverSettings = ServerConnection.makeSettings();
 
-  commands.addCommand(CommandIDs.fetchMetaHdf, {
+  commands.addCommand(CommandIDs.fetchHdfContents, {
     execute: args => {
       const fpath = args['fpath'] as string;
       const uri = args['uri'] as string;
+      const row = args['row'] as number[];
+      const col = args['col'] as number[];
 
-      return metadHdfRequest(fpath, uri, serverSettings);
+      return metadHdfRequest(fpath, uri, row, col, serverSettings);
     },
-    label: 'Fetch HDF5 metadata'
+    label: 'For an HDF5 file at `fpath`, fetch the contents at `uri`'
   });
 
   return;
 }
+
+/**
+ * Export the plugins as default.
+ */
+const plugins: JupyterFrontEndPlugin<any>[] = [hdfBrowserExtension];
+export default plugins;

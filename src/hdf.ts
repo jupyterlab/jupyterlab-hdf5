@@ -80,3 +80,10 @@ export class HdfDatasetContents extends HdfContents {
  * Typings representing directory contents
  */
 export type HdfDirectoryListing = HdfContents[];
+
+export interface IContentsRequest {
+  fpath: string;
+  uri?: string;
+  row?: number[];
+  col?: number[];
+}
