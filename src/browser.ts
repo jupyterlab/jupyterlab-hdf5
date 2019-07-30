@@ -26,7 +26,7 @@ export class HdfFileBrowser extends Widget {
     this._drive = drive;
 
     // Create an editable name for the Hdf file path.
-    this.fpath = new hdfFpathInput();
+    this.fpath = new hdfFpathInput(browser);
     this.fpath.node.title = 'Click to edit file path';
     this._browser.toolbar.addItem('fpath', this.fpath);
     this.fpath.pathChanged.connect(this._onFpathChanged, this);
@@ -133,8 +133,10 @@ export class HdfFileBrowser extends Widget {
  * file path.
  */
 export class hdfFpathInput extends Widget {
-  constructor() {
+  constructor(browser: FileBrowser) {
     super();
+    this._browser = browser;
+
     this.addClass('jp-HdfUserInput');
     const layout = (this.layout = new PanelLayout());
     const wrapper = new Widget();
@@ -153,7 +155,7 @@ export class hdfFpathInput extends Widget {
     return this._path;
   }
   set path(value: string) {
-    if (value === this._path) {
+    if (value === this._browser.model.path) {
       return;
     }
     const old = this._path;
@@ -229,6 +231,7 @@ export class hdfFpathInput extends Widget {
     this._input.removeEventListener('focus', this);
   }
 
+  private _browser: FileBrowser;
   private _path = '';
   private _pathChanged = new Signal<
     this,

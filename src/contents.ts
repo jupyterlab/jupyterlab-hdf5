@@ -385,14 +385,28 @@ namespace Private {
         name: contents.name,
         path: path,
         format: 'json',
-        type: 'file',
+        type: 'external/hdf.dataset',
         created: '',
         writable: false,
         last_modified: '',
         mimetype: '',
         content: null
       };
-    } else if (contents.type === 'group') {
+    }
+    // else if (contents.type === 'external/hdf.dataset') {
+    //   return {
+    //     name: contents.name,
+    //     path: path,
+    //     format: 'json',
+    //     type: 'file',
+    //     created: '',
+    //     writable: false,
+    //     last_modified: '',
+    //     mimetype: 'application/x-hdf5.dataset',
+    //     content: null
+    //   };
+    // }
+    else if (contents.type === 'group') {
       // If it is a directory, convert to that.
       return {
         name: contents.name,
