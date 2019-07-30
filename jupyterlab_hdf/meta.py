@@ -82,7 +82,8 @@ class HdfMetaHandler(APIHandler):
     def get(self, path=''):
         """Given a path, fetch HDF metadata and respond when done.
         """
-        uri = '/' + self.get_query_argument('uri', default='').lstrip('/')
+        uri = '/' + self.get_query_argument('uri').lstrip('/')
+
         if not path:
             self.set_status(400)
             out = (f'The request was malformed; fpath should not be empty. fpath: {path} uri: {uri}')

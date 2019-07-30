@@ -15,6 +15,7 @@ enableAutoreload()
 from notebook.utils import url_path_join
 
 from ._version import __version__
+from .dataset import HdfDatasetHandler
 from .meta import HdfMetaHandler
 
 path_regex = r'(?P<path>(?:(?:/[^/]+)+|/?))'
@@ -44,8 +45,9 @@ def load_jupyter_server_extension(nb_server_app):
          HdfMetaHandler,
          {"notebook_dir": nb_server_app.notebook_dir}),
         # (f'{dataset}{path_regex}',
-        #  HdfDatasetHandler,
-        #  {"notebook_dir": nb_server_app.notebook_dir})
+        (dataset + '/(.*)',
+         HdfDatasetHandler,
+         {"notebook_dir": nb_server_app.notebook_dir})
     ]
     web_app.add_handlers('.*$', handlers)
 
