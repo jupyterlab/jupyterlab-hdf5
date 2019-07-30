@@ -9,9 +9,13 @@ import { DocumentRegistry } from '@jupyterlab/docregistry';
 
 import { Contents, ServerConnection } from '@jupyterlab/services';
 
-import { HdfContents, HdfDatasetContents, HdfDirectoryListing } from './hdf';
-
-import { metadHdfRequest } from './meta';
+import {
+  hdfContentsRequest,
+  HdfContents,
+  HdfDatasetContents,
+  HdfDirectoryListing,
+  parseHdfQuery
+} from './hdf';
 
 /**
  * A Contents.IDrive implementation that serves as a read-only
@@ -112,13 +116,13 @@ export class HdfDrive implements Contents.IDrive {
     path: string,
     options?: HdfDrive.IFetchOptions
   ): Promise<Contents.IModel> {
-    const resource = HdfDrive.parsePath(path, options);
+    const params = parseHdfQuery(path);
 
-    if (!resource.fpath) {
+    if (!params.fpath) {
       return Promise.resolve(Private.dummyDirectory);
     }
 
-    return metadHdfRequest(resource.fpath, resource.uri, this._serverSettings)
+    return hdfContentsRequest(params, this._serverSettings)
       .then(contents => {
         this._validFile = true;
         return Private.hdfContentsToJupyterContents(path, contents);
@@ -150,7 +154,7 @@ export class HdfDrive implements Contents.IDrive {
     // const resource = parsePath(path);
 
     return Promise.resolve(
-      URLExt.join(this._serverSettings.baseUrl, 'hdf', 'metadata', path)
+      URLExt.join(this._serverSettings.baseUrl, 'hdf', 'contents', path)
     );
   }
 
@@ -283,35 +287,6 @@ export class HdfDrive implements Contents.IDrive {
 export namespace HdfDrive {
   export interface IFetchOptions extends Contents.IFetchOptions {
     uri?: string;
-  }
-
-  /**
-   * Specification for a file in a repository.
-   */
-  export interface IHdfResource {
-    /**
-     * The apipath to to the Hdf resource.
-     */
-    readonly path: string;
-
-    readonly fpath: string;
-
-    readonly uri: string;
-  }
-
-  /**
-   * Parse a path into a IHdfResource.
-   */
-  export function parsePath(
-    path: string,
-    options: IFetchOptions = {}
-  ): IHdfResource {
-    const parts = path.split('?');
-    return {
-      path: path,
-      fpath: parts[0],
-      uri: parts[1] ? URLExt.queryStringToObject(parts[1]).uri : '/'
-    };
   }
 }
 

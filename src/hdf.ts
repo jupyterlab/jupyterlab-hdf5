@@ -1,6 +1,74 @@
 // Copyright (c) Max Klein.
 // Distributed under the terms of the Modified BSD License.
 
+import { URLExt } from '@jupyterlab/coreutils';
+
+import { ServerConnection } from '@jupyterlab/services';
+
+/**
+ * Parse a path into hdf contents request parameters.
+ */
+export function parseHdfQuery(path: string): IContentsParameters {
+  const parts = path.split('?');
+
+  return {
+    fpath: parts[0],
+    uri: '/',
+    row: [100],
+    col: [100],
+    ...URLExt.queryStringToObject(parts[1])
+  };
+}
+
+/**
+ * Send a parameterized request to the `hdf/contents` api, and
+ * return the result.
+ */
+export function hdfContentsRequest(
+  parameters: IContentsParameters,
+  settings: ServerConnection.ISettings
+): Promise<HdfDirectoryListing> {
+  const { fpath, ...rest } = parameters;
+
+  const fullUrl =
+    URLExt.join(settings.baseUrl, 'hdf', 'contents', fpath).split('?')[0] +
+    URLExt.objectToQueryString({ ...rest });
+
+  return ServerConnection.makeRequest(fullUrl, {}, settings).then(response => {
+    if (response.status !== 200) {
+      return response.text().then(data => {
+        throw new ServerConnection.ResponseError(response, data);
+      });
+    }
+    return response.json();
+  });
+}
+
+/**
+ * The parameters that make up the input of an hdf contents request.
+ */
+export interface IContentsParameters {
+  /**
+   * Path on disk to an HDF5 file.
+   */
+  fpath: string;
+
+  /**
+   * Path within an HDF5 file to a specific group or dataset.
+   */
+  uri?: string;
+
+  /**
+   * Row slice. Up to 3 integers, same syntax as for Python `slice` built-in.
+   */
+  row?: number[];
+
+  /**
+   * Column slice. Up to 3 integers, same syntax as for Python `slice` built-in.
+   */
+  col?: number[];
+}
+
 /**
  * Typings representing contents from the Hdf
  */
@@ -35,6 +103,11 @@ export class HdfDatasetContents extends HdfContents {
    */
   content?: string;
 }
+
+/**
+ * Typings representing directory contents
+ */
+export type HdfDirectoryListing = HdfContents[];
 
 // /**
 //  * Typings representing a directory from the Hdf
@@ -75,15 +148,3 @@ export class HdfDatasetContents extends HdfContents {
 //    */
 //   size: number;
 // }
-
-/**
- * Typings representing directory contents
- */
-export type HdfDirectoryListing = HdfContents[];
-
-export interface IContentsRequest {
-  fpath: string;
-  uri?: string;
-  row?: number[];
-  col?: number[];
-}

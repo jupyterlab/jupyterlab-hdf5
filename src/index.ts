@@ -19,7 +19,7 @@ import { HdfFileBrowser } from './browser';
 
 import { HdfDrive } from './contents';
 
-import { metadHdfRequest } from './meta';
+import { hdfContentsRequest } from './hdf';
 
 /**
  * Hdf filebrowser plugin state namespace.
@@ -91,11 +91,11 @@ function activateHdfBrowserPlugin(
   commands.addCommand(CommandIDs.fetchHdfContents, {
     execute: args => {
       const fpath = args['fpath'] as string;
-      const uri = args['uri'] as string;
-      const row = args['row'] as number[];
-      const col = args['col'] as number[];
+      const uri = (args['uri'] as string) || '/';
+      const row = (args['row'] as number[]) || [100];
+      const col = (args['col'] as number[]) || [100];
 
-      return metadHdfRequest(fpath, uri, row, col, serverSettings);
+      return hdfContentsRequest({ fpath, uri, row, col }, serverSettings);
     },
     label: 'For an HDF5 file at `fpath`, fetch the contents at `uri`'
   });

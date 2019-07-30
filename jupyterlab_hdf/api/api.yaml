@@ -25,7 +25,7 @@ components:
         type: string
     - name: row
       in: query
-      description: "Row slice. Up to 3 integers, same syntax as for Python `slice` function`."
+      description: "Row slice. Up to 3 integers, same syntax as for Python `slice` built-in."
       explode: false
       schema:
         type: array
@@ -35,7 +35,7 @@ components:
         maxItems: 3
     - name: col
       in: query
-      description: "Column slice. Up to 3 integers, same syntax as for Python `slice` function`."
+      description: "Column slice. Up to 3 integers, same syntax as for Python `slice` built-in."
       explode: false
       schema:
         type: array
