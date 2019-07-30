@@ -365,10 +365,11 @@ export namespace HdfDrive {
     path: string,
     options: IFetchOptions = {}
   ): IHdfResource {
+    const parts = path.split('?');
     return {
       path: path,
-      fpath: path,
-      uri: options.uri || '/'
+      fpath: parts[0],
+      uri: parts[1] ? URLExt.queryStringToObject(parts[1]).uri : '/'
     };
   }
 }
@@ -415,8 +416,9 @@ namespace Private {
     if (Array.isArray(contents)) {
       // If we have an array, it is a directory of HdfContents.
       // Iterate over that and convert all of the items in the array/
+      const fpath = path.split('?')[0];
       return {
-        name: PathExt.basename(path.split('?')[0]),
+        name: PathExt.basename(fpath),
         path: path,
         format: 'json',
         type: 'directory',
@@ -425,9 +427,8 @@ namespace Private {
         last_modified: '',
         mimetype: '',
         content: contents.map(c => {
-          const { uri } = c;
           return hdfContentsToJupyterContents(
-            path + URLExt.objectToQueryString({ uri }),
+            fpath + `?uri=${c.uri}`,
             c,
             fileTypeForPath
           );

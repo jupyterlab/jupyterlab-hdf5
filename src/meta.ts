@@ -13,8 +13,7 @@ export function metadHdfRequest(
 
   if (fullUrl.includes('?')) {
     if (uri) {
-      fullUrl = fullUrl.split('?')[0];
-      +URLExt.objectToQueryString({ uri });
+      fullUrl = fullUrl.split('?')[0] + URLExt.objectToQueryString({ uri });
     }
   } else {
     fullUrl += URLExt.objectToQueryString({ uri });
