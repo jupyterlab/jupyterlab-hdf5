@@ -51,4 +51,11 @@ def load_jupyter_server_extension(nb_server_app):
     ]
     web_app.add_handlers('.*$', handlers)
 
+# def hdf5_external_handler(model):
+#     path = model['path']
+#
+# c = get_config()
+#
+# c.ContentsManager.external_formats = {'external+hdf5': hdf5_external_handler}
+
 print('INFO: jupyterlab_hdf python package imported')

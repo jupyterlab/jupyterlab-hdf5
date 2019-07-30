@@ -15,22 +15,8 @@ def datasetDict(data):
         ('data', data)
     ])
 
-def apiSplit(apipath):
-    fpath,uri = apipath.split('::')
-    uri = '/' + uri.lstrip('/')
-    return fpath,uri
-
-_emptyUriRe = re.compile('//')
-def uriJoin(*parts):
-    return _emptyUriRe.sub('/', '/'.join(parts))
-
-
-def getDatasetHdf(group, prefix='/'):
-    return [datasetDict(
-        'group' if isinstance(val, h5py.Group) else 'dataset',
-        key,
-        uriJoin(prefix, key)
-    ) for key,val in group.items()]
+def getDatasetHdf(dset, rslice, cslice):
+    return [datasetDict(dset[rslice, cslice].tolist())]
 
 class HdfDatasetHandler(APIHandler):
     """A handler for HDF5 datasets
@@ -68,7 +54,7 @@ class HdfDatasetHandler(APIHandler):
                     raise HTTPError(401, msg)
                 try:
                     with h5py.File(fpath, 'r') as f:
-                        out = getDatasetHdf(f[uri], uri)
+                        out = getDatasetHdf(f[uri], slice(*row), slice(*col))
                 except Exception as e:
                     msg = (f'Opened the file at fpath but could not retrieve valid metadata from {uri}.\n'
                            f'Error: {e}')
