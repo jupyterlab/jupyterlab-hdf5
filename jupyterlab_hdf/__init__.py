@@ -3,7 +3,7 @@
 from notebook.utils import url_path_join
 
 from ._version import __version__
-from .metadata import HdfMetadataHandler
+from .meta import HdfMetaHandler
 
 path_regex = r'(?P<path>(?:(?:/[^/]+)+|/?))'
 
@@ -29,7 +29,7 @@ def load_jupyter_server_extension(nb_server_app):
     handlers = [
         #(f'{meta}/{path_regex}',
         (meta + '/(.*)',
-         HdfMetadataHandler,
+         HdfMetaHandler,
          {"notebook_dir": nb_server_app.notebook_dir}),
         # (f'{dataset}{path_regex}',
         #  HdfDatasetHandler,

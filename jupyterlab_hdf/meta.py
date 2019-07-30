@@ -70,7 +70,7 @@ def genMetaAllHdf(group, prefix='/'):
 
 
 ## handler
-class HdfMetadataHandler(APIHandler):
+class HdfMetaHandler(APIHandler):
     """A handler that runs LaTeX on the server.
     """
 
