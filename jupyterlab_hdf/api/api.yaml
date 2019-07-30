@@ -45,63 +45,6 @@ components:
         maxItems: 3
 
 paths:
-  /hdf/meta/{fpath}{?uri}:
-    get:
-      summary: Gets the metadata at the apiPath for the HDF5 API.
-      parameters:
-        - $ref: '#/components/parameters/fpath'
-        - $ref: '#/components/parameters/uri'
-      responses:
-        '200':
-          description: Found hdf file, got metadata.
-          schema:
-            type: array
-            items:
-              type: object
-              properties:
-                type:
-                  type: string
-                name:
-                  type: string
-                uri:
-                  type: string
-        '400':
-          description: The request was malformed; should be of the format "file/path?uri=uri/path"
-        '401':
-          description: The request did not specify a file that `h5py` could understand.
-        '403':
-          description: The request specified a file that did not exist.
-        '500':
-          description: Found and opened file, error getting metadata.
-
-
-  /hdf/dataset/{fpath}{?uri,row,col}:
-    get:
-      summary: Gets a slice of a dataset for the HDF5 API.
-      parameters:
-        - $ref: '#/components/parameters/fpath'
-        - $ref: '#/components/parameters/uri'
-        - $ref: '#/components/parameters/row'
-        - $ref: '#/components/parameters/col'
-      responses:
-        '200':
-          description: Found hdf dataset, got data.
-          schema:
-            type: array
-            items:
-              type: object
-              properties:
-                data:
-                  type: string
-        '400':
-          description: The request was malformed; should be of the format "file/path?uri=uri/path&row=[start,stop,step]&col=[start,stop,step]"
-        '401':
-          description: The request did not specify a file that `h5py` could understand.
-        '403':
-          description: The request specified a file that did not exist.
-        '500':
-          description: Found and opened file, error getting data from dataset.
-
   /hdf/contents/{fpath}{?uri,row,col}:
     get:
       summary: Get the contents of the hdf object pointed to by the uri in the file at fpath.

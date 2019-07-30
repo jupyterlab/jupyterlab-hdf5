@@ -20,8 +20,6 @@ from notebook.utils import url_path_join
 
 from ._version import __version__
 from .contents import HdfContentsManager, HdfContentsHandler
-# from .dataset import HdfDatasetManager, HdfDatasetHandler
-# from .meta import HdfMetaHandler
 
 path_regex = r'(?P<path>(?:(?:/[^/]+)+|/?))'
 
@@ -50,18 +48,6 @@ def _load_handlers(nb_server_app, web_app):
          {"notebook_dir": nb_server_app.notebook_dir}),
     ]
 
-    # meta = url_path_join(hdf, 'meta')
-    # dataset = url_path_join(hdf, 'dataset')
-    #
-    # handlers = [
-    #     (meta + '/(.*)',
-    #      HdfMetaHandler,
-    #      {"notebook_dir": nb_server_app.notebook_dir}),
-    #     (dataset + '/(.*)',
-    #      HdfDatasetHandler,
-    #      {"notebook_dir": nb_server_app.notebook_dir})
-    # ]
-
     web_app.add_handlers('.*$', handlers)
 
 def load_jupyter_server_extension(nb_server_app):
@@ -72,7 +58,7 @@ def load_jupyter_server_extension(nb_server_app):
         nb_server_app (NotebookApp): handle to the Notebook webserver instance.
     """
     web_app = nb_server_app.web_app
-    _load_external_types(nb_server_app, web_app)
+    # _load_external_types(nb_server_app, web_app)
     _load_handlers(nb_server_app, web_app)
 
     print('INFO: jupyterlab_hdf server extension loaded')

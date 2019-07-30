@@ -1,6 +1,9 @@
+""" jupyterLab_hdf : HDF5 api for Jupyter/Jupyterlab
+
+Copyright (c) Max Klein.
+Distributed under the terms of the Modified BSD License.
 """
-Setup module for the jupyterlab_github proxy extension
-"""
+
 import setuptools
 from setupbase import (
     create_cmdclass, ensure_python, find_packages
