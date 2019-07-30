@@ -1,5 +1,17 @@
 """ JupyterLab HDF : HDF5 file viewer for Jupyterlab """
 
+def enableAutoreload():
+    from IPython import get_ipython
+
+    if get_ipython() is not None:
+        mStrs = [
+            'load_ext autoreload',
+            'autoreload 2',
+        ]
+        for mStr in mStrs:
+            get_ipython().magic(mStr)
+enableAutoreload()
+
 from notebook.utils import url_path_join
 
 from ._version import __version__
@@ -24,7 +36,7 @@ def load_jupyter_server_extension(nb_server_app):
     base_url = web_app.settings['base_url']
     hdf = url_path_join(base_url, 'hdf')
     meta = url_path_join(hdf, 'meta')
-    # data = url_path_join(hdf, 'data')
+    dataset = url_path_join(hdf, 'dataset')
 
     handlers = [
         #(f'{meta}/{path_regex}',

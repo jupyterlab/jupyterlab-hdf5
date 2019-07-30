@@ -2,12 +2,18 @@
 import h5py
 import numpy as np
 
-def genLeaf(group, n=0, shape=(20, 10)):
+def genData(n, shape=(1000, 1000), umin=0, umax=1000):
+    data = np.empty(shape)
+    data[:, 0] = n
+    data[0, :] = n
+    data[1:, 1:] = np.random.uniform(umin, umax, size=np.array(shape) - 1)
+    return data
+
+def genLeaf(group, n=0, shape=(1000, 1000)):
     leaf = group.create_group('leaf%02d' % (n+1))
 
-    # data = np.random.uniform(0, 1000, size=shape)
-    data = np.full(shape, n)
-    group.create_dataset('data%02d' % n, data=data)
+    # data = np.full(shape, n)
+    group.create_dataset('data%02d' % n, data=genData(n, shape=shape))
 
     return leaf
 

@@ -2,44 +2,30 @@ openapi: 3.0.0
 info:
   title: JupyterLab HDF5 proxy
   description: Proxies HDF5 API requests from JupyterLab to HDF5.
-  version: 0.0.1
-  
+  version: 0.1.0-alpha
+components:
+  parameters:
+    - name: fpath
+      in: path
+      required: true
+      description: "Path on disk to an HDF5 file."
+      schema:
+        type: string
+        format: uri
+    - name: uri
+      in: query
+      required: true
+      description: "Path within an HDF5 file to a specific group or dataset."
+      schema:
+        type: string
+
 paths:
   /hdf/meta/{fpath}{?uri}:
     get:
       summary: Gets the metadata at the apiPath for the HDF5 API.
       parameters:
-        - name: fpath
-          in: path
-          required: true
-          description: "Path on disk to an HDF5 file."
-          schema:
-            type: string
-            format: uri
-        - name: uri
-          in: query
-          description: "Path within an HDF5 file to a specific group or dataset."
-          schema:
-            type: string
-        - name: rowSlice
-            in: query
-            description: "Row slice (eg '30:45')."
-            schema:
-              type: string
-        - name: colSlice
-            in: query
-            description: "Col slice (eg '30:45')."
-            schema:
-              type: string
-        - name: rows
-          in: query
-          description: "Slice defined by one or more integers."
-          schema:
-            type: array
-            style: pipeDelimited
-            explode: false
-            items:
-              type: integer
+        - $ref: '#/components/parameters/fpath'
+        - $ref: '#/components/parameters/uri'
       responses:
         '200':
           description: Found hdf file, got metadata.
@@ -55,10 +41,56 @@ paths:
                 uri:
                   type: string
         '400':
-          description: The request was malformed; should be of the format "<file-path>::<uri-path>"
+          description: The request was malformed; should be of the format "file/path?uri=uri/path"
         '401':
           description: The request did not specify a file that `h5py` could understand.
         '403':
           description: The request specified a file that did not exist.
         '500':
           description: Found and opened file, error getting metadata.
+
+
+  /hdf/dataset/{fpath}{?uri,row,col}:
+    get:
+      summary: Gets a slice of a dataset for the HDF5 API.
+      parameters:
+        - $ref: '#/components/parameters/fpath'
+        - $ref: '#/components/parameters/uri'
+        - name: row
+          in: query
+          description: "Row slice. Up to 3 integers, same syntax as for Python `slice` function`."
+          explode: false
+          schema:
+            type: array
+            items:
+              type: integer
+            nullable: true
+            maxItems: 3
+        - name: col
+          in: query
+          description: "Column slice. Up to 3 integers, same syntax as for Python `slice` function`."
+          explode: false
+          schema:
+            type: array
+            items:
+              type: integer
+            nullable: true
+            maxItems: 3
+      responses:
+        '200':
+          description: Found hdf dataset, got data.
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                data:
+                  type: string
+        '400':
+          description: The request was malformed; should be of the format "file/path?uri=uri/path&row=[start,stop,step]&col=[start,stop,step]"
+        '401':
+          description: The request did not specify a file that `h5py` could understand.
+        '403':
+          description: The request specified a file that did not exist.
+        '500':
+          description: Found and opened file, error getting data from dataset.
