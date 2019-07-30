@@ -16,7 +16,7 @@ export function parseHdfQuery(path: string): IContentsParameters {
     uri: '/',
     row: [100],
     col: [100],
-    ...URLExt.queryStringToObject(parts[1])
+    ...(parts[1] ? URLExt.queryStringToObject(parts[1]) : {})
   };
 }
 

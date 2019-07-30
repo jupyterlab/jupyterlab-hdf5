@@ -12,6 +12,7 @@ import { ISignal, Signal } from '@phosphor/signaling';
 import { PanelLayout, Widget } from '@phosphor/widgets';
 
 import { HdfDrive } from './contents';
+import { parseHdfQuery } from './hdf';
 
 /**
  * Widget for hosting the Hdf filebrowser.
@@ -57,18 +58,26 @@ export class HdfFileBrowser extends Widget {
       return;
     }
     this._changeGuard = true;
-    this._browser.model.cd(`/${this.fpath.path}`).then(() => {
-      this._changeGuard = false;
-      this._updateErrorPanel();
-      // Once we have the new listing, maybe give the file listing
-      // focus. Once the input element is removed, the active element
-      // appears to revert to document.body. If the user has subsequently
-      // focused another element, don't focus the browser listing.
-      if (document.activeElement === document.body) {
-        const listing = (this._browser.layout as PanelLayout).widgets[2];
-        listing.node.focus();
-      }
-    });
+    this._browser.model
+      .cd(`/${this.fpath.path}`)
+      .then(() => {
+        this._changeGuard = false;
+        this._updateErrorPanel();
+        // Once we have the new listing, maybe give the file listing
+        // focus. Once the input element is removed, the active element
+        // appears to revert to document.body. If the user has subsequently
+        // focused another element, don't focus the browser listing.
+        if (document.activeElement === document.body) {
+          const listing = (this._browser.layout as PanelLayout).widgets[2];
+          listing.node.focus();
+        }
+      })
+      .catch((err: Error) => {
+        const msg =
+          `Failed to open HDF5 file at ${this.fpath.path}` + err.message;
+        console.error(msg);
+        this._updateErrorPanel(err);
+      });
   }
 
   // /**
@@ -96,12 +105,11 @@ export class HdfFileBrowser extends Widget {
   /**
    * React to a change in the validity of the drive.
    */
-  private _updateErrorPanel(): void {
+  private _updateErrorPanel(err?: Error): void {
     const localPath = this._browser.model.manager.services.contents.localPath(
       this._browser.model.path
     );
-    const resource = HdfDrive.parsePath(localPath);
-    const validFile = this._drive.validFile;
+    const params = parseHdfQuery(localPath);
 
     // If we currently have an error panel, remove it.
     if (this._errorPanel) {
@@ -111,14 +119,25 @@ export class HdfFileBrowser extends Widget {
       this._errorPanel = null;
     }
 
-    // If we have an invalid file path, make an error panel.
-    if (!validFile) {
-      const message = `No file found at path: ${resource.fpath}`;
-      this._errorPanel = new HdfErrorPanel(message);
-      const listing = (this._browser.layout as PanelLayout).widgets[2];
-      listing.node.appendChild(this._errorPanel.node);
+    if (err) {
+      const msg =
+        `Failed to open HDF5 file at ${this.fpath.path}` + err.message;
+      this._initErrorPanel(msg);
       return;
     }
+
+    if (!this._drive.validFile) {
+      // If we have an invalid file path, make an error msg.
+      const msg = `No file found at path: ${params.fpath}`;
+      this._initErrorPanel(msg);
+      return;
+    }
+  }
+
+  private _initErrorPanel(msg: string) {
+    this._errorPanel = new HdfErrorPanel(msg);
+    const listing = (this._browser.layout as PanelLayout).widgets[2];
+    listing.node.appendChild(this._errorPanel.node);
   }
 
   private _browser: FileBrowser;
