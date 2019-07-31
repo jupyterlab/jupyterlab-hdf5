@@ -46,10 +46,9 @@ def dsetDict(name, uri, content=None):
 ## the actual hdf contents handling
 def getContentsHdf(obj, uri, row, col):
     if isinstance(obj, h5py.Group):
-        return [groupDict(
-            name=name,
-            uri=uriJoin(uri, name)
-        ) for name in obj.keys()]
+        return [(groupDict if isinstance(val, h5py.Group) else dsetDict)
+                (name=name, uri=uriJoin(uri, name))
+                for name,val in obj.items()]
     else:
         return [dsetDict(
             name=uriName(uri),
