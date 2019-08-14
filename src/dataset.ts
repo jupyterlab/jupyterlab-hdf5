@@ -1,7 +1,7 @@
 // Copyright (c) Max Klein.
 // Distributed under the terms of the Modified BSD License.
 
-import { Token } from '@phosphor/coreutils';
+import { PromiseDelegate, Token } from '@phosphor/coreutils';
 
 import { DataGrid, DataModel } from '@phosphor/datagrid';
 
@@ -29,30 +29,86 @@ export const HDF_CLASS = 'jp-HdfDataGrid';
  */
 export const HDF_CONTAINER_CLASS = 'jp-HdfContainer';
 
-class H5ServDataModel extends DataModel {
+class HdfDatasetModel extends DataModel {
   constructor(context: DocumentRegistry.Context) {
     super();
-    this._url = context.path;
-    fetch(this._url)
-      .then(function(response) {
-        return response.json();
-      })
-      .then(metadata => {
-        [this._rowCount, this._columnCount] = metadata['shape']['dims'];
-        this.emitChanged({
-          type: 'rows-inserted',
-          region: 'body',
-          index: 0,
-          span: this._rowCount
-        });
-        this.emitChanged({
-          type: 'columns-inserted',
-          region: 'body',
-          index: 0,
-          span: this._columnCount
-        });
-      });
+
+    this._context = context;
+
+    void context.ready.then(() => {
+      this._onContextReady();
+    });
   }
+
+  /**
+   * Get the context for the editor widget.
+   */
+  get context(): DocumentRegistry.Context {
+    return this._context;
+  }
+
+  /**
+   * A promise that resolves when the file editor is ready.
+   */
+  get ready(): Promise<void> {
+    return this._ready.promise;
+  }
+
+  /**
+   * Handle actions that should be taken when the context is ready.
+   */
+  private _onContextReady(): void {
+    const contextModel = this._context.model;
+    const json: any = contextModel.toJSON();
+    const data = json[0].content;
+
+    this._rowCount = data.length;
+    this._columnCount = data[0].length;
+
+    this._blocks[0] = Object();
+    this._blocks[0][0] = data;
+
+    this.emitChanged({
+      type: 'rows-inserted',
+      region: 'body',
+      index: 0,
+      span: this._rowCount
+    });
+    this.emitChanged({
+      type: 'columns-inserted',
+      region: 'body',
+      index: 0,
+      span: this._columnCount
+    });
+
+    // // Wire signal connections.
+    // contextModel.contentChanged.connect(this._onContentChanged, this);
+
+    // Resolve the ready promise.
+    this._ready.resolve(undefined);
+  }
+
+  // this._url = context.path;
+  // fetch(this._url)
+  //   .then(function(response) {
+  //     return response.json();
+  //   })
+  //   .then(metadata => {
+  //     [this._rowCount, this._columnCount] = metadata['shape']['dims'];
+  //     this.emitChanged({
+  //       type: 'rows-inserted',
+  //       region: 'body',
+  //       index: 0,
+  //       span: this._rowCount
+  //     });
+  //     this.emitChanged({
+  //       type: 'columns-inserted',
+  //       region: 'body',
+  //       index: 0,
+  //       span: this._columnCount
+  //     });
+  //   });
+  // }
 
   rowCount(region: DataModel.RowRegion): number {
     return region === 'body' ? this._rowCount : 1;
@@ -84,47 +140,50 @@ class H5ServDataModel extends DataModel {
     }
     // This data has not yet been loaded. Fetch the block that it is in.
     // When the data is received, this will be updated by emitChanged.
-    this._fetchBlock(rowBlock, columnBlock);
+    // this._fetchBlock(rowBlock, columnBlock);
     return null;
   }
 
-  private _fetchBlock = (rowBlock: number, columnBlock: number) => {
-    const rowStart: number = rowBlock * this._blockSize;
-    const rowStop: number = Math.min(
-      rowStart + this._blockSize,
-      this._rowCount
-    );
-    const columnStart: number = columnBlock * this._blockSize;
-    const columnStop: number = Math.min(
-      columnStart + this._blockSize,
-      this._columnCount
-    );
-    const query_params: string = `select=[${rowStart}:${rowStop},${columnStart}:${columnStop}]`;
-    fetch(this._url + '/value?' + query_params)
-      .then(function(response) {
-        return response.json();
-      })
-      .then(data => {
-        if (!this._blocks[rowBlock]) {
-          this._blocks[rowBlock] = Object();
-        }
-        this._blocks[rowBlock][columnBlock] = data['value'];
-        this.emitChanged({
-          type: 'cells-changed',
-          region: 'body',
-          rowIndex: rowBlock * this._blockSize,
-          columnIndex: columnBlock * this._blockSize,
-          rowSpan: this._blockSize,
-          columnSpan: this._blockSize
-        });
-      });
-  };
+  // private _fetchBlock = (rowBlock: number, columnBlock: number) => {
+  //   const rowStart: number = rowBlock * this._blockSize;
+  //   const rowStop: number = Math.min(
+  //     rowStart + this._blockSize,
+  //     this._rowCount
+  //   );
+  //   const columnStart: number = columnBlock * this._blockSize;
+  //   const columnStop: number = Math.min(
+  //     columnStart + this._blockSize,
+  //     this._columnCount
+  //   );
+  //   const query_params: string = `select=[${rowStart}:${rowStop},${columnStart}:${columnStop}]`;
+  //   fetch(this._url + '/value?' + query_params)
+  //     .then(function(response) {
+  //       return response.json();
+  //     })
+  //     .then(data => {
+  //       if (!this._blocks[rowBlock]) {
+  //         this._blocks[rowBlock] = Object();
+  //       }
+  //       this._blocks[rowBlock][columnBlock] = data['value'];
+  //       this.emitChanged({
+  //         type: 'cells-changed',
+  //         region: 'body',
+  //         rowIndex: rowBlock * this._blockSize,
+  //         columnIndex: columnBlock * this._blockSize,
+  //         rowSpan: this._blockSize,
+  //         columnSpan: this._blockSize
+  //       });
+  //     });
+  // };
 
-  private _url: string = '';
+  // private _url: string = '';
   private _rowCount: number = 0;
   private _columnCount: number = 0;
   private _blockSize: number = 100;
   private _blocks: any = Object();
+
+  protected _context: DocumentRegistry.Context;
+  private _ready = new PromiseDelegate<void>();
 }
 
 /**
@@ -134,7 +193,7 @@ export class HdfDatasetWidget extends DocumentWidget<DataGrid>
   implements IDocumentWidget<DataGrid> {
   constructor(context: DocumentRegistry.Context) {
     const content = new DataGrid();
-    content.model = new H5ServDataModel(context);
+    content.model = new HdfDatasetModel(context);
     const toolbar = Private.createToolbar(content);
     const reveal = context.ready;
     super({ content, context, reveal, toolbar });
