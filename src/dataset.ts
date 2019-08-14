@@ -144,9 +144,7 @@ export class HdfDatasetWidget extends DocumentWidget<DataGrid>
 /**
  * A widget factory for HDF5 data grids.
  */
-export class HdfDatasetFactory extends ABCWidgetFactory<
-  IDocumentWidget<DataGrid>
-> {
+export class HdfDatasetFactory extends ABCWidgetFactory<HdfDatasetWidget> {
   /**
    * Create a new widget given a context.
    */
