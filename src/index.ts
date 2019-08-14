@@ -7,9 +7,13 @@ import {
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 
+import { WidgetTracker } from '@jupyterlab/apputils';
+
 // import { ISettingRegistry } from "@jupyterlab/coreutils";
 
 import { IDocumentManager } from '@jupyterlab/docmanager';
+
+import { DocumentRegistry } from '@jupyterlab/docregistry';
 
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 
@@ -19,18 +23,25 @@ import { HdfFileBrowser } from './browser';
 
 import { HdfDrive } from './contents';
 
+import {
+  IHdfDatasetTracker,
+  HdfDatasetFactory,
+  HdfDatasetWidget
+} from './dataset';
+
 import { hdfContentsRequest } from './hdf';
 
 /**
- * Hdf filebrowser plugin state namespace.
+ * Hdf plugins state namespace.
  */
 const HDF_BROWSER_NAMESPACE = 'hdf-filebrowser';
+const HDF_DATASET_NAMESPACE = 'hdf-dataset';
 
 /**
  * The IDs for the plugins.
  */
 const hdf5BrowserPluginId = 'jupyterlab-hdf:browser';
-// const hdf5DatasetPluginId = 'jupyterlab-hdf:dataset';
+const hdf5DatasetPluginId = 'jupyterlab-hdf:dataset';
 
 namespace CommandIDs {
   /**
@@ -104,7 +115,77 @@ function activateHdfBrowserPlugin(
 }
 
 /**
+ * The HTML file handler extension.
+ */
+const hdfDatasetPlugin: JupyterFrontEndPlugin<IHdfDatasetTracker> = {
+  activate: activateHdfDatasetPlugin,
+  id: hdf5DatasetPluginId,
+  provides: IHdfDatasetTracker,
+  optional: [ILayoutRestorer],
+  autoStart: true
+};
+
+/**
+ * Activate the HTMLViewer extension.
+ */
+function activateHdfDatasetPlugin(
+  app: JupyterFrontEnd,
+  restorer: ILayoutRestorer | null
+): IHdfDatasetTracker {
+  // Add an hdf dataset file type to the docregistry.
+  const ft: DocumentRegistry.IFileType = {
+    name: 'hdf:dataset',
+    contentType: 'file',
+    fileFormat: 'json',
+    displayName: 'HDF Dataset',
+    extensions: ['.data'],
+    mimeTypes: ['application/x-hdf5.dataset']
+  };
+  app.docRegistry.addFileType(ft);
+
+  // Create a new viewer factory.
+  const factory = new HdfDatasetFactory({
+    name: 'HDF Dataset',
+    fileTypes: ['hdf:dataset'],
+    defaultFor: ['hdf:dataset'],
+    readOnly: true
+  });
+
+  // Create a widget tracker for HTML documents.
+  const tracker = new WidgetTracker<HdfDatasetWidget>({
+    namespace: HDF_DATASET_NAMESPACE
+  });
+
+  // Handle state restoration.
+  if (restorer) {
+    void restorer.restore(tracker, {
+      command: 'docmanager:open',
+      args: widget => ({ path: widget.context.path, factory: 'HDF Dataset' }),
+      name: widget => widget.context.path
+    });
+  }
+
+  app.docRegistry.addWidgetFactory(factory);
+  factory.widgetCreated.connect((sender, widget) => {
+    // Track the widget.
+    void tracker.add(widget);
+    // Notify the widget tracker if restore data needs to update.
+    widget.context.pathChanged.connect(() => {
+      void tracker.save(widget);
+    });
+
+    widget.title.iconClass = ft.iconClass;
+    widget.title.iconLabel = ft.iconLabel;
+  });
+
+  return tracker;
+}
+
+/**
  * Export the plugins as default.
  */
-const plugins: JupyterFrontEndPlugin<any>[] = [hdfBrowserExtension];
+const plugins: JupyterFrontEndPlugin<any>[] = [
+  hdfBrowserExtension,
+  hdfDatasetPlugin
+];
 export default plugins;

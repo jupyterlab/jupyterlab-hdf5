@@ -1,9 +1,11 @@
 // Copyright (c) Max Klein.
 // Distributed under the terms of the Modified BSD License.
 
+import { Token } from '@phosphor/coreutils';
+
 import { DataGrid, DataModel } from '@phosphor/datagrid';
 
-import { Toolbar, ToolbarButton } from '@jupyterlab/apputils';
+import { IWidgetTracker, Toolbar, ToolbarButton } from '@jupyterlab/apputils';
 
 import {
   ABCWidgetFactory,
@@ -18,12 +20,12 @@ import {
 export const MIME_TYPE = 'application/x-hdf5.dataset';
 
 /**
- * The CSS class for the dataset grid widget.
+ * The CSS class for the data grid widget.
  */
-export const HDF_CLASS = 'jp-HdfDatasetGrid';
+export const HDF_CLASS = 'jp-HdfDataGrid';
 
 /**
- * The CSS class for our HDF container.
+ * The CSS class for our HDF5 container.
  */
 export const HDF_CONTAINER_CLASS = 'jp-HdfContainer';
 
@@ -128,7 +130,7 @@ class H5ServDataModel extends DataModel {
 /**
  * A document widget for HDF content widgets.
  */
-export class HDFDocumentWidget extends DocumentWidget<DataGrid>
+export class HdfDatasetWidget extends DocumentWidget<DataGrid>
   implements IDocumentWidget<DataGrid> {
   constructor(context: DocumentRegistry.Context) {
     const content = new DataGrid();
@@ -140,21 +142,29 @@ export class HDFDocumentWidget extends DocumentWidget<DataGrid>
 }
 
 /**
- * A widget factory for images.
+ * A widget factory for HDF5 data grids.
  */
-export class HDFViewerFactory extends ABCWidgetFactory<
-  IDocumentWidget<DataGrid>,
-  DocumentRegistry.IModel
+export class HdfDatasetFactory extends ABCWidgetFactory<
+  IDocumentWidget<DataGrid>
 > {
   /**
    * Create a new widget given a context.
    */
   protected createNewWidget(
-    context: DocumentRegistry.IContext<DocumentRegistry.IModel>
-  ): IDocumentWidget<DataGrid> {
-    return new HDFDocumentWidget(context);
+    context: DocumentRegistry.Context
+  ): HdfDatasetWidget {
+    return new HdfDatasetWidget(context);
   }
 }
+
+/**
+ * A class that tracks hdf5 viewer widgets.
+ */
+export interface IHdfDatasetTracker extends IWidgetTracker<HdfDatasetWidget> {}
+
+export const IHdfDatasetTracker = new Token<IHdfDatasetTracker>(
+  'jupyterlab-hdf:IHdfDatasetTracker'
+);
 
 /**
  * A namespace for HDFViewer statics.

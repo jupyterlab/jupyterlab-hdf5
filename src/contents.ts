@@ -76,34 +76,6 @@ export class HdfDrive implements Contents.IDrive {
   }
 
   /**
-   * The GitHub base URL
-   */
-  get baseUrl(): string {
-    return this._baseUrl;
-  }
-
-  /**
-   * The GitHub base URL is set by the settingsRegistry change hook
-   */
-  set baseUrl(url: string) {
-    this._baseUrl = url;
-  }
-
-  /**
-   * The GitHub access token
-   */
-  get accessToken(): string | null | undefined {
-    return this._accessToken;
-  }
-
-  /**
-   * The GitHub access token is set by the settingsRegistry change hook
-   */
-  set accessToken(token: string | null | undefined) {
-    this._accessToken = token;
-  }
-
-  /**
    * Get a file or directory.
    *
    * @param path: The path to the file.
@@ -276,8 +248,6 @@ export class HdfDrive implements Contents.IDrive {
     return Promise.reject('Read only');
   }
 
-  private _baseUrl: string;
-  private _accessToken: string | null | undefined;
   private _validFile = false;
   private _serverSettings: ServerConnection.ISettings;
   private _isDisposed = false;
