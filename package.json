@@ -26,16 +26,16 @@
   "style": "style/index.css",
   "scripts": {
     "build": "jlpm install && tsc",
-    "build:dev": "jlpm run build && jlpm run link",
+    "build:dev": "jlpm run build && jlpm run lab:link",
     "build:watch": "jlpm run build --watch",
     "clean": "rimraf lib",
     "clean:slate": "jlpm run clean && rimraf node_modules",
     "integrity": "echo integrity",
-    "link": "jupyter labextension link . --no-build",
+    "lab:link": "jupyter labextension link . --no-build",
+    "lab:unlink": "jupyter labextension unlink jupyterlab-hdf5 --no-build",
     "precommit": "lint-staged",
     "prepublishOnly": "npm run build",
     "prettier": "prettier --write '**/*{.ts,.tsx,.js,.jsx,.css,.json,.md}'",
-    "unlink": "jupyter labextension unlink jupyterlab-hdf5 --no-build",
     "watch": "tsc -w"
   },
   "lint-staged": {

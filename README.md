@@ -6,6 +6,23 @@ Open and explore HDF5 files in Jupyterlab.
 
 Currently in late alpha. Basic functionality has been achieved!
 
+## Installation
+
+For a development install (currently the only option), do the following in the repository directory:
+
+```bash
+pip install .
+jlpm build:dev
+```
+
+To watch for/rebuild on changes to this extension's source code, run:
+
+```bash
+jlpm run build:watch
+```
+
+## What's in this extension
+
 This extension has two parts: an hdf5 filebrowser, and an hdf5 dataset file type.
 
 ### HDF5 Filebrowser
@@ -24,30 +41,3 @@ When you open a dataset using the hdf5 filebrowser, a document will open that di
 
 - dataset file type
   - currently, only the first 100x100 chunk of a dataset will load. The next goal of development is to enable dynamic loading of the rest of a dataset's chunks.
-
-## Prerequisites
-
-- JupyterLab
-
-## Installation
-
-```bash
-jupyter labextension install jupyterlab-hdf5
-```
-
-## Development
-
-For a development install (requires npm version 4 or later), do the following in the repository directory:
-
-```bash
-jlpm install
-jlpm run build
-jupyter labextension link .
-```
-
-To rebuild the package and the JupyterLab app:
-
-```bash
-jlpm run build
-jupyter lab build
-```
