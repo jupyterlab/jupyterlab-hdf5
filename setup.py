@@ -5,9 +5,8 @@ Distributed under the terms of the Modified BSD License.
 """
 
 import setuptools
-from setupbase import (
-    create_cmdclass, ensure_python, find_packages
-    )
+from setupbase import create_cmdclass, ensure_python, find_packages
+
 
 data_files_spec = [
     ('etc/jupyter/jupyter_notebook_config.d',
@@ -19,7 +18,7 @@ cmdclass = create_cmdclass(data_files_spec=data_files_spec)
 
 setup_dict = dict(
     name='jupyterlab_hdf',
-    description='A Jupyter Notebook server extension which uses h5serv to open HDF5 files.',
+    description="A Jupyter Notebook server extension that provides APIs for fetching hdf5 contents and data. Built on h5py.",
     packages=find_packages(),
     cmdclass=cmdclass,
     author          = 'Max Klein',
@@ -37,6 +36,7 @@ setup_dict = dict(
         'Programming Language :: Python :: 3',
     ],
     install_requires=[
+        'h5py',
         'notebook'
     ]
 )

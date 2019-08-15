@@ -1,0 +1,7 @@
+include LICENSE
+include README.*
+include *.md
+include package.json
+include setupbase.py
+
+exclude scratch
