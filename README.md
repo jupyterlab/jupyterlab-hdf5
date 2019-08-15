@@ -8,7 +8,18 @@ Currently in late alpha. Basic functionality has been achieved!
 
 ## Installation
 
-For a development install (currently the only option), do the following in the repository directory:
+```bash
+pip install jupyterlab_hdf
+jupyter labextension install jupyterlab-hdf
+```
+
+This will install both the server extension and the labextension needed by this plugin.
+
+You can also install the labextension via Jupyterlab's extension manager GUI. Keep in mind that if you use the GUI, you'll still need to install the `jupyterlab_hdf` server extension via `pip`.
+
+## Development
+
+For a development install, clone the repository and then run the following in the repo dir:
 
 ```bash
 pip install .

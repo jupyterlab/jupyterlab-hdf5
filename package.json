@@ -32,7 +32,7 @@
     "clean:slate": "jlpm run clean && rimraf node_modules",
     "integrity": "echo integrity",
     "lab:link": "jupyter labextension link . --no-build",
-    "lab:unlink": "jupyter labextension unlink jupyterlab-hdf5 --no-build",
+    "lab:unlink": "jupyter labextension uninstall jupyterlab-hdf --no-build",
     "precommit": "lint-staged",
     "prepublishOnly": "npm run build",
     "prettier": "prettier --write '**/*{.ts,.tsx,.js,.jsx,.css,.json,.md}'",
