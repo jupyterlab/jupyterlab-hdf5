@@ -11,6 +11,10 @@ __pycache__
 *.egg-info
 *.tsbuildinfo
 
+# python distribution stuff
+dist
+MANIFEST
+
 # scratch cruft
 /scratch/*.hdf5
 

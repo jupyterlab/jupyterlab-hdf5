@@ -7,6 +7,8 @@ Distributed under the terms of the Modified BSD License.
 import setuptools
 from setupbase import create_cmdclass, ensure_python, find_packages
 
+with open("README.md", "r") as fh:
+    long_description = fh.read()
 
 data_files_spec = [
     ('etc/jupyter/jupyter_notebook_config.d',
@@ -19,6 +21,7 @@ cmdclass = create_cmdclass(data_files_spec=data_files_spec)
 setup_dict = dict(
     name='jupyterlab_hdf',
     description="A Jupyter Notebook server extension that provides APIs for fetching hdf5 contents and data. Built on h5py.",
+    long_description=long_description,
     packages=find_packages(),
     cmdclass=cmdclass,
     author          = 'Max Klein',
