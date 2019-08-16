@@ -13,9 +13,6 @@ export function parseHdfQuery(path: string): IContentsParameters {
 
   return {
     fpath: parts[0],
-    uri: '/',
-    row: [100],
-    col: [100],
     ...(parts[1] ? URLExt.queryStringToObject(parts[1]) : {})
   };
 }
@@ -28,11 +25,37 @@ export function hdfContentsRequest(
   parameters: IContentsParameters,
   settings: ServerConnection.ISettings
 ): Promise<HdfDirectoryListing> {
+  // allow the query parameters to be optional
   const { fpath, ...rest } = parameters;
 
   const fullUrl =
     URLExt.join(settings.baseUrl, 'hdf', 'contents', fpath).split('?')[0] +
     URLExt.objectToQueryString({ ...rest });
+
+  return ServerConnection.makeRequest(fullUrl, {}, settings).then(response => {
+    if (response.status !== 200) {
+      return response.text().then(data => {
+        throw new ServerConnection.ResponseError(response, data);
+      });
+    }
+    return response.json();
+  });
+}
+
+/**
+ * Send a parameterized request to the `hdf/data` api, and
+ * return the result.
+ */
+export function hdfDataRequest(
+  parameters: IContentsParameters,
+  settings: ServerConnection.ISettings
+): Promise<number[][]> {
+  // require the uri, row, and col query parameters
+  const { fpath, uri, row, col } = parameters;
+
+  const fullUrl =
+    URLExt.join(settings.baseUrl, 'hdf', 'data', fpath).split('?')[0] +
+    URLExt.objectToQueryString({ uri, row, col });
 
   return ServerConnection.makeRequest(fullUrl, {}, settings).then(response => {
     if (response.status !== 200) {

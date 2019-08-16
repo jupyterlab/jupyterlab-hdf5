@@ -14,7 +14,9 @@ import {
   IDocumentWidget
 } from '@jupyterlab/docregistry';
 
-import { IDatasetContent } from './hdf';
+import { ServerConnection } from '@jupyterlab/services';
+
+import { hdfDataRequest, IDatasetContent, parseHdfQuery } from './hdf';
 
 /**
  * The MIME type for an HDF5 dataset.
@@ -35,6 +37,7 @@ class HdfDatasetModel extends DataModel {
   constructor(context: DocumentRegistry.Context) {
     super();
 
+    this._serverSettings = ServerConnection.makeSettings();
     this._context = context;
 
     void context.ready.then(() => {
@@ -60,10 +63,16 @@ class HdfDatasetModel extends DataModel {
    * Handle actions that should be taken when the context is ready.
    */
   private _onContextReady(): void {
+    // get the fpath and the uri for this dataset
+    const { fpath, uri } = parseHdfQuery(this._context.contentsModel.path);
+    this._fpath = fpath;
+    this._uri = uri;
+
+    // unpack the content
     const content: IDatasetContent = this._context.model.toJSON() as any;
 
     this._rowCount = content.shape[0];
-    this._columnCount = content.shape[1];
+    this._colCount = content.shape[1];
 
     this._blocks[0] = Object();
     this._blocks[0][0] = content.data;
@@ -78,7 +87,7 @@ class HdfDatasetModel extends DataModel {
       type: 'columns-inserted',
       region: 'body',
       index: 0,
-      span: this._columnCount
+      span: this._colCount
     });
 
     // // Wire signal connections.
@@ -93,7 +102,7 @@ class HdfDatasetModel extends DataModel {
   }
 
   columnCount(region: DataModel.ColumnRegion): number {
-    return region === 'body' ? this._columnCount : 1;
+    return region === 'body' ? this._colCount : 1;
   }
 
   data(region: DataModel.CellRegion, row: number, column: number): any {
@@ -107,61 +116,65 @@ class HdfDatasetModel extends DataModel {
       return null;
     }
     const relRow = row % this._blockSize;
-    const relColumn = column % this._blockSize;
+    const relCol = column % this._blockSize;
     const rowBlock = (row - relRow) / this._blockSize;
-    const columnBlock = (column - relColumn) / this._blockSize;
+    const colBlock = (column - relCol) / this._blockSize;
     if (this._blocks[rowBlock]) {
-      if (this._blocks[rowBlock][columnBlock]) {
+      if (this._blocks[rowBlock][colBlock]) {
         // This data has already been loaded.
-        return this._blocks[rowBlock][columnBlock][relRow][relColumn];
+        return this._blocks[rowBlock][colBlock][relRow][relCol];
       }
     }
     // This data has not yet been loaded. Fetch the block that it is in.
     // When the data is received, this will be updated by emitChanged.
-    // this._fetchBlock(rowBlock, columnBlock);
+    this._fetchBlock(rowBlock, colBlock);
     return null;
   }
 
-  // private _fetchBlock = (rowBlock: number, columnBlock: number) => {
-  //   const rowStart: number = rowBlock * this._blockSize;
-  //   const rowStop: number = Math.min(
-  //     rowStart + this._blockSize,
-  //     this._rowCount
-  //   );
-  //   const columnStart: number = columnBlock * this._blockSize;
-  //   const columnStop: number = Math.min(
-  //     columnStart + this._blockSize,
-  //     this._columnCount
-  //   );
-  //   const query_params: string = `select=[${rowStart}:${rowStop},${columnStart}:${columnStop}]`;
-  //   fetch(this._url + '/value?' + query_params)
-  //     .then(function(response) {
-  //       return response.json();
-  //     })
-  //     .then(data => {
-  //       if (!this._blocks[rowBlock]) {
-  //         this._blocks[rowBlock] = Object();
-  //       }
-  //       this._blocks[rowBlock][columnBlock] = data['value'];
-  //       this.emitChanged({
-  //         type: 'cells-changed',
-  //         region: 'body',
-  //         rowIndex: rowBlock * this._blockSize,
-  //         columnIndex: columnBlock * this._blockSize,
-  //         rowSpan: this._blockSize,
-  //         columnSpan: this._blockSize
-  //       });
-  //     });
-  // };
+  private _fetchBlock = (rowBlock: number, colBlock: number) => {
+    const rowStart: number = rowBlock * this._blockSize;
+    const rowStop: number = Math.min(
+      rowStart + this._blockSize,
+      this._rowCount
+    );
+    const colStart: number = colBlock * this._blockSize;
+    const colStop: number = Math.min(
+      colStart + this._blockSize,
+      this._colCount
+    );
 
-  // private _url: string = '';
-  private _rowCount: number = 0;
-  private _columnCount: number = 0;
-  private _blockSize: number = 100;
-  private _blocks: any = Object();
+    const params = {
+      fpath: this._fpath,
+      uri: this._uri,
+      col: [colStart, colStop],
+      row: [rowStart, rowStop]
+    };
+    hdfDataRequest(params, this._serverSettings).then(data => {
+      if (!this._blocks[rowBlock]) {
+        this._blocks[rowBlock] = Object();
+      }
+      this._blocks[rowBlock][colBlock] = data;
+      this.emitChanged({
+        type: 'cells-changed',
+        region: 'body',
+        rowIndex: rowBlock * this._blockSize,
+        columnIndex: colBlock * this._blockSize,
+        rowSpan: this._blockSize,
+        columnSpan: this._blockSize
+      });
+    });
+  };
 
   protected _context: DocumentRegistry.Context;
+  private _fpath: string = '';
   private _ready = new PromiseDelegate<void>();
+  private _serverSettings: ServerConnection.ISettings;
+  private _uri: string = '';
+
+  private _blocks: any = Object();
+  private _blockSize: number = 100;
+  private _colCount: number = 0;
+  private _rowCount: number = 0;
 }
 
 /**

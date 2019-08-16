@@ -89,6 +89,17 @@ export class HdfDrive implements Contents.IDrive {
   ): Promise<Contents.IModel> {
     const params = parseHdfQuery(path);
 
+    // set some default parameter values
+    if (!params.uri) {
+      params.uri = '/';
+    }
+    if (!params.row) {
+      params.row = [100];
+    }
+    if (!params.col) {
+      params.col = [100];
+    }
+
     if (!params.fpath) {
       return Promise.resolve(Private.dummyDirectory);
     }
@@ -295,8 +306,8 @@ namespace Private {
   ): Contents.IModel {
     if (Array.isArray(contents)) {
       // If we have an array, it is a directory of HdfContents.
-      // Iterate over that and convert all of the items in the array/
-      const fpath = path.split('?')[0];
+      // Iterate over that and convert all of the items in the array
+      const { fpath } = parseHdfQuery(path);
       return {
         name: PathExt.basename(fpath),
         path: path,
