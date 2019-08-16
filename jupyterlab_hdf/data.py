@@ -18,10 +18,6 @@ from .util import dsetChunk
 
 __all__ = ['HdfDataManager', 'HdfDataHandler']
 
-## the actual hdf contents handling
-def getHdfData(obj, uri, row, col):
-    return dsetChunk(uri, row, col)
-
 
 ## manager
 class HdfDataManager:
@@ -64,7 +60,7 @@ class HdfDataManager:
                 _handleErr(401, msg)
             try:
                 with h5py.File(fpath, 'r') as f:
-                    out = getHdfData(f[uri], uri, row, col)
+                    out = dsetChunk(f[uri], row, col)
             except Exception as e:
                 msg = (f'Found and opened file, error getting contents from object specified by the uri.\n'
                        f'Error: {e}')
@@ -87,8 +83,8 @@ class HdfDataHandler(APIHandler):
         slice of a dataset and return it as serialized JSON.
         """
         uri = '/' + self.get_query_argument('uri').lstrip('/')
-        row = [int(x) for x in self.get_query_arguments('row')]
-        col = [int(x) for x in self.get_query_arguments('col')]
+        row = [int(x) for x in self.get_query_argument('row').split(',')]
+        col = [int(x) for x in self.get_query_argument('col').split(',')]
 
         try:
             self.finish(json.dumps(self.dataset_manager.get(path, uri, row, col)))

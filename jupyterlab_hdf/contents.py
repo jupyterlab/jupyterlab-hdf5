@@ -96,8 +96,8 @@ class HdfContentsHandler(APIHandler):
         slice of a dataset and return it as serialized JSON.
         """
         uri = '/' + self.get_query_argument('uri').lstrip('/')
-        row = [int(x) for x in self.get_query_arguments('row')]
-        col = [int(x) for x in self.get_query_arguments('col')]
+        row = [int(x) for x in self.get_query_argument('row').split(',')]
+        col = [int(x) for x in self.get_query_argument('col').split(',')]
 
         try:
             self.finish(json.dumps(self.dataset_manager.get(path, uri, row, col)))

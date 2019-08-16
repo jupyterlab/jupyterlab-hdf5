@@ -5,11 +5,27 @@ import { URLExt } from '@jupyterlab/coreutils';
 
 import { ServerConnection } from '@jupyterlab/services';
 
+// /**
+//  * A static version of the localPath method from ContentsManager
+//  */
+// function localPath(path: string): string {
+//   const parts = path.split('/');
+//   const firstParts = parts[0].split(':');
+//   if (firstParts.length === 1) {
+//     return path;
+//   }
+//   return PathExt.join(firstParts.slice(1).join(':'), ...parts.slice(1));
+// }
+
 /**
  * Parse a path into hdf contents request parameters.
  */
 export function parseHdfQuery(path: string): IContentsParameters {
-  const parts = path.split('?');
+  // deal with the possibility of leading "Hdf:" drive specifier via localPath
+  // const parts = localPath(path).split('?');
+
+  const localPath = path.split(/^Hdf:/).pop();
+  const parts = localPath.split('?');
 
   return {
     fpath: parts[0],
