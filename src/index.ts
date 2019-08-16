@@ -43,6 +43,12 @@ const HDF_DATASET_NAMESPACE = 'hdf-dataset';
 const hdf5BrowserPluginId = 'jupyterlab-hdf:browser';
 const hdf5DatasetPluginId = 'jupyterlab-hdf:dataset';
 
+/**
+ * Hdf icon classnames
+ */
+const HDF_ICON = 'jp-HdfIcon';
+const HDF_DATASET_ICON = 'jp-HdfDatasetIcon';
+
 namespace CommandIDs {
   /**
    * Fetch metadata from an hdf5 file
@@ -87,7 +93,7 @@ function activateHdfBrowserPlugin(
 
   const hdfBrowser = new HdfFileBrowser(browser, drive);
 
-  hdfBrowser.title.iconClass = 'jp-HdfIcon jp-SideBar-tabIcon';
+  hdfBrowser.title.iconClass = `${HDF_ICON} jp-SideBar-tabIcon`;
   hdfBrowser.title.caption = 'Browse Hdf';
 
   hdfBrowser.id = 'hdf-file-browser';
@@ -139,7 +145,8 @@ function activateHdfDatasetPlugin(
     fileFormat: 'json',
     displayName: 'HDF Dataset',
     extensions: ['.data'],
-    mimeTypes: ['application/x-hdf5.dataset']
+    mimeTypes: ['application/x-hdf5.dataset'],
+    iconClass: HDF_DATASET_ICON
   };
   app.docRegistry.addFileType(ft);
 

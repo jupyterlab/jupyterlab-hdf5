@@ -88,28 +88,6 @@ class HdfDatasetModel extends DataModel {
     this._ready.resolve(undefined);
   }
 
-  // this._url = context.path;
-  // fetch(this._url)
-  //   .then(function(response) {
-  //     return response.json();
-  //   })
-  //   .then(metadata => {
-  //     [this._rowCount, this._columnCount] = metadata['shape']['dims'];
-  //     this.emitChanged({
-  //       type: 'rows-inserted',
-  //       region: 'body',
-  //       index: 0,
-  //       span: this._rowCount
-  //     });
-  //     this.emitChanged({
-  //       type: 'columns-inserted',
-  //       region: 'body',
-  //       index: 0,
-  //       span: this._columnCount
-  //     });
-  //   });
-  // }
-
   rowCount(region: DataModel.RowRegion): number {
     return region === 'body' ? this._rowCount : 1;
   }

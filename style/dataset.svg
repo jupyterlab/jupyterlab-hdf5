@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="64px"
+	 height="64px" viewBox="0 0 64 64" enable-background="new 0 0 64 64" xml:space="preserve">
+<g>
+	<g>
+		<rect x="11.418" y="4.6" fill="#C2E4F8" width="13.711" height="13.7"/>
+		<rect x="25.129" y="18.3" fill="#C2E4F8" width="13.711" height="13.701"/>
+		<rect x="38.84" y="32.001" fill="#C2E4F8" width="13.711" height="13.7"/>
+		<rect x="38.84" y="4.6" fill="#C2E4F8" width="13.711" height="13.7"/>
+		<rect x="11.418" y="32.001" fill="#C2E4F8" width="13.711" height="13.7"/>
+		<rect x="25.129" y="45.701" fill="#C2E4F8" width="13.711" height="13.7"/>
+	</g>
+	<g>
+		<rect x="11.418" y="4.6" fill="none" stroke="#249FE6" stroke-width="4.625" stroke-linejoin="round" stroke-miterlimit="10" width="41.133" height="54.802"/>
+
+		<line fill="none" stroke="#159EE9" stroke-width="3" stroke-miterlimit="10" x1="11.418" y1="45.701" x2="52.551" y2="45.701"/>
+		<line fill="none" stroke="#159EE9" stroke-width="3" stroke-miterlimit="10" x1="11.418" y1="32" x2="52.551" y2="32"/>
+		<line fill="none" stroke="#159EE9" stroke-width="3" stroke-miterlimit="10" x1="11.418" y1="18.3" x2="52.551" y2="18.3"/>
+		<line fill="none" stroke="#159EE9" stroke-width="3" stroke-miterlimit="10" x1="25.129" y1="4.568" x2="25.129" y2="59.369"/>
+		<line fill="none" stroke="#159EE9" stroke-width="3" stroke-miterlimit="10" x1="38.84" y1="4.6" x2="38.84" y2="59.401"/>
+	</g>
+</g>
+</svg>

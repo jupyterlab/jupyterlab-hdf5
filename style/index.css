@@ -7,6 +7,10 @@
   background-image: url(hdf.svg);
 }
 
+.jp-HdfDatasetIcon {
+  background-image: url(dataset.svg);
+}
+
 .jp-HdfBrowser {
   background-color: var(--jp-layout-color1);
   height: 100%;
