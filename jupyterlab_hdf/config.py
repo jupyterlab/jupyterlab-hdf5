@@ -6,7 +6,7 @@ Distributed under the terms of the Modified BSD License.
 
 # from traitlets import Unicode, CaselessStrEnum
 from traitlets.config import Configurable
-#
+
 class HdfConfig(Configurable):
     pass
 #     """

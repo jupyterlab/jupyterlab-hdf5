@@ -12,7 +12,10 @@ import { ISignal, Signal } from '@phosphor/signaling';
 import { PanelLayout, Widget } from '@phosphor/widgets';
 
 import { HdfDrive } from './contents';
-import { parseHdfQuery } from './hdf';
+import { localAbsPath, parseHdfQuery } from './hdf';
+
+const FACTORY = 'HDF Dataset';
+const DATA_MIME = 'application/x-hdf5.dataset';
 
 /**
  * Widget for hosting the Hdf filebrowser.
@@ -25,6 +28,8 @@ export class HdfFileBrowser extends Widget {
     (this.layout as PanelLayout).addWidget(browser);
     this._browser = browser;
     this._drive = drive;
+
+    this._monkeyPatch();
 
     // Create an editable name for the Hdf file path.
     this.fpath = new hdfFpathInput(browser);
@@ -49,6 +54,41 @@ export class HdfFileBrowser extends Widget {
    * An editable widget hosting the current file path.
    */
   readonly fpath: hdfFpathInput;
+
+  private _monkeyPatch() {
+    const handleDblClick = async (evt: Event): Promise<void> => {
+      const event = evt as MouseEvent;
+      // Do nothing if it's not a left mouse press.
+      if (event.button !== 0) {
+        return;
+      }
+
+      // Do nothing if any modifier keys are pressed.
+      if (event.ctrlKey || event.shiftKey || event.altKey || event.metaKey) {
+        return;
+      }
+
+      // Stop the event propagation.
+      event.preventDefault();
+      event.stopPropagation();
+
+      const item = this._browser.modelForClick(event);
+      console.log(item);
+      if (!item) {
+        return;
+      }
+      if (item.type === 'directory') {
+        this._browser.model
+          .cd(localAbsPath(item.path))
+          .catch(error => console.error(error));
+      } else {
+        const factory = item.mimetype === DATA_MIME ? FACTORY : 'default';
+        this._browser.model.manager.openOrReveal(item.path, factory);
+      }
+    };
+
+    this._browser.node.addEventListener('dblclick', handleDblClick, true);
+  }
 
   /**
    * React to a change in fpath.

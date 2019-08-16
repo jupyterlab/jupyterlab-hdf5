@@ -4,7 +4,6 @@ Copyright (c) Max Klein.
 Distributed under the terms of the Modified BSD License.
 """
 
-# from .config import HdfConfig
 from .baseHandler import HdfBaseManager, HdfBaseHandler
 from .util import dsetChunk
 

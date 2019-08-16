@@ -29,7 +29,7 @@ import {
   HdfDatasetWidget
 } from './dataset';
 
-import { hdfContentsRequest } from './hdf';
+import { hdfContentsRequest, IContentsParameters } from './hdf';
 
 /**
  * Hdf plugins state namespace.
@@ -107,12 +107,18 @@ function activateHdfBrowserPlugin(
 
   commands.addCommand(CommandIDs.fetchHdfContents, {
     execute: args => {
-      const fpath = args['fpath'] as string;
-      const uri = (args['uri'] as string) || '/';
-      const row = (args['row'] as number[]) || [100];
-      const col = (args['col'] as number[]) || [100];
+      let params: IContentsParameters = {
+        fpath: args['fpath'] as string,
+        uri: args['uri'] as string
+      };
+      if (args['col']) {
+        params.col = args['col'] as number[];
+      }
+      if (args['row']) {
+        params.row = args['row'] as number[];
+      }
 
-      return hdfContentsRequest({ fpath, uri, row, col }, serverSettings);
+      return hdfContentsRequest(params, serverSettings);
     },
     label: 'For an HDF5 file at `fpath`, fetch the contents at `uri`'
   });

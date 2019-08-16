@@ -14,7 +14,6 @@ from notebook.base.handlers import APIHandler
 from notebook.utils import url_path_join
 
 # from .config import HdfConfig
-from .util import dsetContentDict, dsetDict, groupDict, uriJoin, uriName
 
 __all__ = ['HdfBaseManager', 'HdfBaseHandler']
 

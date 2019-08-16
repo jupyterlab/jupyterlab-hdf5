@@ -1,20 +1,24 @@
 // Copyright (c) Max Klein.
 // Distributed under the terms of the Modified BSD License.
 
-import { URLExt } from '@jupyterlab/coreutils';
+import { PathExt, URLExt } from '@jupyterlab/coreutils';
 
 import { ServerConnection } from '@jupyterlab/services';
 
-// /**
-//  * A static version of the localPath method from ContentsManager
-//  */
-// function localPath(path: string): string {
-//   const parts = path.split('/');
-//   const firstParts = parts[0].split(':');
-//   if (firstParts.length === 1) {
-//     return path;
-//   }
-//   return PathExt.join(firstParts.slice(1).join(':'), ...parts.slice(1));
+/**
+ * A static version of the localPath method from ContentsManager
+ */
+export function localAbsPath(path: string): string {
+  const parts = path.split('/');
+  const firstParts = parts[0].split(':');
+  if (firstParts.length === 1) {
+    return '/' + path;
+  }
+  return '/' + PathExt.join(firstParts.slice(1).join(':'), ...parts.slice(1));
+}
+
+// export function localPath(path: string): string {
+//   return path.split(/^Hdf:/).pop();
 // }
 
 /**
@@ -22,10 +26,7 @@ import { ServerConnection } from '@jupyterlab/services';
  */
 export function parseHdfQuery(path: string): IContentsParameters {
   // deal with the possibility of leading "Hdf:" drive specifier via localPath
-  // const parts = localPath(path).split('?');
-
-  const localPath = path.split(/^Hdf:/).pop();
-  const parts = localPath.split('?');
+  const parts = localAbsPath(path).split('?');
 
   return {
     fpath: parts[0],
