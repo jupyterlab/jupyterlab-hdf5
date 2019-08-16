@@ -92,11 +92,18 @@ export class HdfContents {
    * If object is a dataset, all of its metadata encoded as a JSON string.
    */
   content?: string;
+}
 
-  /**
-   * If object is a dataset, some or all of it's data encoded as a JSON string.
-   */
-  data?: string;
+export interface IDatasetContent {
+  dtype: string;
+
+  ndim: number;
+
+  shape: number[];
+
+  attrs: { [key: string]: any };
+
+  data?: number[][];
 }
 
 /**

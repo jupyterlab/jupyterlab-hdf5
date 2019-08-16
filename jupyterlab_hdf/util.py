@@ -14,16 +14,17 @@ def dsetChunk(dset, row, col):
 
 
 ## create dicts to be converted to json
-dsetContentKeys = ('dtype', 'ndim', 'shape')
 def dsetContentDict(dset, row=None, col=None):
-    # get all metadata
-    content = {k:getattr(dset, k) for k in dsetContentKeys}
-    content['attrs'] = dict(*dset.attrs.item())
+    return dict([
+        # metadata
+        ('attrs', dict(*dset.attrs.items())),
+        ('dtype', dset.dtype.str),
+        ('ndim', dset.ndim),
+        ('shape', dset.shape),
 
-    # get actual data, if requested
-    content['data'] = dsetChunk(dset, row, col) if row and col else None
-
-    return content
+        # actual data
+        ('data', dsetChunk(dset, row, col) if row and col else None)
+    ])
 
 def dsetDict(name, uri, content=None):
     return dict([

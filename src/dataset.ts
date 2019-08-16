@@ -14,6 +14,8 @@ import {
   IDocumentWidget
 } from '@jupyterlab/docregistry';
 
+import { IDatasetContent } from './hdf';
+
 /**
  * The MIME type for an HDF5 dataset.
  */
@@ -58,15 +60,13 @@ class HdfDatasetModel extends DataModel {
    * Handle actions that should be taken when the context is ready.
    */
   private _onContextReady(): void {
-    const contextModel = this._context.model;
-    const json: any = contextModel.toJSON();
-    const data = json[0].content;
+    const content: IDatasetContent = this._context.model.toJSON() as any;
 
-    this._rowCount = data.length;
-    this._columnCount = data[0].length;
+    this._rowCount = content.shape[0];
+    this._columnCount = content.shape[1];
 
     this._blocks[0] = Object();
-    this._blocks[0][0] = data;
+    this._blocks[0][0] = content.data;
 
     this.emitChanged({
       type: 'rows-inserted',

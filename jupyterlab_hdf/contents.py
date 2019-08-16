@@ -14,7 +14,7 @@ from notebook.base.handlers import APIHandler
 from notebook.utils import url_path_join
 
 # from .config import HdfConfig
-from .util import dsetChunk, dsetContentDict, dsetDict, groupDict, uriJoin, uriName
+from .util import dsetContentDict, dsetDict, groupDict, uriJoin, uriName
 
 ## the actual hdf contents handling
 def getContentsHdf(obj, uri, row=None, col=None):
@@ -23,11 +23,11 @@ def getContentsHdf(obj, uri, row=None, col=None):
                 (name=name, uri=uriJoin(uri, name))
                 for name,val in obj.items()]
     else:
-        return [dsetDict(
+        return dsetDict(
             name=uriName(uri),
             uri=uri,
             content=dsetContentDict(obj, row, col),
-        )]
+        )
 
 
 ## manager
