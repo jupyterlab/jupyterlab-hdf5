@@ -47,7 +47,7 @@ const hdf5DatasetPluginId = 'jupyterlab-hdf:dataset';
  * Hdf icon classnames
  */
 const HDF_ICON = 'jp-HdfIcon';
-const HDF_DATASET_ICON = 'jp-HdfDatasetIcon';
+const HDF_DATASET_ICON = 'jp-MaterialIcon jp-HdfDatasetIcon';
 
 namespace CommandIDs {
   /**
