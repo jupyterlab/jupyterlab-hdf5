@@ -14,27 +14,18 @@ from notebook.base.handlers import APIHandler
 from notebook.utils import url_path_join
 
 # from .config import HdfConfig
-from .util import dsetContentDict, dsetDict, groupDict, uriJoin, uriName
+from .util import dsetChunk
 
-__all__ = ['HdfContentsManager', 'HdfContentsHandler']
+__all__ = ['HdfDataManager', 'HdfDataHandler']
 
 ## the actual hdf contents handling
-def getHdfContents(obj, uri, row=None, col=None):
-    if isinstance(obj, h5py.Group):
-        return [(groupDict if isinstance(val, h5py.Group) else dsetDict)
-                (name=name, uri=uriJoin(uri, name))
-                for name,val in obj.items()]
-    else:
-        return dsetDict(
-            name=uriName(uri),
-            uri=uri,
-            content=dsetContentDict(obj, row, col),
-        )
+def getHdfData(obj, uri, row, col):
+    return dsetChunk(uri, row, col)
 
 
 ## manager
-class HdfContentsManager:
-    """Implements HDF5 contents handling
+class HdfDataManager:
+    """Implements HDF5 data handling
     """
     def __init__(self, notebook_dir):
         self.notebook_dir = notebook_dir
@@ -73,7 +64,7 @@ class HdfContentsManager:
                 _handleErr(401, msg)
             try:
                 with h5py.File(fpath, 'r') as f:
-                    out = getHdfContents(f[uri], uri, row, col)
+                    out = getHdfData(f[uri], uri, row, col)
             except Exception as e:
                 msg = (f'Found and opened file, error getting contents from object specified by the uri.\n'
                        f'Error: {e}')
@@ -83,12 +74,12 @@ class HdfContentsManager:
 
 
 ## handler
-class HdfContentsHandler(APIHandler):
+class HdfDataHandler(APIHandler):
     """A handler for HDF5 contents
     """
     def initialize(self, notebook_dir):
         self.notebook_dir = notebook_dir
-        self.dataset_manager = HdfContentsManager(notebook_dir=notebook_dir)
+        self.dataset_manager = HdfDataManager(notebook_dir=notebook_dir)
 
     @gen.coroutine
     def get(self, path):
