@@ -12,7 +12,6 @@ import { Contents, ServerConnection } from '@jupyterlab/services';
 import {
   hdfContentsRequest,
   HdfContents,
-  HdfDatasetContents,
   HdfDirectoryListing,
   parseHdfQuery
 } from './hdf';
@@ -312,9 +311,8 @@ namespace Private {
         })
       } as Contents.IModel;
     } else if (contents.type === 'dataset') {
-      const dsetContents = contents as HdfDatasetContents;
       return {
-        name: dsetContents.name,
+        name: contents.name,
         path: path,
         format: 'json',
         type: 'file',
@@ -322,7 +320,7 @@ namespace Private {
         writable: false,
         last_modified: '',
         mimetype: 'application/x-hdf5.dataset',
-        content: dsetContents.content
+        content: contents.content
       };
     } else if (contents.type === 'group') {
       // If it is a directory, convert to that.

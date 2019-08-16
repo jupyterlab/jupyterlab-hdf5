@@ -77,11 +77,11 @@ paths:
                 content:
                   type: string
         '400':
-          description: The request was malformed; should be of the format "file/path?uri=uri/path&row=[start,stop,step]&col=[start,stop,step]"
+          description: The request was malformed; should be of the format "file/path?uri=uri/path&chunk=int&row=[start,stop,step]&col=[start,stop,step]"
         '401':
           description: The request did not specify a file that `h5py` could understand.
         '403':
-          description: The request specified a file that did not exist.
+          description: The request specified a file that does not exist.
         '500':
           description: Found and opened file, error getting contents from object specified by the uri.
 
@@ -104,6 +104,6 @@ paths:
         '401':
           description: The request did not specify a file that `h5py` could understand.
         '403':
-          description: The request specified a file that did not exist.
+          description: The request specified a file that does not exist.
         '500':
           description: Found and opened file, error getting data from dataset specified by the uri.

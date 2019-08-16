@@ -7,7 +7,6 @@ Distributed under the terms of the Modified BSD License.
 import h5py
 import json
 import os
-import re
 from tornado import gen
 from tornado.httpclient import HTTPError
 
@@ -15,36 +14,10 @@ from notebook.base.handlers import APIHandler
 from notebook.utils import url_path_join
 
 # from .config import HdfConfig
-
-
-## uri handling
-_emptyUriRe = re.compile('//')
-def uriJoin(*parts):
-    return _emptyUriRe.sub('/', '/'.join(parts))
-
-def uriName(uri):
-    return uri.split('/')[-1]
-
-
-## create dicts to be converted to json
-def groupDict(name, uri):
-    return dict([
-        ('type', 'group'),
-        ('name', name),
-        ('uri', uri)
-    ])
-
-def dsetDict(name, uri, content=None):
-    return dict([
-        ('type', 'dataset'),
-        ('name', name),
-        ('uri', uri),
-        ('content', content)
-    ])
-
+from .util import dsetChunk, dsetContentDict, dsetDict, groupDict, uriJoin, uriName
 
 ## the actual hdf contents handling
-def getContentsHdf(obj, uri, row, col):
+def getContentsHdf(obj, uri, row=None, col=None):
     if isinstance(obj, h5py.Group):
         return [(groupDict if isinstance(val, h5py.Group) else dsetDict)
                 (name=name, uri=uriJoin(uri, name))
@@ -53,7 +26,7 @@ def getContentsHdf(obj, uri, row, col):
         return [dsetDict(
             name=uriName(uri),
             uri=uri,
-            content=obj[slice(*row), slice(*col)].tolist()
+            content=dsetContentDict(obj, row, col),
         )]
 
 
@@ -75,24 +48,32 @@ class HdfContentsManager:
             msg = f'The request was malformed; fpath should not be empty.'
             _handleErr(400, msg)
 
+        if row and not col:
+            msg = f'The request was malformed; row slice was specified, but col slice was empty.'
+            _handleErr(400, msg)
+
+        if col and not row:
+            msg = f'The request was malformed; col slice was specified, but row slice was empty.'
+            _handleErr(400, msg)
+
         fpath = url_path_join(self.notebook_dir, path)
 
         if not os.path.exists(fpath):
-            msg = f'Request cannot be completed; no file at fpath.'
+            msg = f'The request specified a file that does not exist.'
             _handleErr(403, msg)
         else:
             try:
                 # test opening the file with h5py
                 with h5py.File(fpath, 'r') as f: pass
             except Exception as e:
-                msg = (f'The file at fpath could not be opened by h5py.\n'
+                msg = (f'The request did not specify a file that `h5py` could understand.\n'
                        f'Error: {e}')
                 _handleErr(401, msg)
             try:
                 with h5py.File(fpath, 'r') as f:
                     out = getContentsHdf(f[uri], uri, row, col)
             except Exception as e:
-                msg = (f'Opened the file at fpath but could not retrieve valid contents from {uri}.\n'
+                msg = (f'Found and opened file, error getting contents from object specified by the uri.\n'
                        f'Error: {e}')
                 _handleErr(500, msg)
 

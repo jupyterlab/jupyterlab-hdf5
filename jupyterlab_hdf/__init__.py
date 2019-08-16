@@ -4,18 +4,6 @@ Copyright (c) Max Klein.
 Distributed under the terms of the Modified BSD License.
 """
 
-# def enableAutoreload():
-#     from IPython import get_ipython
-#
-#     if get_ipython() is not None:
-#         mStrs = [
-#             'load_ext autoreload',
-#             'autoreload 2',
-#         ]
-#         for mStr in mStrs:
-#             get_ipython().magic(mStr)
-# enableAutoreload()
-
 from notebook.utils import url_path_join
 
 from ._version import __version__

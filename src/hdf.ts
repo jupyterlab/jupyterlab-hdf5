@@ -70,38 +70,33 @@ export interface IContentsParameters {
 }
 
 /**
- * Typings representing contents from the Hdf
+ * Typings representing contents from an object in an hdf5 file.
  */
 export class HdfContents {
   /**
-   * The type of the file.
+   * The type of the object.
    */
   type: 'dataset' | 'group';
 
   /**
-   * The name of the file.
+   * The name of the object.
    */
   name: string;
 
   /**
-   * The path of the file in the repository.
+   * The path to the object in the hdf5 file.
    */
   uri: string;
-}
-
-/**
- * Typings representing hdf dataset contents
- */
-export class HdfDatasetContents extends HdfContents {
-  /**
-   * The type of the contents.
-   */
-  type: 'dataset';
 
   /**
-   * The actual base64 encoded contents.
+   * If object is a dataset, all of its metadata encoded as a JSON string.
    */
   content?: string;
+
+  /**
+   * If object is a dataset, some or all of it's data encoded as a JSON string.
+   */
+  data?: string;
 }
 
 /**
