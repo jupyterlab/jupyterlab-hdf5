@@ -120,18 +120,31 @@ class HdfDatasetModel extends DataModel {
     const rowBlock = (row - relRow) / this._blockSize;
     const colBlock = (column - relCol) / this._blockSize;
     if (this._blocks[rowBlock]) {
-      if (this._blocks[rowBlock][colBlock]) {
-        // This data has already been loaded.
-        return this._blocks[rowBlock][colBlock][relRow][relCol];
+      const block = this._blocks[rowBlock][colBlock];
+      if (block !== 'busy') {
+        if (block) {
+          // This data has already been loaded.
+          return this._blocks[rowBlock][colBlock][relRow][relCol];
+        } else {
+          // This data has not yet been loaded, load it.
+          this._fetchBlock(rowBlock, colBlock);
+        }
       }
+    } else {
+      // This data has not yet been loaded, load it.
+      this._blocks[rowBlock] = Object();
+      this._fetchBlock(rowBlock, colBlock);
     }
-    // This data has not yet been loaded. Fetch the block that it is in.
-    // When the data is received, this will be updated by emitChanged.
-    this._fetchBlock(rowBlock, colBlock);
     return null;
   }
 
+  /**
+   * fetch a data block. When data is received,
+   * the grid will be updated by emitChanged.
+   */
   private _fetchBlock = (rowBlock: number, colBlock: number) => {
+    this._blocks[rowBlock][colBlock] = 'busy';
+
     const rowStart: number = rowBlock * this._blockSize;
     const rowStop: number = Math.min(
       rowStart + this._blockSize,
@@ -150,9 +163,6 @@ class HdfDatasetModel extends DataModel {
       row: [rowStart, rowStop]
     };
     hdfDataRequest(params, this._serverSettings).then(data => {
-      if (!this._blocks[rowBlock]) {
-        this._blocks[rowBlock] = Object();
-      }
       this._blocks[rowBlock][colBlock] = data;
       this.emitChanged({
         type: 'cells-changed',
