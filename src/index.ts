@@ -12,13 +12,13 @@ import {
 
 import { WidgetTracker } from '@jupyterlab/apputils';
 
-// import { ISettingRegistry } from "@jupyterlab/coreutils";
+import { PathExt } from '@jupyterlab/coreutils';
 
 import { IDocumentManager } from '@jupyterlab/docmanager';
 
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 
-import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
+import { FileBrowser, IFileBrowserFactory } from '@jupyterlab/filebrowser';
 
 import { ServerConnection } from '@jupyterlab/services';
 
@@ -74,6 +74,17 @@ const hdfBrowserExtension: JupyterFrontEndPlugin<void> = {
 };
 
 /**
+ * The HTML file handler extension.
+ */
+const hdfDatasetPlugin: JupyterFrontEndPlugin<IHdfDatasetTracker> = {
+  activate: activateHdfDatasetPlugin,
+  id: hdf5DatasetPluginId,
+  provides: IHdfDatasetTracker,
+  optional: [ILayoutRestorer],
+  autoStart: true
+};
+
+/**
  * Activate the file browser.
  */
 function activateHdfBrowserPlugin(
@@ -84,8 +95,7 @@ function activateHdfBrowserPlugin(
   restorer: ILayoutRestorer
   // settingRegistry: ISettingRegistry
 ): void {
-  const { createFileBrowser, tracker } = browserFactory;
-  const { commands } = app;
+  const { createFileBrowser, defaultBrowser } = browserFactory;
 
   // Add the Hdf backend to the contents manager.
   const drive = new HdfDrive(app.docRegistry);
@@ -109,6 +119,62 @@ function activateHdfBrowserPlugin(
   // Add the file browser widget to the application restorer.
   restorer.add(hdfBrowser, HDF_FILE_BROWSER_NAMESPACE);
   app.shell.add(hdfBrowser, 'left', { rank: 103 });
+
+  addBrowserCommands(app, browserFactory, labShell, hdfBrowser, browser);
+  monkeyPatchBrowser(app, defaultBrowser);
+
+  return;
+}
+
+function monkeyPatchBrowser(app: JupyterFrontEnd, browser: FileBrowser) {
+  const { commands } = app;
+
+  const handleDblClick = async (evt: Event): Promise<void> => {
+    const event = evt as MouseEvent;
+    // Do nothing if it's not a left mouse press.
+    if (event.button !== 0) {
+      return;
+    }
+
+    // Do nothing if any modifier keys are pressed.
+    if (event.ctrlKey || event.shiftKey || event.altKey || event.metaKey) {
+      return;
+    }
+
+    // Stop the event propagation.
+    event.preventDefault();
+    event.stopPropagation();
+
+    const item = browser.modelForClick(event);
+    if (!item) {
+      return;
+    }
+
+    const { contents } = browser.model.manager.services;
+    if (PathExt.extname(item.path) === '.hdf5') {
+      // special handling for .hdf5 files
+      commands.execute(CommandIDs.openInBrowser);
+    } else if (item.type === 'directory') {
+      browser.model
+        .cd('/' + contents.localPath(item.path))
+        .catch(error => console.error(error));
+    } else {
+      browser.model.manager.openOrReveal(item.path);
+    }
+  };
+
+  browser.node.addEventListener('dblclick', handleDblClick, true);
+}
+
+function addBrowserCommands(
+  app: JupyterFrontEnd,
+  browserFactory: IFileBrowserFactory,
+  labShell: ILabShell,
+  hdfBrowser: HdfFileBrowser,
+  browser: FileBrowser
+): void {
+  const { tracker } = browserFactory;
+  const { commands } = app;
 
   // Settings for the notebook server.
   const serverSettings = ServerConnection.makeSettings();
@@ -168,17 +234,6 @@ function activateHdfBrowserPlugin(
 
   return;
 }
-
-/**
- * The HTML file handler extension.
- */
-const hdfDatasetPlugin: JupyterFrontEndPlugin<IHdfDatasetTracker> = {
-  activate: activateHdfDatasetPlugin,
-  id: hdf5DatasetPluginId,
-  provides: IHdfDatasetTracker,
-  optional: [ILayoutRestorer],
-  autoStart: true
-};
 
 /**
  * Activate the HTMLViewer extension.

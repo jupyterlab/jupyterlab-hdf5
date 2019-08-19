@@ -205,24 +205,31 @@ export class hdfFpathInput extends Widget {
     this._input.className = 'jp-HdfUserInput-input';
     wrapper.node.appendChild(this._input);
     layout.addWidget(wrapper);
+
+    // restore the input
+    this._syncInputToBrowser();
+
+    // sync to future changes to browser
+    this._browser.model.pathChanged.connect(this._onBrowserPathChanged, this);
   }
 
   /**
    * The current name of the field.
    */
   get path(): string {
-    return this._path;
+    return this._input.value;
   }
-  set path(value: string) {
-    if (value === this._browser.model.path) {
+  set path(val: string) {
+    if (val === this._browser.model.path) {
       return;
     }
+
     const old = this._path;
-    this._path = value;
-    this._input.value = value;
+    this._input.value = val;
+
     this._pathChanged.emit({
       oldValue: old,
-      newValue: value
+      newValue: val
     });
   }
 
@@ -288,6 +295,20 @@ export class hdfFpathInput extends Widget {
     this._input.removeEventListener('keydown', this);
     this._input.removeEventListener('blur', this);
     this._input.removeEventListener('focus', this);
+  }
+
+  private _syncInputToBrowser() {
+    const { fpath } = parseHdfQuery(this._browser.model.path);
+    this._path = fpath;
+    this._input.value = fpath;
+  }
+
+  private _onBrowserPathChanged() {
+    if (this._path === this._browser.model.path) {
+      return;
+    }
+
+    this._syncInputToBrowser();
   }
 
   private _browser: FileBrowser;
