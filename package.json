@@ -1,6 +1,6 @@
 {
   "name": "jupyterlab-hdf",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Open and explore (very large) HDF5 files in Jupyterlab.",
   "keywords": [
     "jupyter",
@@ -28,13 +28,13 @@
     "build": "jlpm install && tsc",
     "build:dev": "jlpm run build && jlpm run lab:link",
     "build:watch": "jlpm run build --watch",
-    "clean": "rimraf lib && rimraf build && rimraf dist",
-    "clean:slate": "jlpm run clean && rimraf node_modules",
+    "clean": "rimraf lib && rimraf tsconfig.tsbuildinfo",
+    "clean:slate": "jlpm run clean && rimraf node_modules && rimraf build && rimraf dist",
     "integrity": "echo integrity",
     "lab:link": "jupyter labextension link . --no-build",
     "lab:unlink": "jupyter labextension uninstall jupyterlab-hdf --no-build",
     "precommit": "lint-staged",
-    "prepublishOnly": "npm run build",
+    "prepublishOnly": "jlpm run clean && jlpm run build",
     "prettier": "prettier --write '**/*{.ts,.tsx,.js,.jsx,.css,.json,.md}'",
     "watch": "tsc -w"
   },

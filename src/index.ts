@@ -223,14 +223,16 @@ function addBrowserCommands(
     }
   });
 
-  // matches all filebrowser items
-  const selectorDefaultItem = "#filebrowser .jp-DirListing-item[data-isdir]";
+  // add context menu items for commands
 
-  app.contextMenu.addItem({
-    command: CommandIDs.openInBrowser,
-    selector: selectorDefaultItem,
-    rank: 3
-  });
+  // // matches all filebrowser items
+  // const selectorDefaultItem = "#filebrowser .jp-DirListing-item[data-isdir]";
+
+  // app.contextMenu.addItem({
+  //   command: CommandIDs.openInBrowser,
+  //   selector: selectorDefaultItem,
+  //   rank: 3
+  // });
 
   return;
 }
