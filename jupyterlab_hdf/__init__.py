@@ -17,14 +17,6 @@ def _jupyter_server_extension_paths():
         'module': 'jupyterlab_hdf'
     }]
 
-def _load_external_types(nb_server_app, web_app):
-    hdfContentsManager = HdfContentsManager(nb_server_app.notebook_dir)
-    def hdf_external_contents_handler(model):
-        if model['content']:
-            model['content'] = hdfContentsManager.get(model['path'], '/leaf01/leaf02/data02', 100, 100)
-
-    web_app.settings['contents_manager'].external_types.update({'external/hdf': hdf_external_contents_handler})
-
 def _load_handlers(nb_server_app, web_app):
     # Prepend the base_url so that it works in a jupyterhub setting
     base_url = web_app.settings['base_url']
@@ -51,9 +43,4 @@ def load_jupyter_server_extension(nb_server_app):
         nb_server_app (NotebookApp): handle to the Notebook webserver instance.
     """
     web_app = nb_server_app.web_app
-    # _load_external_types(nb_server_app, web_app)
     _load_handlers(nb_server_app, web_app)
-
-    print('INFO: jupyterlab_hdf server extension loaded')
-
-print('INFO: jupyterlab_hdf python package imported')

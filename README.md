@@ -1,10 +1,12 @@
 # jupyterlab-hdf5
 
-Open and explore HDF5 files in Jupyterlab.
+Open and explore HDF5 files in JupyterLab. Can handle very large (TB) sized files. Now integrated with the standard filebrowser!
 
 ![hdf_preview](README.png)
 
-Currently in late alpha. Basic functionality has been achieved!
+Currently in early release. Double clicking on an `.hdf5` file in the file browser will open it in a special HDF browser. You can then browse through the groups and open the datasets in the `.hdf5` file. All datasets will open read only.
+
+Designed from the ground up to be as efficient as possible. Data will only be fetched as needed to create the visible display. This allows the extension to work with very large files, potentially up to the TB range.
 
 ## Installation
 
@@ -48,7 +50,7 @@ When you open a dataset using the hdf5 filebrowser, a document will open that di
 
 - filebrowser
 
-  - works well, and allows you to open datasets via a double click. Some minor UI issues remain (mostly with the breadcrumbs and the `.hdf5` path input box).
+  - works well, and allows you to open datasets via a double click. Some minor UI issues remain (mostly with the breadcrumbs).
 
 - dataset file type
-  - currently, only the first 100x100 chunk of a dataset will load. The next goal of development is to enable dynamic loading of the rest of a dataset's chunks.
+  - works well. Data will load to the grid dynamically as needed. Read only. The next goal of development is to enable selection/copying of a dataset's elements.

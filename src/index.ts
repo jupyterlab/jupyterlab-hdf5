@@ -1,65 +1,65 @@
 // Copyright (c) Max Klein.
 // Distributed under the terms of the Modified BSD License.
 
-import { map, toArray } from '@phosphor/algorithm';
+import { map, toArray } from "@phosphor/algorithm";
 
 import {
   ILabShell,
   ILayoutRestorer,
   JupyterFrontEnd,
   JupyterFrontEndPlugin
-} from '@jupyterlab/application';
+} from "@jupyterlab/application";
 
-import { WidgetTracker } from '@jupyterlab/apputils';
+import { WidgetTracker } from "@jupyterlab/apputils";
 
-import { PathExt } from '@jupyterlab/coreutils';
+import { PathExt } from "@jupyterlab/coreutils";
 
-import { IDocumentManager } from '@jupyterlab/docmanager';
+import { IDocumentManager } from "@jupyterlab/docmanager";
 
-import { DocumentRegistry } from '@jupyterlab/docregistry';
+import { DocumentRegistry } from "@jupyterlab/docregistry";
 
-import { FileBrowser, IFileBrowserFactory } from '@jupyterlab/filebrowser';
+import { FileBrowser, IFileBrowserFactory } from "@jupyterlab/filebrowser";
 
-import { ServerConnection } from '@jupyterlab/services';
+import { ServerConnection } from "@jupyterlab/services";
 
-import { HdfFileBrowser } from './browser';
+import { HdfFileBrowser } from "./browser";
 
-import { HdfDrive } from './contents';
+import { HdfDrive } from "./contents";
 
 import {
   IHdfDatasetTracker,
   HdfDatasetFactory,
   HdfDatasetWidget
-} from './dataset';
+} from "./dataset";
 
-import { hdfContentsRequest, IContentsParameters, parseHdfQuery } from './hdf';
+import { hdfContentsRequest, IContentsParameters, parseHdfQuery } from "./hdf";
 
 /**
  * Hdf plugins state namespace.
  */
-const HDF_BROWSER_NAMESPACE = 'hdf-file-browser';
-const HDF_FILE_BROWSER_NAMESPACE = 'hdf-filebrowser';
-const HDF_DATASET_NAMESPACE = 'hdf-dataset';
+const HDF_BROWSER_NAMESPACE = "hdf-file-browser";
+const HDF_FILE_BROWSER_NAMESPACE = "hdf-filebrowser";
+const HDF_DATASET_NAMESPACE = "hdf-dataset";
 
 /**
  * The IDs for the plugins.
  */
-const hdf5BrowserPluginId = 'jupyterlab-hdf:browser';
-const hdf5DatasetPluginId = 'jupyterlab-hdf:dataset';
+const hdf5BrowserPluginId = "jupyterlab-hdf:browser";
+const hdf5DatasetPluginId = "jupyterlab-hdf:dataset";
 
 /**
  * Hdf icon classnames
  */
-const HDF_ICON = 'jp-HdfIcon';
-const HDF_DATASET_ICON = 'jp-MaterialIcon jp-HdfDatasetIcon';
+const HDF_ICON = "jp-HdfIcon";
+const HDF_DATASET_ICON = "jp-MaterialIcon jp-SpreadsheetIcon"; // jp-HdfDatasetIcon;
 
 namespace CommandIDs {
   /**
    * Fetch metadata from an hdf5 file
    */
-  export const fetchContents = 'hdf:fetch-contents';
+  export const fetchContents = "hdf:fetch-contents";
 
-  export const openInBrowser = 'hdf:open-in-browser';
+  export const openInBrowser = "hdf:open-in-browser";
 }
 
 /**
@@ -112,13 +112,13 @@ function activateHdfBrowserPlugin(
   const hdfBrowser = new HdfFileBrowser(browser, drive);
 
   hdfBrowser.title.iconClass = `${HDF_ICON} jp-SideBar-tabIcon`;
-  hdfBrowser.title.caption = 'Browse Hdf';
+  hdfBrowser.title.caption = "Browse Hdf";
 
   hdfBrowser.id = HDF_BROWSER_NAMESPACE;
 
   // Add the file browser widget to the application restorer.
   restorer.add(hdfBrowser, HDF_FILE_BROWSER_NAMESPACE);
-  app.shell.add(hdfBrowser, 'left', { rank: 103 });
+  app.shell.add(hdfBrowser, "left", { rank: 103 });
 
   addBrowserCommands(app, browserFactory, labShell, hdfBrowser, browser);
   monkeyPatchBrowser(app, defaultBrowser);
@@ -151,19 +151,19 @@ function monkeyPatchBrowser(app: JupyterFrontEnd, browser: FileBrowser) {
     }
 
     const { contents } = browser.model.manager.services;
-    if (PathExt.extname(item.path) === '.hdf5') {
+    if (PathExt.extname(item.path) === ".hdf5") {
       // special handling for .hdf5 files
       commands.execute(CommandIDs.openInBrowser);
-    } else if (item.type === 'directory') {
+    } else if (item.type === "directory") {
       browser.model
-        .cd('/' + contents.localPath(item.path))
+        .cd("/" + contents.localPath(item.path))
         .catch(error => console.error(error));
     } else {
       browser.model.manager.openOrReveal(item.path);
     }
   };
 
-  browser.node.addEventListener('dblclick', handleDblClick, true);
+  browser.node.addEventListener("dblclick", handleDblClick, true);
 }
 
 function addBrowserCommands(
@@ -182,23 +182,23 @@ function addBrowserCommands(
   commands.addCommand(CommandIDs.fetchContents, {
     execute: args => {
       let params: IContentsParameters = {
-        fpath: args['fpath'] as string,
-        uri: args['uri'] as string
+        fpath: args["fpath"] as string,
+        uri: args["uri"] as string
       };
-      if (args['col']) {
-        params.col = args['col'] as number[];
+      if (args["col"]) {
+        params.col = args["col"] as number[];
       }
-      if (args['row']) {
-        params.row = args['row'] as number[];
+      if (args["row"]) {
+        params.row = args["row"] as number[];
       }
 
       return hdfContentsRequest(params, serverSettings);
     },
-    label: 'For an HDF5 file at `fpath`, fetch the contents at `uri`'
+    label: "For an HDF5 file at `fpath`, fetch the contents at `uri`"
   });
 
   commands.addCommand(CommandIDs.openInBrowser, {
-    label: 'Open as HDF5',
+    label: "Open as HDF5",
     execute: args => {
       const widget = tracker.currentWidget;
 
@@ -224,7 +224,7 @@ function addBrowserCommands(
   });
 
   // matches all filebrowser items
-  const selectorDefaultItem = '#filebrowser .jp-DirListing-item[data-isdir]';
+  const selectorDefaultItem = "#filebrowser .jp-DirListing-item[data-isdir]";
 
   app.contextMenu.addItem({
     command: CommandIDs.openInBrowser,
@@ -244,21 +244,21 @@ function activateHdfDatasetPlugin(
 ): IHdfDatasetTracker {
   // Add an hdf dataset file type to the docregistry.
   const ft: DocumentRegistry.IFileType = {
-    name: 'hdf:dataset',
-    contentType: 'file',
-    fileFormat: 'json',
-    displayName: 'HDF Dataset',
-    extensions: ['.data'],
-    mimeTypes: ['application/x-hdf5.dataset'],
+    name: "hdf:dataset",
+    contentType: "file",
+    fileFormat: "json",
+    displayName: "HDF Dataset",
+    extensions: [".data"],
+    mimeTypes: ["application/x-hdf5.dataset"],
     iconClass: HDF_DATASET_ICON
   };
   app.docRegistry.addFileType(ft);
 
   // Create a new dataset viewer factory.
   const factory = new HdfDatasetFactory({
-    name: 'HDF Dataset',
-    fileTypes: ['hdf:dataset'],
-    defaultFor: ['hdf:dataset'],
+    name: "HDF Dataset",
+    fileTypes: ["hdf:dataset"],
+    defaultFor: ["hdf:dataset"],
     readOnly: true
   });
 
@@ -270,8 +270,8 @@ function activateHdfDatasetPlugin(
   // Handle state restoration.
   if (restorer) {
     void restorer.restore(tracker, {
-      command: 'docmanager:open',
-      args: widget => ({ path: widget.context.path, factory: 'HDF Dataset' }),
+      command: "docmanager:open",
+      args: widget => ({ path: widget.context.path, factory: "HDF Dataset" }),
       name: widget => widget.context.path
     });
   }
