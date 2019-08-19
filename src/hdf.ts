@@ -17,10 +17,6 @@ export function localAbsPath(path: string): string {
   return '/' + PathExt.join(firstParts.slice(1).join(':'), ...parts.slice(1));
 }
 
-// export function localPath(path: string): string {
-//   return path.split(/^Hdf:/).pop();
-// }
-
 /**
  * Parse a path into hdf contents request parameters.
  */

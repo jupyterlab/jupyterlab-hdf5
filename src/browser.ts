@@ -1,15 +1,15 @@
 // Copyright (c) Max Klein.
 // Distributed under the terms of the Modified BSD License.
 
-// import { ToolbarButton } from '@jupyterlab/apputils';
-
-import { FileBrowser } from '@jupyterlab/filebrowser';
-
 import { Message } from '@phosphor/messaging';
 
 import { ISignal, Signal } from '@phosphor/signaling';
 
 import { PanelLayout, Widget } from '@phosphor/widgets';
+
+// import { ToolbarButton } from '@jupyterlab/apputils';
+
+import { FileBrowser } from '@jupyterlab/filebrowser';
 
 import { HdfDrive } from './contents';
 import { localAbsPath, parseHdfQuery } from './hdf';
@@ -32,10 +32,10 @@ export class HdfFileBrowser extends Widget {
     this._monkeyPatch();
 
     // Create an editable name for the Hdf file path.
-    this.fpath = new hdfFpathInput(browser);
-    this.fpath.node.title = 'Click to edit file path';
-    this._browser.toolbar.addItem('fpath', this.fpath);
-    this.fpath.pathChanged.connect(this._onFpathChanged, this);
+    this.fpathInput = new hdfFpathInput(browser);
+    this.fpathInput.node.title = 'Click to edit file path';
+    this._browser.toolbar.addItem('fpathInput', this.fpathInput);
+    this.fpathInput.pathChanged.connect(this._onFpathChanged, this);
 
     // // Add our own refresh button, since the other one is hidden
     // // via CSS.
@@ -53,7 +53,7 @@ export class HdfFileBrowser extends Widget {
   /**
    * An editable widget hosting the current file path.
    */
-  readonly fpath: hdfFpathInput;
+  readonly fpathInput: hdfFpathInput;
 
   private _monkeyPatch() {
     const handleDblClick = async (evt: Event): Promise<void> => {
@@ -73,7 +73,6 @@ export class HdfFileBrowser extends Widget {
       event.stopPropagation();
 
       const item = this._browser.modelForClick(event);
-      console.log(item);
       if (!item) {
         return;
       }
@@ -98,8 +97,9 @@ export class HdfFileBrowser extends Widget {
       return;
     }
     this._changeGuard = true;
+
     this._browser.model
-      .cd(`/${this.fpath.path}`)
+      .cd(`/${this.fpathInput.path}`)
       .then(() => {
         this._changeGuard = false;
         this._updateErrorPanel();
@@ -114,7 +114,7 @@ export class HdfFileBrowser extends Widget {
       })
       .catch((err: Error) => {
         const msg =
-          `Failed to open HDF5 file at ${this.fpath.path}` + err.message;
+          `Failed to open HDF5 file at ${this.fpathInput.path}` + err.message;
         console.error(msg);
         this._updateErrorPanel(err);
       });
@@ -132,7 +132,7 @@ export class HdfFileBrowser extends Widget {
   //   // If we are not already changing the user name, set it.
   //   if (!this._changeGuard) {
   //     this._changeGuard = true;
-  //     this.fpath.name = resource.user;
+  //     this.fpathInput.name = resource.user;
   //     this._changeGuard = false;
   //     this._updateErrorPanel();
   //   }
@@ -161,7 +161,7 @@ export class HdfFileBrowser extends Widget {
 
     if (err) {
       const msg =
-        `Failed to open HDF5 file at ${this.fpath.path}` + err.message;
+        `Failed to open HDF5 file at ${this.fpathInput.path}` + err.message;
       this._initErrorPanel(msg);
       return;
     }

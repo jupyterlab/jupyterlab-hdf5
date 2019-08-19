@@ -100,7 +100,7 @@ export class HdfDrive implements Contents.IDrive {
       params.col = [100];
     }
 
-    if (!params.fpath) {
+    if (!params.fpath || !PathExt.normalize(params.fpath)) {
       return Promise.resolve(Private.dummyDirectory);
     }
 

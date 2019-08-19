@@ -28,14 +28,14 @@ class HdfBaseManager:
     def _get(self, f, uri, row, col):
         raise NotImplementedError
 
-    def get(self, path, uri, row, col):
+    def get(self, relfpath, uri, row, col):
         def _handleErr(code, msg):
             raise HTTPError(code, '\n'.join((
                 msg,
-                f'fpath: {path}, uri: {uri}, row: {row}, col: {col}'
+                f'relfpath: {relfpath}, uri: {uri}, row: {row}, col: {col}'
             )))
 
-        if not path:
+        if not relfpath:
             msg = f'The request was malformed; fpath should not be empty.'
             _handleErr(400, msg)
 
@@ -47,7 +47,7 @@ class HdfBaseManager:
             msg = f'The request was malformed; col slice was specified, but row slice was empty.'
             _handleErr(400, msg)
 
-        fpath = url_path_join(self.notebook_dir, path)
+        fpath = url_path_join(self.notebook_dir, relfpath)
 
         if not os.path.exists(fpath):
             msg = f'The request specified a file that does not exist.'
