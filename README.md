@@ -1,3 +1,5 @@
+[![PyPI version][pypi]][pypi-url]
+[![npm_version][npm]][npm-url]
 # jupyterlab-hdf5
 
 Open and explore HDF5 files in JupyterLab. Can handle very large (TB) sized files. Now integrated with the standard filebrowser!
@@ -54,3 +56,8 @@ When you open a dataset using the hdf5 filebrowser, a document will open that di
 
 - dataset file type
   - works well. Data will load to the grid dynamically as needed. Read only. The next goal of development is to enable selection/copying of a dataset's elements.
+  
+[pypi]: https://badge.fury.io/py/jupyterlab-hdf.svg
+[pypi-url]: https://badge.fury.io/py/jupyterlab-hdf
+[npm]: https://badge.fury.io/js/jupyterlab-hdf.svg
+[npm-url]: https://badge.fury.io/js/jupyterlab-hdf
