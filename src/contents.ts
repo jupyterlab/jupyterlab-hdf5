@@ -93,12 +93,6 @@ export class HdfDrive implements Contents.IDrive {
     if (!params.uri) {
       params.uri = '/';
     }
-    if (!params.row) {
-      params.row = [100];
-    }
-    if (!params.col) {
-      params.col = [100];
-    }
 
     if (!params.fpath || !PathExt.normalize(params.fpath)) {
       return Promise.resolve(Private.dummyDirectory);

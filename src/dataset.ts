@@ -74,9 +74,6 @@ class HdfDatasetModel extends DataModel {
     this._rowCount = content.shape[0];
     this._colCount = content.shape[1];
 
-    this._blocks[0] = Object();
-    this._blocks[0][0] = content.data;
-
     this.emitChanged({
       type: 'rows-inserted',
       region: 'body',

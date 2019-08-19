@@ -120,30 +120,8 @@ export class HdfFileBrowser extends Widget {
       });
   }
 
-  // /**
-  //  * React to the path changing for the browser.
-  //  */
-  // private _onPathChanged(): void {
-  //   const localPath = this._browser.model.manager.services.contents.localPath(
-  //     this._browser.model.path
-  //   );
-  //   const resource = parsePath(localPath);
-  //
-  //   // If we are not already changing the user name, set it.
-  //   if (!this._changeGuard) {
-  //     this._changeGuard = true;
-  //     this.fpathInput.name = resource.user;
-  //     this._changeGuard = false;
-  //     this._updateErrorPanel();
-  //   }
-  //
-  //   // If we got this far, we are in a subdirectory of a valid
-  //   // repository, and should not change the binderActive status.
-  //   return;
-  // }
-
   /**
-   * React to a change in the validity of the drive.
+   * React to a change in the validity of the hdf file.
    */
   private _updateErrorPanel(err?: Error): void {
     const localPath = this._browser.model.manager.services.contents.localPath(
@@ -206,10 +184,10 @@ export class hdfFpathInput extends Widget {
     wrapper.node.appendChild(this._input);
     layout.addWidget(wrapper);
 
-    // restore the input
+    // restore the input from browser path
     this._syncInputToBrowser();
 
-    // sync to future changes to browser
+    // sync to future changes to browser path
     this._browser.model.pathChanged.connect(this._onBrowserPathChanged, this);
   }
 

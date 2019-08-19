@@ -90,8 +90,8 @@ class HdfBaseHandler(APIHandler):
         slice of a dataset and return it as serialized JSON.
         """
         uri = '/' + self.get_query_argument('uri').lstrip('/')
-        row = [int(x) for x in self.get_query_argument('row').split(',')]
-        col = [int(x) for x in self.get_query_argument('col').split(',')]
+        row = self.getQueryArguments('row', int)
+        col = self.getQueryArguments('col', int)
 
         try:
             self.finish(json.dumps(self.manager.get(path, uri, row, col)))
@@ -103,3 +103,9 @@ class HdfBaseHandler(APIHandler):
                 response,
                 err.message
             )))
+
+    def getQueryArguments(self, key, func=None):
+        if func is not None:
+            return [func(x) for x in self.get_query_argument(key).split(',')] if key in self.request.query_arguments else None
+        else:
+            return [x for x in self.get_query_argument(key).split(',')] if key in self.request.query_arguments else None
