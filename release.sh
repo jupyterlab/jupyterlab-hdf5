@@ -11,7 +11,7 @@ git push origin "v${VERSION}"
 # python setup.py sdist bdist_wheel
 
 # build the tar release
-python setup.py sdist bdist_wheel
+python setup.py sdist
 
 # release to the test server
 # twine upload --repository-url https://test.pypi.org/legacy/ dist/*
