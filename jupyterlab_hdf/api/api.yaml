@@ -23,15 +23,9 @@ components:
       description: "Path within an HDF5 file to a specific group or dataset."
       schema:
         type: string
-    - name: chunk
-      in: query
-      description: "The size of the data chunk to fetch."
-      schema:
-        type: integer
-        default: 1
     - name: row
       in: query
-      description: "Row slice. Will be in units of chunk size. Up to 3 integers, same syntax as for Python `slice` built-in."
+      description: "Row slice. Up to 3 integers, same syntax as for Python `slice` built-in."
       explode: false
       schema:
         type: array
@@ -41,7 +35,7 @@ components:
         maxItems: 3
     - name: col
       in: query
-      description: "Column slice. Will be in units of chunk size. Up to 3 integers, same syntax as for Python `slice` built-in."
+      description: "Column slice. Up to 3 integers, same syntax as for Python `slice` built-in."
       explode: false
       schema:
         type: array
@@ -51,13 +45,12 @@ components:
         maxItems: 3
 
 paths:
-  /hdf/contents/{fpath}{?uri,chunk,row,col}:
+  /hdf/contents/{fpath}{?uri,row,col}:
     get:
       summary: Get the contents of the hdf object pointed to by the uri in the file at fpath.
       parameters:
         - $ref: '#/components/parameters/fpath'
         - $ref: '#/components/parameters/uri'
-        - $ref: '#/components/parameters/chunk'
         - $ref: '#/components/parameters/row'
         - $ref: '#/components/parameters/col'
       responses:
@@ -77,7 +70,7 @@ paths:
                 content:
                   type: string
         '400':
-          description: The request was malformed; should be of the format "file/path?uri=uri/path&chunk=int&row=[start,stop,step]&col=[start,stop,step]"
+          description: The request was malformed; should be of the format "file/path?uri=uri/path&row=[start,stop,step]&col=[start,stop,step]"
         '401':
           description: The request did not specify a file that `h5py` could understand.
         '403':
@@ -85,13 +78,12 @@ paths:
         '500':
           description: Found and opened file, error getting contents from object specified by the uri.
 
-  /hdf/data/{fpath}{?uri,chunk,row,col}:
+  /hdf/data/{fpath}{?uri,row,col}:
     get:
-      summary: Get chunks of data from the hdf dataset pointed to by the uri in the file at fpath.
+      summary: Get slices of data from the hdf dataset pointed to by the uri in the file at fpath.
       parameters:
         - $ref: '#/components/parameters/fpath'
         - $ref: '#/components/parameters/uri'
-        - $ref: '#/components/parameters/chunk'
         - $ref: '#/components/parameters/row'
         - $ref: '#/components/parameters/col'
       responses:
