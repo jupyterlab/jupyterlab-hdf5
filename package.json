@@ -28,7 +28,7 @@
     "build": "jlpm install && tsc",
     "build:dev": "jlpm run build && jlpm run lab:link",
     "build:watch": "jlpm run build --watch",
-    "clean": "rimraf lib",
+    "clean": "rimraf lib && rimraf build && rimraf dist",
     "clean:slate": "jlpm run clean && rimraf node_modules",
     "integrity": "echo integrity",
     "lab:link": "jupyter labextension link . --no-build",
