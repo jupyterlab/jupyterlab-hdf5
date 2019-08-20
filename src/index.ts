@@ -34,8 +34,8 @@ import { addHdfConverters } from "./dataregistry";
 
 import {
   IHdfDatasetTracker,
-  HdfDatasetFactory,
-  HdfDatasetWidget
+  HdfDatasetDocFactory,
+  HdfDatasetDoc
 } from "./dataset";
 
 import {
@@ -283,7 +283,7 @@ function activateHdfDatasetPlugin(
   app.docRegistry.addFileType(ft);
 
   // Create a new dataset viewer factory.
-  const factory = new HdfDatasetFactory({
+  const factory = new HdfDatasetDocFactory({
     name: "HDF Dataset",
     fileTypes: ["hdf:dataset"],
     defaultFor: ["hdf:dataset"],
@@ -291,7 +291,7 @@ function activateHdfDatasetPlugin(
   });
 
   // Create a widget tracker for hdf documents.
-  const tracker = new WidgetTracker<HdfDatasetWidget>({
+  const tracker = new WidgetTracker<HdfDatasetDoc>({
     namespace: HDF_DATASET_NAMESPACE
   });
 

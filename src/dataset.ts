@@ -5,7 +5,12 @@ import { PromiseDelegate, Token } from "@phosphor/coreutils";
 
 import { DataGrid, DataModel } from "@phosphor/datagrid";
 
-import { IWidgetTracker, Toolbar, ToolbarButton } from "@jupyterlab/apputils";
+import {
+  IWidgetTracker,
+  MainAreaWidget,
+  Toolbar,
+  ToolbarButton
+} from "@jupyterlab/apputils";
 
 import {
   ABCWidgetFactory,
@@ -24,6 +29,7 @@ import {
   parseHdfQuery,
   IDatasetContent
 } from "./hdf";
+import { SliceInput } from "./toolbar";
 
 /**
  * The MIME type for an HDF5 dataset.
@@ -40,7 +46,7 @@ export const HDF_CLASS = "jp-HdfDataGrid";
  */
 export const HDF_CONTAINER_CLASS = "jp-HdfContainer";
 
-class HdfDatasetBaseModel extends DataModel {
+export class HdfDatasetModelBase extends DataModel {
   constructor() {
     super();
 
@@ -173,7 +179,7 @@ class HdfDatasetBaseModel extends DataModel {
   private _ready = new PromiseDelegate<void>();
 }
 
-class HdfDatasetContextModel extends HdfDatasetBaseModel {
+class HdfDatasetModelContext extends HdfDatasetModelBase {
   constructor(context: DocumentRegistry.Context) {
     super();
 
@@ -210,7 +216,7 @@ class HdfDatasetContextModel extends HdfDatasetBaseModel {
   protected _context: DocumentRegistry.Context;
 }
 
-class HdfDatasetParamsModel extends HdfDatasetBaseModel {
+class HdfDatasetModelParams extends HdfDatasetModelBase {
   constructor(parameters: IContentsParameters) {
     super();
 
@@ -235,7 +241,7 @@ export function createHdfGrid(params: {
   fpath: string;
   uri: string;
 }): DataGrid {
-  const model = new HdfDatasetParamsModel(params);
+  const model = new HdfDatasetModelParams(params);
 
   const grid = new DataGrid();
   grid.model = model;
@@ -244,13 +250,26 @@ export function createHdfGrid(params: {
 }
 
 /**
+ * A mainarea widget for HDF content widgets.
+ */
+export class HdfDatasetMain extends MainAreaWidget<DataGrid> {
+  constructor(params: { fpath: string; uri: string }) {
+    const content = createHdfGrid(params);
+
+    const toolbar = Private.createToolbar(content);
+    const reveal = (content.model as HdfDatasetModelParams).ready;
+    super({ content, reveal, toolbar });
+  }
+}
+
+/**
  * A document widget for HDF content widgets.
  */
-export class HdfDatasetWidget extends DocumentWidget<DataGrid>
+export class HdfDatasetDoc extends DocumentWidget<DataGrid>
   implements IDocumentWidget<DataGrid> {
   constructor(context: DocumentRegistry.Context) {
     const content = new DataGrid();
-    content.model = new HdfDatasetContextModel(context);
+    content.model = new HdfDatasetModelContext(context);
     const toolbar = Private.createToolbar(content);
     const reveal = context.ready;
     super({ content, context, reveal, toolbar });
@@ -260,21 +279,19 @@ export class HdfDatasetWidget extends DocumentWidget<DataGrid>
 /**
  * A widget factory for HDF5 data grids.
  */
-export class HdfDatasetFactory extends ABCWidgetFactory<HdfDatasetWidget> {
+export class HdfDatasetDocFactory extends ABCWidgetFactory<HdfDatasetDoc> {
   /**
    * Create a new widget given a context.
    */
-  protected createNewWidget(
-    context: DocumentRegistry.Context
-  ): HdfDatasetWidget {
-    return new HdfDatasetWidget(context);
+  protected createNewWidget(context: DocumentRegistry.Context): HdfDatasetDoc {
+    return new HdfDatasetDoc(context);
   }
 }
 
 /**
  * A class that tracks hdf5 viewer widgets.
  */
-export interface IHdfDatasetTracker extends IWidgetTracker<HdfDatasetWidget> {}
+export interface IHdfDatasetTracker extends IWidgetTracker<HdfDatasetDoc> {}
 
 export const IHdfDatasetTracker = new Token<IHdfDatasetTracker>(
   "jupyterlab-hdf:IHdfDatasetTracker"
@@ -328,11 +345,13 @@ namespace Private {
   /**
    * Create the toolbar for the HDF viewer.
    */
-  export function createToolbar(hdfViewer: any): Toolbar<ToolbarButton> {
+  export function createToolbar(grid: DataGrid): Toolbar<ToolbarButton> {
     const toolbar = new Toolbar();
 
     toolbar.addClass("jp-Toolbar");
-    toolbar.addClass("jp-HDF-toolbar");
+    toolbar.addClass("jp-Hdf-toolbar");
+
+    toolbar.addItem("slice input", new SliceInput(grid));
 
     // toolbar.addItem(
     //   'previous',
