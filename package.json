@@ -1,6 +1,6 @@
 {
   "name": "jupyterlab-hdf",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Open and explore (very large) HDF5 files in Jupyterlab.",
   "keywords": [
     "jupyter",

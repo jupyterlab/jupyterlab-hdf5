@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=0.1.0
+VERSION=0.1.2
 
 ## git tagging
 git tag "v${VERSION}"
