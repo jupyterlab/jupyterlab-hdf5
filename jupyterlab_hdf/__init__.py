@@ -4,9 +4,10 @@ Copyright (c) Max Klein.
 Distributed under the terms of the Modified BSD License.
 """
 
+from ._version import __version__
+
 from notebook.utils import url_path_join
 
-from ._version import __version__
 from .contents import HdfContentsManager, HdfContentsHandler
 from .data import HdfDataHandler
 

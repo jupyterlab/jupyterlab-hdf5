@@ -5,7 +5,7 @@ Distributed under the terms of the Modified BSD License.
 """
 
 import setuptools
-from setupbase import create_cmdclass, ensure_python, find_packages
+from setupbase import create_cmdclass, ensure_python, find_packages, get_version
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -53,9 +53,7 @@ except ValueError as e:
                          setup_dict["python_requires"])
                     )
 
-from jupyterlab_hdf import __version__
-
 setuptools.setup(
-    version=__version__,
+    version=get_version('jupyterlab_hdf/_version.py'),
     **setup_dict
 )
