@@ -362,18 +362,22 @@ function activateHdfDataRegistryPlugin(
           return null;
         }
 
-        const { fpath, uri } = params;
-        return {
-          data: from(hdfContentsRequest({ fpath, uri }, serverSettings)).pipe(
-            rxmap((hdfContents: HdfDirectoryListing) =>
-              hdfContents.map(
-                hdfContent =>
-                  `?uri=${hdfContent.uri}&type=${hdfContent.type}&content=${hdfContent.content}`
+        const { fpath, uri, type } = params;
+        if (type === "group") {
+          return {
+            data: from(hdfContentsRequest({ fpath, uri }, serverSettings)).pipe(
+              rxmap((hdfContents: HdfDirectoryListing) =>
+                hdfContents.map(
+                  hdfContent =>
+                    `?uri=${hdfContent.uri}&type=${hdfContent.type}&content=${hdfContent.content}`
+                )
               )
-            )
-          ),
-          type: undefined
-        };
+            ),
+            type: undefined
+          };
+        }
+
+        return null;
       }
     ),
     createConverter(
@@ -395,28 +399,6 @@ function activateHdfDataRegistryPlugin(
         return null;
       }
     )
-    // createConverter(
-    //   { from: fileDataType, to: relativeNestedDataType },
-    //   ({ data, type }) => {
-    //     if (type === HDF_MIME_TYPE) {
-    //       const params = parseHdfQuery(data);
-    //       if (!params.uri) {
-    //         params.uri = "/";
-    //       }
-    //       return {
-    //         data: from(hdfContentsRequest(params, serverSettings)).pipe(
-    //           rxmap(json => json.map(hdfContent =>
-    //             "#" +
-    //             hdfContent.uri +
-    //             (hdfContent.type === "group" ? "/" : "")
-    //           ))
-    //         ),
-    //         type: undefined
-    //       };
-    //     }
-    //     return null;
-    //   }
-    // )
   );
 }
 
