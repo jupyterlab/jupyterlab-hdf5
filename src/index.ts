@@ -3,10 +3,6 @@
 
 import { map, toArray } from "@phosphor/algorithm";
 
-import { from } from "rxjs";
-
-import { map as rxmap } from "rxjs/operators";
-
 import {
   ILabShell,
   ILayoutRestorer,
@@ -26,36 +22,27 @@ import { FileBrowser, IFileBrowserFactory } from "@jupyterlab/filebrowser";
 
 import { ServerConnection } from "@jupyterlab/services";
 
-import {
-  createConverter,
-  Registry,
-  relativeNestedDataType,
-  resolveDataType,
-  resolveExtensionConverter
-} from "@jupyterlab/dataregistry";
+import { Registry } from "@jupyterlab/dataregistry";
 
-import {
-  RegistryToken,
-  widgetDataType
-} from "@jupyterlab/dataregistry-extension";
+import { RegistryToken } from "@jupyterlab/dataregistry-extension";
 
 import { HdfFileBrowser } from "./browser";
 
 import { HdfDrive } from "./contents";
 
+import { addHdfConverters } from "./dataregistry";
+
 import {
   IHdfDatasetTracker,
   HdfDatasetFactory,
-  HdfDatasetWidget,
-  createHdfGrid
+  HdfDatasetWidget
 } from "./dataset";
 
 import {
+  HDF_DATASET_MIME_TYPE,
   hdfContentsRequest,
-  HdfDirectoryListing,
   IContentsParameters,
-  parseHdfQuery,
-  parseHdfRegistryUrl
+  parseHdfQuery
 } from "./hdf";
 
 /**
@@ -77,13 +64,6 @@ const hdf5DataRegistryPluginId = "jupyterlab-hdf:dataregistry";
  */
 const HDF_ICON = "jp-HdfIcon";
 const HDF_DATASET_ICON = "jp-MaterialIcon jp-SpreadsheetIcon"; // jp-HdfDatasetIcon;
-
-/**
- * Hdf mime types
- */
-const HDF_MIME_TYPE = "application/x-hdf5";
-const HDF_DATASET_MIME_TYPE = `${HDF_MIME_TYPE}.dataset`;
-// const HDF_GROUP_MIME_TYPE = `${HDF_MIME_TYPE}.group`;
 
 /**
  * Settings for the notebook server.
@@ -352,54 +332,7 @@ function activateHdfDataRegistryPlugin(
     return;
   }
 
-  dataRegistry.addConverter(
-    resolveExtensionConverter(".hdf5", HDF_MIME_TYPE),
-    createConverter(
-      { from: resolveDataType, to: relativeNestedDataType },
-      ({ url }) => {
-        const params = parseHdfRegistryUrl(url);
-        if (!params) {
-          return null;
-        }
-
-        const { fpath, uri, type } = params;
-        if (type === "group") {
-          return {
-            data: from(hdfContentsRequest({ fpath, uri }, serverSettings)).pipe(
-              rxmap((hdfContents: HdfDirectoryListing) =>
-                hdfContents.map(
-                  hdfContent =>
-                    `?uri=${hdfContent.uri}&type=${hdfContent.type}&content=${hdfContent.content}`
-                )
-              )
-            ),
-            type: undefined
-          };
-        }
-
-        return null;
-      }
-    ),
-    createConverter(
-      { from: resolveDataType, to: widgetDataType },
-      ({ url }) => {
-        const params = parseHdfRegistryUrl(url);
-        if (!params) {
-          return null;
-        }
-
-        const { fpath, uri, type } = params;
-        if (type === "dataset") {
-          return {
-            data: () => createHdfGrid({ fpath, uri }),
-            type: "Grid"
-          };
-        }
-
-        return null;
-      }
-    )
-  );
+  addHdfConverters(dataRegistry);
 }
 
 /**

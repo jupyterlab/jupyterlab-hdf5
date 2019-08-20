@@ -6,6 +6,13 @@ import { PathExt, URLExt } from "@jupyterlab/coreutils";
 import { ServerConnection } from "@jupyterlab/services";
 
 /**
+ * Hdf mime types
+ */
+export const HDF_MIME_TYPE = "application/x-hdf5";
+export const HDF_DATASET_MIME_TYPE = `${HDF_MIME_TYPE}.dataset`;
+// export const HDF_GROUP_MIME_TYPE = `${HDF_MIME_TYPE}.group`;
+
+/**
  * A static version of the localPath method from ContentsManager
  */
 export function localAbsPath(path: string): string {
