@@ -184,6 +184,25 @@ export class HdfDatasetModelBase extends DataModel {
     const parts = parseSlice(s);
     this._rowSlice = parts[0];
     this._colSlice = parts[1];
+
+    this.emitChanged({
+      type: "model-reset"
+    });
+
+    this.emitChanged({
+      type: "rows-inserted",
+      region: "body",
+      index: 0,
+      span: this.rowCount("body")
+    });
+    this.emitChanged({
+      type: "columns-inserted",
+      region: "body",
+      index: 0,
+      span: this.columnCount("body")
+    });
+
+    this._blocks = Object();
   }
 
   /**
