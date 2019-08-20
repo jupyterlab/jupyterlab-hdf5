@@ -37,19 +37,6 @@ export function parseHdfQuery(path: string): IContentsParameters {
   };
 }
 
-export function parseHdfRegistryUrl(url: URL): { fpath: string } & HdfContents {
-  // deal with the possibility of leading "Hdf:" drive specifier via localPath
-  if (url.protocol === "file:" && url.pathname.endsWith(".hdf5")) {
-    return {
-      fpath: url.pathname,
-      type: url.searchParams.get("type") === "dataset" ? "dataset" : "group",
-      name: url.searchParams.get("name") || "",
-      uri: url.searchParams.get("uri") || "/",
-      content: url.searchParams.get("content") || ""
-    };
-  }
-}
-
 /**
  * Send a parameterized request to the `hdf/contents` api, and
  * return the result.
