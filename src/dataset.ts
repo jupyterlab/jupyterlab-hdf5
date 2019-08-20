@@ -1,55 +1,50 @@
 // Copyright (c) Max Klein.
 // Distributed under the terms of the Modified BSD License.
 
-import { PromiseDelegate, Token } from '@phosphor/coreutils';
+import { PromiseDelegate, Token } from "@phosphor/coreutils";
 
-import { DataGrid, DataModel } from '@phosphor/datagrid';
+import { DataGrid, DataModel } from "@phosphor/datagrid";
 
-import { IWidgetTracker, Toolbar, ToolbarButton } from '@jupyterlab/apputils';
+import { IWidgetTracker, Toolbar, ToolbarButton } from "@jupyterlab/apputils";
 
 import {
   ABCWidgetFactory,
   DocumentRegistry,
   DocumentWidget,
   IDocumentWidget
-} from '@jupyterlab/docregistry';
+} from "@jupyterlab/docregistry";
 
-import { ServerConnection } from '@jupyterlab/services';
+import { ServerConnection } from "@jupyterlab/services";
 
-import { hdfDataRequest, IDatasetContent, parseHdfQuery } from './hdf';
+import {
+  HdfContents,
+  hdfContentsRequest,
+  hdfDataRequest,
+  IContentsParameters,
+  parseHdfQuery,
+  IDatasetContent
+} from "./hdf";
 
 /**
  * The MIME type for an HDF5 dataset.
  */
-export const MIME_TYPE = 'application/x-hdf5.dataset';
+export const MIME_TYPE = "application/x-hdf5.dataset";
 
 /**
  * The CSS class for the data grid widget.
  */
-export const HDF_CLASS = 'jp-HdfDataGrid';
+export const HDF_CLASS = "jp-HdfDataGrid";
 
 /**
  * The CSS class for our HDF5 container.
  */
-export const HDF_CONTAINER_CLASS = 'jp-HdfContainer';
+export const HDF_CONTAINER_CLASS = "jp-HdfContainer";
 
-class HdfDatasetModel extends DataModel {
-  constructor(context: DocumentRegistry.Context) {
+class HdfDatasetBaseModel extends DataModel {
+  constructor() {
     super();
 
     this._serverSettings = ServerConnection.makeSettings();
-    this._context = context;
-
-    void context.ready.then(() => {
-      this._onContextReady();
-    });
-  }
-
-  /**
-   * Get the context for the editor widget.
-   */
-  get context(): DocumentRegistry.Context {
-    return this._context;
   }
 
   /**
@@ -62,54 +57,48 @@ class HdfDatasetModel extends DataModel {
   /**
    * Handle actions that should be taken when the context is ready.
    */
-  private _onContextReady(): void {
-    // get the fpath and the uri for this dataset
-    const { fpath, uri } = parseHdfQuery(this._context.contentsModel.path);
+  init(meta: { fpath: string; uri: string; shape: number[] }): void {
+    const { fpath, uri, shape } = meta;
+
     this._fpath = fpath;
     this._uri = uri;
 
-    // unpack the content
-    const content: IDatasetContent = this._context.model.toJSON() as any;
-
-    this._rowCount = content.shape[0];
-    this._colCount = content.shape[1];
+    this._rowCount = shape[0];
+    this._colCount = shape[1];
 
     this.emitChanged({
-      type: 'rows-inserted',
-      region: 'body',
+      type: "rows-inserted",
+      region: "body",
       index: 0,
       span: this._rowCount
     });
     this.emitChanged({
-      type: 'columns-inserted',
-      region: 'body',
+      type: "columns-inserted",
+      region: "body",
       index: 0,
       span: this._colCount
     });
-
-    // // Wire signal connections.
-    // contextModel.contentChanged.connect(this._onContentChanged, this);
 
     // Resolve the ready promise.
     this._ready.resolve(undefined);
   }
 
   rowCount(region: DataModel.RowRegion): number {
-    return region === 'body' ? this._rowCount : 1;
+    return region === "body" ? this._rowCount : 1;
   }
 
   columnCount(region: DataModel.ColumnRegion): number {
-    return region === 'body' ? this._colCount : 1;
+    return region === "body" ? this._colCount : 1;
   }
 
   data(region: DataModel.CellRegion, row: number, column: number): any {
-    if (region === 'row-header') {
+    if (region === "row-header") {
       return `${row}`;
     }
-    if (region === 'column-header') {
+    if (region === "column-header") {
       return `${column}`;
     }
-    if (region === 'corner-header') {
+    if (region === "corner-header") {
       return null;
     }
     const relRow = row % this._blockSize;
@@ -118,7 +107,7 @@ class HdfDatasetModel extends DataModel {
     const colBlock = (column - relCol) / this._blockSize;
     if (this._blocks[rowBlock]) {
       const block = this._blocks[rowBlock][colBlock];
-      if (block !== 'busy') {
+      if (block !== "busy") {
         if (block) {
           // This data has already been loaded.
           return this._blocks[rowBlock][colBlock][relRow][relCol];
@@ -140,7 +129,7 @@ class HdfDatasetModel extends DataModel {
    * the grid will be updated by emitChanged.
    */
   private _fetchBlock = (rowBlock: number, colBlock: number) => {
-    this._blocks[rowBlock][colBlock] = 'busy';
+    this._blocks[rowBlock][colBlock] = "busy";
 
     const rowStart: number = rowBlock * this._blockSize;
     const rowStop: number = Math.min(
@@ -162,8 +151,8 @@ class HdfDatasetModel extends DataModel {
     hdfDataRequest(params, this._serverSettings).then(data => {
       this._blocks[rowBlock][colBlock] = data;
       this.emitChanged({
-        type: 'cells-changed',
-        region: 'body',
+        type: "cells-changed",
+        region: "body",
         rowIndex: rowBlock * this._blockSize,
         columnIndex: colBlock * this._blockSize,
         rowSpan: this._blockSize,
@@ -172,16 +161,86 @@ class HdfDatasetModel extends DataModel {
     });
   };
 
-  protected _context: DocumentRegistry.Context;
-  private _fpath: string = '';
-  private _ready = new PromiseDelegate<void>();
-  private _serverSettings: ServerConnection.ISettings;
-  private _uri: string = '';
+  private _fpath: string = "";
+  protected _serverSettings: ServerConnection.ISettings;
+  private _uri: string = "";
 
   private _blocks: any = Object();
   private _blockSize: number = 100;
   private _colCount: number = 0;
   private _rowCount: number = 0;
+
+  private _ready = new PromiseDelegate<void>();
+}
+
+class HdfDatasetContextModel extends HdfDatasetBaseModel {
+  constructor(context: DocumentRegistry.Context) {
+    super();
+
+    this._context = context;
+
+    void context.ready.then(() => {
+      this._onContextReady();
+    });
+  }
+
+  /**
+   * Get the context for the editor widget.
+   */
+  get context(): DocumentRegistry.Context {
+    return this._context;
+  }
+
+  /**
+   * Handle actions that should be taken when the context is ready.
+   */
+  private _onContextReady(): void {
+    // get the fpath and the uri for this dataset
+    const { fpath, uri } = parseHdfQuery(this._context.contentsModel.path);
+
+    // unpack the content
+    const content: IDatasetContent = this._context.model.toJSON() as any;
+
+    // // Wire signal connections.
+    // contextModel.contentChanged.connect(this._onContentChanged, this);
+
+    this.init({ fpath, uri, shape: content.shape });
+  }
+
+  protected _context: DocumentRegistry.Context;
+}
+
+class HdfDatasetParamsModel extends HdfDatasetBaseModel {
+  constructor(parameters: IContentsParameters) {
+    super();
+
+    hdfContentsRequest(parameters, this._serverSettings).then(hdfContents => {
+      this._onMetaReady(parameters, hdfContents as HdfContents);
+    });
+  }
+
+  /**
+   * Handle actions that should be taken when the context is ready.
+   */
+  private _onMetaReady(
+    parameters: IContentsParameters,
+    contents: HdfContents
+  ): void {
+    const { fpath, uri } = parameters;
+    this.init({ fpath, uri, shape: (contents.content as any).shape });
+  }
+}
+
+export function createHdfGrid(params: {
+  fpath: string;
+  uri: string;
+}): DataGrid {
+  const model = new HdfDatasetParamsModel(params);
+
+  const grid = new DataGrid();
+  grid.model = model;
+
+  return grid;
 }
 
 /**
@@ -191,7 +250,7 @@ export class HdfDatasetWidget extends DocumentWidget<DataGrid>
   implements IDocumentWidget<DataGrid> {
   constructor(context: DocumentRegistry.Context) {
     const content = new DataGrid();
-    content.model = new HdfDatasetModel(context);
+    content.model = new HdfDatasetContextModel(context);
     const toolbar = Private.createToolbar(content);
     const reveal = context.ready;
     super({ content, context, reveal, toolbar });
@@ -218,7 +277,7 @@ export class HdfDatasetFactory extends ABCWidgetFactory<HdfDatasetWidget> {
 export interface IHdfDatasetTracker extends IWidgetTracker<HdfDatasetWidget> {}
 
 export const IHdfDatasetTracker = new Token<IHdfDatasetTracker>(
-  'jupyterlab-hdf:IHdfDatasetTracker'
+  "jupyterlab-hdf:IHdfDatasetTracker"
 );
 
 /**
@@ -257,9 +316,9 @@ namespace Private {
    * Create the node for the HDF widget.
    */
   export function createNode(): HTMLElement {
-    let node = document.createElement('div');
+    let node = document.createElement("div");
     node.className = HDF_CONTAINER_CLASS;
-    let hdf = document.createElement('div');
+    let hdf = document.createElement("div");
     hdf.className = HDF_CLASS;
     node.appendChild(hdf);
     node.tabIndex = -1;
@@ -272,8 +331,8 @@ namespace Private {
   export function createToolbar(hdfViewer: any): Toolbar<ToolbarButton> {
     const toolbar = new Toolbar();
 
-    toolbar.addClass('jp-Toolbar');
-    toolbar.addClass('jp-HDF-toolbar');
+    toolbar.addClass("jp-Toolbar");
+    toolbar.addClass("jp-HDF-toolbar");
 
     // toolbar.addItem(
     //   'previous',

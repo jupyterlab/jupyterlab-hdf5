@@ -30,15 +30,15 @@ export function parseHdfQuery(path: string): IContentsParameters {
   };
 }
 
-export function parseHdfRegistryUrl(
-  url: URL
-): { fpath: string; uri: string; type: string } {
+export function parseHdfRegistryUrl(url: URL): { fpath: string } & HdfContents {
   // deal with the possibility of leading "Hdf:" drive specifier via localPath
   if (url.protocol === "file:" && url.pathname.endsWith(".hdf5")) {
     return {
       fpath: url.pathname,
+      type: url.searchParams.get("type") === "dataset" ? "dataset" : "group",
+      name: url.searchParams.get("name") || "",
       uri: url.searchParams.get("uri") || "/",
-      type: url.searchParams.get("type") || "group"
+      content: url.searchParams.get("content") || ""
     };
   }
 }
@@ -50,7 +50,7 @@ export function parseHdfRegistryUrl(
 export function hdfContentsRequest(
   parameters: IContentsParameters,
   settings: ServerConnection.ISettings
-): Promise<HdfDirectoryListing> {
+): Promise<HdfDirectoryListing | HdfContents> {
   // allow the query parameters to be optional
   const { fpath, ...rest } = parameters;
 

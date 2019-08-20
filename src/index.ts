@@ -34,7 +34,10 @@ import {
   resolveExtensionConverter
 } from "@jupyterlab/dataregistry";
 
-import { RegistryToken } from "@jupyterlab/dataregistry-extension";
+import {
+  RegistryToken,
+  widgetDataType
+} from "@jupyterlab/dataregistry-extension";
 
 import { HdfFileBrowser } from "./browser";
 
@@ -43,11 +46,13 @@ import { HdfDrive } from "./contents";
 import {
   IHdfDatasetTracker,
   HdfDatasetFactory,
-  HdfDatasetWidget
+  HdfDatasetWidget,
+  createHdfGrid
 } from "./dataset";
 
 import {
   hdfContentsRequest,
+  HdfDirectoryListing,
   IContentsParameters,
   parseHdfQuery,
   parseHdfRegistryUrl
@@ -78,6 +83,7 @@ const HDF_DATASET_ICON = "jp-MaterialIcon jp-SpreadsheetIcon"; // jp-HdfDatasetI
  */
 const HDF_MIME_TYPE = "application/x-hdf5";
 const HDF_DATASET_MIME_TYPE = `${HDF_MIME_TYPE}.dataset`;
+// const HDF_GROUP_MIME_TYPE = `${HDF_MIME_TYPE}.group`;
 
 /**
  * Settings for the notebook server.
@@ -356,22 +362,61 @@ function activateHdfDataRegistryPlugin(
           return null;
         }
 
-        const { fpath, uri, type } = params;
-        if (type === "group") {
-          return {
-            data: from(hdfContentsRequest({ fpath, uri }, serverSettings)).pipe(
-              rxmap(json =>
-                json.map(
-                  hdfContent => `?uri=${hdfContent.uri}&type=${hdfContent.type}`
-                )
+        const { fpath, uri } = params;
+        return {
+          data: from(hdfContentsRequest({ fpath, uri }, serverSettings)).pipe(
+            rxmap((hdfContents: HdfDirectoryListing) =>
+              hdfContents.map(
+                hdfContent =>
+                  `?uri=${hdfContent.uri}&type=${hdfContent.type}&content=${hdfContent.content}`
               )
-            ),
-            type: undefined
+            )
+          ),
+          type: undefined
+        };
+      }
+    ),
+    createConverter(
+      { from: resolveDataType, to: widgetDataType },
+      ({ url }) => {
+        const params = parseHdfRegistryUrl(url);
+        if (!params) {
+          return null;
+        }
+
+        const { fpath, uri, type } = params;
+        if (type === "dataset") {
+          return {
+            data: () => createHdfGrid({ fpath, uri }),
+            type: "Grid"
           };
         }
+
         return null;
       }
     )
+    // createConverter(
+    //   { from: fileDataType, to: relativeNestedDataType },
+    //   ({ data, type }) => {
+    //     if (type === HDF_MIME_TYPE) {
+    //       const params = parseHdfQuery(data);
+    //       if (!params.uri) {
+    //         params.uri = "/";
+    //       }
+    //       return {
+    //         data: from(hdfContentsRequest(params, serverSettings)).pipe(
+    //           rxmap(json => json.map(hdfContent =>
+    //             "#" +
+    //             hdfContent.uri +
+    //             (hdfContent.type === "group" ? "/" : "")
+    //           ))
+    //         ),
+    //         type: undefined
+    //       };
+    //     }
+    //     return null;
+    //   }
+    // )
   );
 }
 
