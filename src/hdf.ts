@@ -1,20 +1,20 @@
 // Copyright (c) Max Klein.
 // Distributed under the terms of the Modified BSD License.
 
-import { PathExt, URLExt } from '@jupyterlab/coreutils';
+import { PathExt, URLExt } from "@jupyterlab/coreutils";
 
-import { ServerConnection } from '@jupyterlab/services';
+import { ServerConnection } from "@jupyterlab/services";
 
 /**
  * A static version of the localPath method from ContentsManager
  */
 export function localAbsPath(path: string): string {
-  const parts = path.split('/');
-  const firstParts = parts[0].split(':');
+  const parts = path.split("/");
+  const firstParts = parts[0].split(":");
   if (firstParts.length === 1) {
-    return '/' + path;
+    return "/" + path;
   }
-  return '/' + PathExt.join(firstParts.slice(1).join(':'), ...parts.slice(1));
+  return "/" + PathExt.join(firstParts.slice(1).join(":"), ...parts.slice(1));
 }
 
 /**
@@ -22,12 +22,25 @@ export function localAbsPath(path: string): string {
  */
 export function parseHdfQuery(path: string): IContentsParameters {
   // deal with the possibility of leading "Hdf:" drive specifier via localPath
-  const parts = localAbsPath(path).split('?');
+  const parts = localAbsPath(path).split("?");
 
   return {
     fpath: parts[0],
     ...(parts[1] ? URLExt.queryStringToObject(parts[1]) : {})
   };
+}
+
+export function parseHdfRegistryUrl(
+  url: URL
+): { fpath: string; uri: string; type: string } {
+  // deal with the possibility of leading "Hdf:" drive specifier via localPath
+  if (url.protocol === "file:" && url.pathname.endsWith(".hdf5")) {
+    return {
+      fpath: url.pathname,
+      uri: url.searchParams.get("uri") || "/",
+      type: url.searchParams.get("type") || "group"
+    };
+  }
 }
 
 /**
@@ -42,7 +55,7 @@ export function hdfContentsRequest(
   const { fpath, ...rest } = parameters;
 
   const fullUrl =
-    URLExt.join(settings.baseUrl, 'hdf', 'contents', fpath).split('?')[0] +
+    URLExt.join(settings.baseUrl, "hdf", "contents", fpath).split("?")[0] +
     URLExt.objectToQueryString({ ...rest });
 
   return ServerConnection.makeRequest(fullUrl, {}, settings).then(response => {
@@ -67,7 +80,7 @@ export function hdfDataRequest(
   const { fpath, uri, row, col } = parameters;
 
   const fullUrl =
-    URLExt.join(settings.baseUrl, 'hdf', 'data', fpath).split('?')[0] +
+    URLExt.join(settings.baseUrl, "hdf", "data", fpath).split("?")[0] +
     URLExt.objectToQueryString({ uri, row, col });
 
   return ServerConnection.makeRequest(fullUrl, {}, settings).then(response => {
@@ -112,7 +125,7 @@ export class HdfContents {
   /**
    * The type of the object.
    */
-  type: 'dataset' | 'group';
+  type: "dataset" | "group";
 
   /**
    * The name of the object.

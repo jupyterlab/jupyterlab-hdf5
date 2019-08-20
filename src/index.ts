@@ -3,6 +3,10 @@
 
 import { map, toArray } from "@phosphor/algorithm";
 
+import { from } from "rxjs";
+
+import { map as rxmap } from "rxjs/operators";
+
 import {
   ILabShell,
   ILayoutRestorer,
@@ -22,6 +26,16 @@ import { FileBrowser, IFileBrowserFactory } from "@jupyterlab/filebrowser";
 
 import { ServerConnection } from "@jupyterlab/services";
 
+import {
+  createConverter,
+  Registry,
+  relativeNestedDataType,
+  resolveDataType,
+  resolveExtensionConverter
+} from "@jupyterlab/dataregistry";
+
+import { RegistryToken } from "@jupyterlab/dataregistry-extension";
+
 import { HdfFileBrowser } from "./browser";
 
 import { HdfDrive } from "./contents";
@@ -32,7 +46,12 @@ import {
   HdfDatasetWidget
 } from "./dataset";
 
-import { hdfContentsRequest, IContentsParameters, parseHdfQuery } from "./hdf";
+import {
+  hdfContentsRequest,
+  IContentsParameters,
+  parseHdfQuery,
+  parseHdfRegistryUrl
+} from "./hdf";
 
 /**
  * Hdf plugins state namespace.
@@ -46,12 +65,24 @@ const HDF_DATASET_NAMESPACE = "hdf-dataset";
  */
 const hdf5BrowserPluginId = "jupyterlab-hdf:browser";
 const hdf5DatasetPluginId = "jupyterlab-hdf:dataset";
+const hdf5DataRegistryPluginId = "jupyterlab-hdf:dataregistry";
 
 /**
  * Hdf icon classnames
  */
 const HDF_ICON = "jp-HdfIcon";
 const HDF_DATASET_ICON = "jp-MaterialIcon jp-SpreadsheetIcon"; // jp-HdfDatasetIcon;
+
+/**
+ * Hdf mime types
+ */
+const HDF_MIME_TYPE = "application/x-hdf5";
+const HDF_DATASET_MIME_TYPE = `${HDF_MIME_TYPE}.dataset`;
+
+/**
+ * Settings for the notebook server.
+ */
+const serverSettings = ServerConnection.makeSettings();
 
 namespace CommandIDs {
   /**
@@ -81,6 +112,17 @@ const hdfDatasetPlugin: JupyterFrontEndPlugin<IHdfDatasetTracker> = {
   id: hdf5DatasetPluginId,
   provides: IHdfDatasetTracker,
   optional: [ILayoutRestorer],
+  autoStart: true
+};
+
+/**
+ * Provides hdf5 support for the @jupyterlab/dataregistry
+ * extension, if it is installed.
+ */
+const hdfDataRegistryPlugin: JupyterFrontEndPlugin<void> = {
+  activate: activateHdfDataRegistryPlugin,
+  id: hdf5DataRegistryPluginId,
+  optional: [RegistryToken],
   autoStart: true
 };
 
@@ -176,9 +218,6 @@ function addBrowserCommands(
   const { tracker } = browserFactory;
   const { commands } = app;
 
-  // Settings for the notebook server.
-  const serverSettings = ServerConnection.makeSettings();
-
   commands.addCommand(CommandIDs.fetchContents, {
     execute: args => {
       let params: IContentsParameters = {
@@ -242,6 +281,7 @@ function addBrowserCommands(
  */
 function activateHdfDatasetPlugin(
   app: JupyterFrontEnd,
+  dataRegistry: Registry,
   restorer: ILayoutRestorer | null
 ): IHdfDatasetTracker {
   // Add an hdf dataset file type to the docregistry.
@@ -251,7 +291,7 @@ function activateHdfDatasetPlugin(
     fileFormat: "json",
     displayName: "HDF Dataset",
     extensions: [".data"],
-    mimeTypes: ["application/x-hdf5.dataset"],
+    mimeTypes: [HDF_DATASET_MIME_TYPE],
     iconClass: HDF_DATASET_ICON
   };
   app.docRegistry.addFileType(ft);
@@ -295,10 +335,52 @@ function activateHdfDatasetPlugin(
 }
 
 /**
+ * Activate the HTMLViewer extension.
+ */
+function activateHdfDataRegistryPlugin(
+  app: JupyterFrontEnd,
+  dataRegistry: Registry | null
+): void {
+  if (!dataRegistry) {
+    // bail
+    return;
+  }
+
+  dataRegistry.addConverter(
+    resolveExtensionConverter(".hdf5", HDF_MIME_TYPE),
+    createConverter(
+      { from: resolveDataType, to: relativeNestedDataType },
+      ({ url }) => {
+        const params = parseHdfRegistryUrl(url);
+        if (!params) {
+          return null;
+        }
+
+        const { fpath, uri, type } = params;
+        if (type === "group") {
+          return {
+            data: from(hdfContentsRequest({ fpath, uri }, serverSettings)).pipe(
+              rxmap(json =>
+                json.map(
+                  hdfContent => `?uri=${hdfContent.uri}&type=${hdfContent.type}`
+                )
+              )
+            ),
+            type: undefined
+          };
+        }
+        return null;
+      }
+    )
+  );
+}
+
+/**
  * Export the plugins as default.
  */
 const plugins: JupyterFrontEndPlugin<any>[] = [
   hdfBrowserExtension,
-  hdfDatasetPlugin
+  hdfDatasetPlugin,
+  hdfDataRegistryPlugin
 ];
 export default plugins;

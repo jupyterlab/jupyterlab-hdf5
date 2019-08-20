@@ -29,7 +29,7 @@
     "build:dev": "jlpm run build && jlpm run lab:link",
     "build:watch": "jlpm run build --watch",
     "clean": "rimraf lib && rimraf tsconfig.tsbuildinfo",
-    "clean:slate": "jlpm run clean && rimraf node_modules && rimraf build && rimraf dist",
+    "clean:slate": "jlpm run clean && rimraf build && rimraf dist && rimraf node_modules",
     "integrity": "echo integrity",
     "lab:link": "jupyter labextension link . --no-build",
     "lab:unlink": "jupyter labextension uninstall jupyterlab-hdf --no-build",
@@ -52,12 +52,15 @@
     "@jupyterlab/docregistry": "^1.0.4",
     "@jupyterlab/filebrowser": "^1.0.5",
     "@jupyterlab/services": "^4.0.4",
+    "@jupyterlab/dataregistry": "^1.2.0",
+    "@jupyterlab/dataregistry-extension": "^1.3.2",
     "@phosphor/algorithm": "^1.1.3",
     "@phosphor/coreutils": "^1.3.1",
     "@phosphor/datagrid": "^0.1.9",
     "@phosphor/messaging": "^1.2.3",
     "@phosphor/signaling": "^1.2.3",
-    "@phosphor/widgets": "^1.8.0"
+    "@phosphor/widgets": "^1.8.0",
+    "rxjs": "^6.5.2"
   },
   "devDependencies": {
     "husky": "^3.0.1",
