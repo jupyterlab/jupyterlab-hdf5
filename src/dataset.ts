@@ -42,9 +42,9 @@ export const HDF_CLASS = "jp-HdfDataGrid";
 export const HDF_CONTAINER_CLASS = "jp-HdfContainer";
 
 interface ISlice {
-  start: Number | null;
-  stop?: Number | null;
-  step?: Number | null;
+  start: number | null;
+  stop?: number | null;
+  step?: number | null;
 }
 
 export const parseSlice = (slicestr: string): ISlice[] => {
@@ -54,17 +54,19 @@ export const parseSlice = (slicestr: string): ISlice[] => {
     .split(/\s*,\s*/)
     .map(dim => dim.split(/\s*:\s*/))
     .reduce((parsed, slice) => {
+      // don't treat single indices as slices
       if (slice.length === 0) {
         parsed.push({ start: null as any, stop: null as any });
-      } else if (slice.length === 1) {
-        parsed.push({ start: null as any, stop: parseInt(slice[0]) });
-      } else if (slice.length === 2) {
+      } else if (slice.length === 2 || slice.length === 3) {
         parsed.push({ start: parseInt(slice[0]), stop: parseInt(slice[1]) });
       }
       return parsed;
     }, parsed);
 };
 
+/**
+ * Base implementation of a dataset model
+ */
 export class HdfDatasetModelBase extends DataModel {
   constructor() {
     super();
@@ -108,28 +110,52 @@ export class HdfDatasetModelBase extends DataModel {
     this._ready.resolve(undefined);
   }
 
-  rowCount(region: DataModel.RowRegion): number {
-    return region === "body" ? this._rowCount : 1;
-  }
-
   columnCount(region: DataModel.ColumnRegion): number {
-    return region === "body" ? this._colCount : 1;
+    if (region === "body") {
+      if (this._colSlice && this._colSlice.start && this._colSlice.stop) {
+        return this._colSlice.stop - this._colSlice.start;
+      } else {
+        return this._colCount;
+      }
+    }
+
+    return 1;
   }
 
-  data(region: DataModel.CellRegion, row: number, column: number): any {
+  rowCount(region: DataModel.RowRegion): number {
+    if (region === "body") {
+      if (this._rowSlice && this._rowSlice.start && this._rowSlice.stop) {
+        return this._rowSlice.stop - this._rowSlice.start;
+      } else {
+        return this._rowCount;
+      }
+    }
+
+    return 1;
+  }
+
+  data(region: DataModel.CellRegion, row: number, col: number): any {
+    // adjust row and col based on slice
+    if (this._rowSlice && this._rowSlice.start && this._rowSlice.stop) {
+      row += this._rowSlice.start;
+    }
+    if (this._colSlice && this._colSlice.start && this._colSlice.stop) {
+      col += this._colSlice.start;
+    }
+
     if (region === "row-header") {
       return `${row}`;
     }
     if (region === "column-header") {
-      return `${column}`;
+      return `${col}`;
     }
     if (region === "corner-header") {
       return null;
     }
     const relRow = row % this._blockSize;
-    const relCol = column % this._blockSize;
+    const relCol = col % this._blockSize;
     const rowBlock = (row - relRow) / this._blockSize;
-    const colBlock = (column - relCol) / this._blockSize;
+    const colBlock = (col - relCol) / this._blockSize;
     if (this._blocks[rowBlock]) {
       const block = this._blocks[rowBlock][colBlock];
       if (block !== "busy") {
@@ -149,8 +175,15 @@ export class HdfDatasetModelBase extends DataModel {
     return null;
   }
 
-  get slice() {
-    return "";
+  get slice(): string {
+    return this._slice;
+  }
+  set slice(s: string) {
+    this._slice = s;
+
+    const parts = parseSlice(s);
+    this._rowSlice = parts[0];
+    this._colSlice = parts[1];
   }
 
   /**
@@ -195,6 +228,10 @@ export class HdfDatasetModelBase extends DataModel {
   private _fpath: string = "";
   private _uri: string = "";
 
+  private _slice: string = "";
+  private _colSlice: ISlice = { start: null, stop: null };
+  private _rowSlice: ISlice = { start: null, stop: null };
+
   private _blocks: any = Object();
   private _blockSize: number = 100;
   private _colCount: number = 0;
@@ -203,6 +240,9 @@ export class HdfDatasetModelBase extends DataModel {
   private _ready = new PromiseDelegate<void>();
 }
 
+/**
+ * Subclass that constructs a dataset model from a document context
+ */
 class HdfDatasetModelContext extends HdfDatasetModelBase {
   constructor(context: DocumentRegistry.Context) {
     super();
@@ -240,6 +280,9 @@ class HdfDatasetModelContext extends HdfDatasetModelBase {
   protected _context: DocumentRegistry.Context;
 }
 
+/**
+ * Subclass that constructs a dataset model from simple parameters
+ */
 class HdfDatasetModelParams extends HdfDatasetModelBase {
   constructor(parameters: IContentsParameters) {
     super();
@@ -313,11 +356,11 @@ export class HdfDatasetDocFactory extends ABCWidgetFactory<HdfDatasetDoc> {
 }
 
 /**
- * A class that tracks hdf5 viewer widgets.
+ * A class that tracks hdf5 dataset document widgets.
  */
-export interface IHdfDatasetTracker extends IWidgetTracker<HdfDatasetDoc> {}
+export interface IHdfDatasetDocTracker extends IWidgetTracker<HdfDatasetDoc> {}
 
-export const IHdfDatasetTracker = new Token<IHdfDatasetTracker>(
+export const IHdfDatasetDocTracker = new Token<IHdfDatasetDocTracker>(
   "jupyterlab-hdf:IHdfDatasetTracker"
 );
 

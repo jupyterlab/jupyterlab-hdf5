@@ -31,8 +31,11 @@ export function parseHdfQuery(path: string): IContentsParameters {
   // deal with the possibility of leading "Hdf:" drive specifier via localPath
   const parts = localAbsPath(path).split("?");
 
+  // list some defaults in return value, which may be overridden
+  // by params in input query string
   return {
     fpath: parts[0],
+    uri: "/",
     ...(parts[1] ? URLExt.queryStringToObject(parts[1]) : {})
   };
 }
@@ -99,7 +102,7 @@ export interface IContentsParameters {
   /**
    * Path within an HDF5 file to a specific group or dataset.
    */
-  uri?: string;
+  uri: string;
 
   /**
    * Row slice. Up to 3 integers, same syntax as for Python `slice` built-in.

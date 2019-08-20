@@ -33,7 +33,7 @@ import { HdfDrive } from "./contents";
 import { addHdfConverters } from "./dataregistry";
 
 import {
-  IHdfDatasetTracker,
+  IHdfDatasetDocTracker,
   HdfDatasetDocFactory,
   HdfDatasetDoc
 } from "./dataset";
@@ -93,10 +93,10 @@ const hdfBrowserExtension: JupyterFrontEndPlugin<void> = {
 /**
  * The HTML file handler extension.
  */
-const hdfDatasetPlugin: JupyterFrontEndPlugin<IHdfDatasetTracker> = {
+const hdfDatasetPlugin: JupyterFrontEndPlugin<IHdfDatasetDocTracker> = {
   activate: activateHdfDatasetPlugin,
   id: hdf5DatasetPluginId,
-  provides: IHdfDatasetTracker,
+  provides: IHdfDatasetDocTracker,
   optional: [ILayoutRestorer],
   autoStart: true
 };
@@ -269,7 +269,7 @@ function activateHdfDatasetPlugin(
   app: JupyterFrontEnd,
   dataRegistry: Registry,
   restorer: ILayoutRestorer | null
-): IHdfDatasetTracker {
+): IHdfDatasetDocTracker {
   // Add an hdf dataset file type to the docregistry.
   const ft: DocumentRegistry.IFileType = {
     name: "hdf:dataset",

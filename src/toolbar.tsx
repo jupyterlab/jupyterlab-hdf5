@@ -7,7 +7,7 @@ import { DataGrid } from "@phosphor/datagrid";
 
 import { ReactWidget } from "@jupyterlab/apputils";
 
-// import { HdfDatasetModelBase } from "./dataset";
+import { HdfDatasetModelBase } from "./dataset";
 
 const TOOLBAR_SLICEINPUT_CLASS = ".jp-SliceInputToolbar";
 const TOOLBAR_SLICEINPUT_BOX_CLASS = ".jp-SliceInputToolbar-box";
@@ -20,42 +20,44 @@ export class SliceInput extends ReactWidget {
     super();
     this.addClass(TOOLBAR_SLICEINPUT_CLASS);
 
-    // this._grid = widget;
-    // this._model = widget.model as HdfDatasetModelBase;
+    this._grid = widget;
+    this._model = this._grid.model as HdfDatasetModelBase;
   }
 
   /**
    * Handle `keydown` events for the HTMLSelect component.
    */
-  handleKeyDown = (event: React.KeyboardEvent): void => {
+  handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>): void => {
     if (event.keyCode === 13) {
-      // this._model.reslice();
+      this._model.slice = event.currentTarget.value;
     }
   };
 
   render() {
-    // let value = this._model.slice;
+    let value = this._model.slice;
 
     return (
-      <input
-        className={TOOLBAR_SLICEINPUT_BOX_CLASS}
-        onKeyDown={this.handleKeyDown}
-        aria-label="Slice input"
+      <label>
+        {"Slice: "}
+        <input
+          type="text"
+          className={TOOLBAR_SLICEINPUT_BOX_CLASS}
+          onKeyDown={this.handleKeyDown}
+          aria-label="Slice input"
+          value={value}
 
-        // value={value}
-
-        // type="text"
-        // className={lineFormInput}
-        // onChange={this._handleChange}
-        // onFocus={this._handleFocus}
-        // onBlur={this._handleBlur}
-        // ref={input => {
-        //   this._textInput = input;
-        // }}
-      />
+          // className={lineFormInput}
+          // onChange={this._handleChange}
+          // onFocus={this._handleFocus}
+          // onBlur={this._handleBlur}
+          // ref={input => {
+          //   this._textInput = input;
+          // }}
+        />
+      </label>
     );
   }
 
-  // private _grid: DataGrid;
-  // private _model: HdfDatasetModelBase;
+  private _grid: DataGrid;
+  private _model: HdfDatasetModelBase;
 }
