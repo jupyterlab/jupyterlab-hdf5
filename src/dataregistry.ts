@@ -1,4 +1,4 @@
-import { from } from "rxjs";
+import { from, of } from "rxjs";
 
 import { map } from "rxjs/operators";
 
@@ -6,20 +6,17 @@ import { ServerConnection } from "@jupyterlab/services";
 
 import {
   createConverter,
-  Registry,
   relativeNestedDataType,
-  resolveDataType,
-  resolveExtensionConverter
+  resolveDataType
 } from "@jupyterlab/dataregistry";
 
-import { widgetDataType } from "@jupyterlab/dataregistry-extension";
-
 import {
-  HDF_MIME_TYPE,
-  HdfContents,
-  hdfContentsRequest,
-  HdfDirectoryListing
-} from "./hdf";
+  widgetDataType,
+  IRegistry,
+  labelDataType
+} from "@jupyterlab/dataregistry-extension";
+
+import { HdfContents, hdfContentsRequest, HdfDirectoryListing } from "./hdf";
 
 import { HdfDatasetMain } from "./dataset";
 
@@ -51,20 +48,32 @@ const groupConverter = createConverter(
 
     const { fpath, uri, type } = params;
     if (type === "group") {
-      return {
-        data: from(hdfContentsRequest({ fpath, uri }, serverSettings)).pipe(
-          map((hdfContents: HdfDirectoryListing) =>
-            hdfContents.map(
-              hdfContent =>
-                `?uri=${hdfContent.uri}&type=${hdfContent.type}&content=${hdfContent.content}`
-            )
+      return from(hdfContentsRequest({ fpath, uri }, serverSettings)).pipe(
+        map((hdfContents: HdfDirectoryListing) =>
+          hdfContents.map(
+            hdfContent =>
+              `?uri=${hdfContent.uri}&type=${hdfContent.type}&content=${hdfContent.content}`
           )
-        ),
-        type: undefined
-      };
+        )
+      );
     }
 
     return null;
+  }
+);
+
+const labelConverter = createConverter(
+  { from: resolveDataType, to: labelDataType },
+  ({ url }) => {
+    const params = parseHdfRegistryUrl(url);
+    if (!params) {
+      return null;
+    }
+    // Return the last part of the path as the label
+    // or the last part of the file path, if that is empty
+    const lastPath = params.uri.split("/").pop()
+    const lastFilePath = params.fpath.split("/").pop()
+    return of(lastPath || lastFilePath);
   }
 );
 
@@ -88,10 +97,6 @@ const datasetConverter = createConverter(
   }
 );
 
-export function addHdfConverters(dataRegistry: Registry): void {
-  dataRegistry.addConverter(
-    resolveExtensionConverter(".hdf5", HDF_MIME_TYPE),
-    groupConverter,
-    datasetConverter
-  );
+export function addHdfConverters(dataRegistry: IRegistry): void {
+  dataRegistry.addConverter(groupConverter, datasetConverter, labelConverter);
 }
