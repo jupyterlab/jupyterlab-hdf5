@@ -31,6 +31,8 @@ For a development install, clone the repository and then run the following in th
 ```bash
 pip install .
 jlpm build:dev
+jupyter labextension install .
+jupyter serverextension enable jupyterlab_hdf
 ```
 
 To watch for/rebuild on changes to this extension's source code, run:
