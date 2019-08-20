@@ -6,13 +6,12 @@ import { ServerConnection } from "@jupyterlab/services";
 
 import {
   createConverter,
-  Registry,
   relativeNestedDataType,
   resolveDataType,
   resolveExtensionConverter
 } from "@jupyterlab/dataregistry";
 
-import { widgetDataType } from "@jupyterlab/dataregistry-extension";
+import { widgetDataType, IRegistry } from "@jupyterlab/dataregistry-extension";
 
 import {
   HDF_MIME_TYPE,
@@ -51,17 +50,14 @@ const groupConverter = createConverter(
 
     const { fpath, uri, type } = params;
     if (type === "group") {
-      return {
-        data: from(hdfContentsRequest({ fpath, uri }, serverSettings)).pipe(
-          map((hdfContents: HdfDirectoryListing) =>
-            hdfContents.map(
-              hdfContent =>
-                `?uri=${hdfContent.uri}&type=${hdfContent.type}&content=${hdfContent.content}`
-            )
+      return from(hdfContentsRequest({ fpath, uri }, serverSettings)).pipe(
+        map((hdfContents: HdfDirectoryListing) =>
+          hdfContents.map(
+            hdfContent =>
+              `?uri=${hdfContent.uri}&type=${hdfContent.type}&content=${hdfContent.content}`
           )
-        ),
-        type: undefined
-      };
+        )
+      );
     }
 
     return null;
@@ -88,7 +84,7 @@ const datasetConverter = createConverter(
   }
 );
 
-export function addHdfConverters(dataRegistry: Registry): void {
+export function addHdfConverters(dataRegistry: IRegistry): void {
   dataRegistry.addConverter(
     resolveExtensionConverter(".hdf5", HDF_MIME_TYPE),
     groupConverter,

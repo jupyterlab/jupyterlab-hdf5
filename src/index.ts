@@ -22,9 +22,7 @@ import { FileBrowser, IFileBrowserFactory } from "@jupyterlab/filebrowser";
 
 import { ServerConnection } from "@jupyterlab/services";
 
-import { Registry } from "@jupyterlab/dataregistry";
-
-import { RegistryToken } from "@jupyterlab/dataregistry-extension";
+import { IRegistry } from "@jupyterlab/dataregistry-extension";
 
 import { HdfFileBrowser } from "./browser";
 
@@ -108,7 +106,7 @@ const hdfDatasetPlugin: JupyterFrontEndPlugin<IHdfDatasetTracker> = {
 const hdfDataRegistryPlugin: JupyterFrontEndPlugin<void> = {
   activate: activateHdfDataRegistryPlugin,
   id: hdf5DataRegistryPluginId,
-  optional: [RegistryToken],
+  optional: [IRegistry],
   autoStart: true
 };
 
@@ -267,7 +265,6 @@ function addBrowserCommands(
  */
 function activateHdfDatasetPlugin(
   app: JupyterFrontEnd,
-  dataRegistry: Registry,
   restorer: ILayoutRestorer | null
 ): IHdfDatasetTracker {
   // Add an hdf dataset file type to the docregistry.
@@ -325,7 +322,7 @@ function activateHdfDatasetPlugin(
  */
 function activateHdfDataRegistryPlugin(
   app: JupyterFrontEnd,
-  dataRegistry: Registry | null
+  dataRegistry: IRegistry | null
 ): void {
   if (!dataRegistry) {
     // bail
