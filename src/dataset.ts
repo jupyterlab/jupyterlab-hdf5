@@ -32,11 +32,6 @@ import {
 import { SliceInput } from "./toolbar";
 
 /**
- * The MIME type for an HDF5 dataset.
- */
-export const MIME_TYPE = "application/x-hdf5.dataset";
-
-/**
  * The CSS class for the data grid widget.
  */
 export const HDF_CLASS = "jp-HdfDataGrid";
@@ -45,6 +40,30 @@ export const HDF_CLASS = "jp-HdfDataGrid";
  * The CSS class for our HDF5 container.
  */
 export const HDF_CONTAINER_CLASS = "jp-HdfContainer";
+
+interface ISlice {
+  start: Number | null;
+  stop?: Number | null;
+  step?: Number | null;
+}
+
+export const parseSlice = (slicestr: string): ISlice[] => {
+  let parsed: ISlice[] = [];
+
+  return slicestr
+    .split(/\s*,\s*/)
+    .map(dim => dim.split(/\s*:\s*/))
+    .reduce((parsed, slice) => {
+      if (slice.length === 0) {
+        parsed.push({ start: null as any, stop: null as any });
+      } else if (slice.length === 1) {
+        parsed.push({ start: null as any, stop: parseInt(slice[0]) });
+      } else if (slice.length === 2) {
+        parsed.push({ start: parseInt(slice[0]), stop: parseInt(slice[1]) });
+      }
+      return parsed;
+    }, parsed);
+};
 
 export class HdfDatasetModelBase extends DataModel {
   constructor() {
@@ -63,8 +82,8 @@ export class HdfDatasetModelBase extends DataModel {
   /**
    * Handle actions that should be taken when the context is ready.
    */
-  init(meta: { fpath: string; uri: string; shape: number[] }): void {
-    const { fpath, uri, shape } = meta;
+  init(content: { fpath: string; uri: string } & IDatasetContent): void {
+    const { fpath, uri, shape } = content;
 
     this._fpath = fpath;
     this._uri = uri;
@@ -130,6 +149,10 @@ export class HdfDatasetModelBase extends DataModel {
     return null;
   }
 
+  get slice() {
+    return "";
+  }
+
   /**
    * fetch a data block. When data is received,
    * the grid will be updated by emitChanged.
@@ -167,8 +190,9 @@ export class HdfDatasetModelBase extends DataModel {
     });
   };
 
-  private _fpath: string = "";
   protected _serverSettings: ServerConnection.ISettings;
+
+  private _fpath: string = "";
   private _uri: string = "";
 
   private _blocks: any = Object();
@@ -210,7 +234,7 @@ class HdfDatasetModelContext extends HdfDatasetModelBase {
     // // Wire signal connections.
     // contextModel.contentChanged.connect(this._onContentChanged, this);
 
-    this.init({ fpath, uri, shape: content.shape });
+    this.init({ ...content, fpath, uri });
   }
 
   protected _context: DocumentRegistry.Context;
@@ -226,14 +250,14 @@ class HdfDatasetModelParams extends HdfDatasetModelBase {
   }
 
   /**
-   * Handle actions that should be taken when the context is ready.
+   * Handle actions that should be taken when the model is ready.
    */
   private _onMetaReady(
     parameters: IContentsParameters,
     contents: HdfContents
   ): void {
     const { fpath, uri } = parameters;
-    this.init({ fpath, uri, shape: (contents.content as any).shape });
+    this.init({ ...contents.content, fpath, uri });
   }
 }
 

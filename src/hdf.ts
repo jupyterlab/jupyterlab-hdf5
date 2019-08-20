@@ -134,7 +134,7 @@ export class HdfContents {
   /**
    * If object is a dataset, all of its metadata encoded as a JSON string.
    */
-  content?: string;
+  content?: IDatasetContent;
 }
 
 export interface IDatasetContent {

@@ -36,7 +36,7 @@ export function parseHdfRegistryUrl(url: URL): { fpath: string } & HdfContents {
       type: url.searchParams.get("type") === "dataset" ? "dataset" : "group",
       name: url.searchParams.get("name") || "",
       uri: url.searchParams.get("uri") || "/",
-      content: url.searchParams.get("content") || ""
+      content: JSON.parse(url.searchParams.get("content") || null)
     };
   }
 }
