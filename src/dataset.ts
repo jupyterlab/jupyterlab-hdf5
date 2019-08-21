@@ -106,7 +106,7 @@ export class HdfDatasetModelBase extends DataModel {
 
   columnCount(region: DataModel.ColumnRegion): number {
     if (region === "body") {
-      if (this._colSlice && this._colSlice.start && this._colSlice.stop) {
+      if (this.isColSlice()) {
         return this._colSlice.stop - this._colSlice.start;
       } else {
         return this._colCount;
@@ -118,7 +118,7 @@ export class HdfDatasetModelBase extends DataModel {
 
   rowCount(region: DataModel.RowRegion): number {
     if (region === "body") {
-      if (this._rowSlice && this._rowSlice.start && this._rowSlice.stop) {
+      if (this.isRowSlice()) {
         return this._rowSlice.stop - this._rowSlice.start;
       } else {
         return this._rowCount;
@@ -186,6 +186,8 @@ export class HdfDatasetModelBase extends DataModel {
     this._rowSlice = parts[0];
     this._colSlice = parts[1];
 
+    this._blocks = Object();
+
     this.emitChanged({
       type: "rows-removed",
       region: "body",
@@ -212,8 +214,15 @@ export class HdfDatasetModelBase extends DataModel {
       span: this.columnCount("body")
     });
 
-    this._blocks = Object();
     this._refreshed.emit();
+  }
+
+  isRowSlice(): boolean {
+    return this._rowSlice.start && !!this._rowSlice.stop;
+  }
+
+  isColSlice(): boolean {
+    return this._colSlice.start && !!this._colSlice.stop;
   }
 
   get slice(): string {
@@ -257,8 +266,14 @@ export class HdfDatasetModelBase extends DataModel {
       this.emitChanged({
         type: "cells-changed",
         region: "body",
-        rowIndex: rowBlock * this._blockSize,
-        columnIndex: colBlock * this._blockSize,
+        rowIndex:
+          (rowBlock -
+            (this.isRowSlice() ? this._rowSlice.start / this._blockSize : 0)) *
+          this._blockSize, //rowBlock * this._blockSize,
+        columnIndex:
+          (colBlock -
+            (this.isColSlice() ? this._colSlice.start / this._blockSize : 0)) *
+          this._blockSize, //colBlock * this._blockSize,
         rowSpan: this._blockSize,
         columnSpan: this._blockSize
       });
@@ -356,6 +371,13 @@ export function createHdfGrid(params: {
   const grid = new DataGrid();
   grid.model = model;
 
+  // const boundRepaint = grid.repaint.bind(grid);
+  // model.refreshed.connect(boundRepaint);
+
+  // model.refreshed.connect(grid.repaint, grid);
+
+  // model.refreshed.connect(() => grid.repaint());
+
   return grid;
 }
 
@@ -379,7 +401,11 @@ export class HdfDatasetDoc extends DocumentWidget<DataGrid>
   implements IDocumentWidget<DataGrid> {
   constructor(context: DocumentRegistry.Context) {
     const content = new DataGrid();
-    content.model = new HdfDatasetModelContext(context);
+    const model = new HdfDatasetModelContext(context);
+    content.model = model;
+
+    // model.refreshed.connect(() => content.repaint());
+
     const toolbar = Private.createToolbar(content);
     const reveal = context.ready;
     super({ content, context, reveal, toolbar });
