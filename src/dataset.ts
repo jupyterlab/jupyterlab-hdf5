@@ -30,6 +30,7 @@ import {
   IDatasetContent
 } from "./hdf";
 import { SliceInput } from "./toolbar";
+import { Signal } from "@phosphor/signaling";
 
 /**
  * The CSS class for the data grid widget.
@@ -72,13 +73,6 @@ export class HdfDatasetModelBase extends DataModel {
     super();
 
     this._serverSettings = ServerConnection.makeSettings();
-  }
-
-  /**
-   * A promise that resolves when the file editor is ready.
-   */
-  get ready(): Promise<void> {
-    return this._ready.promise;
   }
 
   /**
@@ -175,21 +169,22 @@ export class HdfDatasetModelBase extends DataModel {
     return null;
   }
 
-  get slice(): string {
-    return this._slice;
+  /**
+   * A promise that resolves when the file editor is ready.
+   */
+  get ready(): Promise<void> {
+    return this._ready.promise;
   }
-  set slice(s: string) {
+
+  refresh() {
     const oldRow = this.rowCount("body");
     const oldCol = this.columnCount("body");
 
-    this._slice = s;
-    const parts = parseSlice(s);
+    // changing the row/col slices will also change the result
+    // of the row/colCount methods
+    const parts = parseSlice(this._slice);
     this._rowSlice = parts[0];
     this._colSlice = parts[1];
-
-    // this.emitChanged({
-    //   type: "model-reset"
-    // });
 
     this.emitChanged({
       type: "rows-removed",
@@ -218,6 +213,19 @@ export class HdfDatasetModelBase extends DataModel {
     });
 
     this._blocks = Object();
+    this._refreshed.emit();
+  }
+
+  get slice(): string {
+    return this._slice;
+  }
+  set slice(s: string) {
+    this._slice = s;
+    this.refresh();
+  }
+
+  get refreshed() {
+    return this._refreshed;
   }
 
   /**
@@ -272,6 +280,7 @@ export class HdfDatasetModelBase extends DataModel {
   private _rowCount: number = 0;
 
   private _ready = new PromiseDelegate<void>();
+  private _refreshed = new Signal<this, void>(this);
 }
 
 /**
