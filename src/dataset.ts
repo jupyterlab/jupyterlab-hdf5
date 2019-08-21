@@ -179,14 +179,29 @@ export class HdfDatasetModelBase extends DataModel {
     return this._slice;
   }
   set slice(s: string) {
-    this._slice = s;
+    const oldRow = this.rowCount("body");
+    const oldCol = this.columnCount("body");
 
+    this._slice = s;
     const parts = parseSlice(s);
     this._rowSlice = parts[0];
     this._colSlice = parts[1];
 
+    // this.emitChanged({
+    //   type: "model-reset"
+    // });
+
     this.emitChanged({
-      type: "model-reset"
+      type: "rows-removed",
+      region: "body",
+      index: 0,
+      span: oldRow
+    });
+    this.emitChanged({
+      type: "columns-removed",
+      region: "body",
+      index: 0,
+      span: oldCol
     });
 
     this.emitChanged({

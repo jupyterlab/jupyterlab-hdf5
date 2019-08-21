@@ -9,7 +9,7 @@ Open and explore HDF5 files in JupyterLab. Can handle very large (TB) sized file
 
 Currently in early release. Double clicking on an `.hdf5` file in the file browser will open it in a special HDF browser. You can then browse through the groups and open the datasets in the `.hdf5` file. All datasets will open read only.
 
-For the moment, the browser context menu does not work with `.hdf5` files/groups/datasets. To open any of these, just double click on them.
+For the moment, the browser context menu does not work with `.hdf5` files/groups/datasets. Only double clicking is currently supported.
 
 Designed from the ground up to be as efficient as possible. Data will only be fetched as needed to create the visible display. This allows the extension to work with very large files, potentially up to the TB range.
 
@@ -59,14 +59,24 @@ The `@jupyterlab/dataregistry` extension allows for exploration of data in a ver
 
 - filebrowser
 
-  - works well, and allows you to open datasets via a double click. Some minor UI issues remain (mostly with the breadcrumbs). The next goal is to get the browser context menus to work correctly with HDF5 types. This will likely require some changes to JupyterLab core, which are currently being investigated.
+  - features
+    - allows you to a double click on an `.hdf5` file in the main file browser and open it in the new hdf browser
+    - the hdf browser allows you to view the contents as groups and datasets and double click to open them
+  - Some minor UI issues remain (mostly with the breadcrumbs).
+  - The next goal is to get the browser context menus to work correctly with HDF5 types. This will likely require some changes to JupyterLab core, which are currently being investigated.
 
 - dataset file type
 
-  - works well. Data will load to the grid dynamically as needed. Read only. The next goal is to enable selection/copying of a dataset's elements.
+  - features
+    - data will load to the grid dynamically as needed
+    - the grid can accessed as slices via the "Slice" UI
+  - read only
+  - the next goal is to enable selection/copying of a dataset's elements
 
 - `@jupyterlab/dataregistry` support
-  - currently the plugin enables (in a very basic way) the opening of `.hdf5` files and groups in the `dataregistry` browser. In the future, it will also provide support for viewing datasets.
+  - features
+    - allows the opening of `.hdf5` files, groups, and datasets in the `dataregistry` browser
+    - offers functionality similar to that of the set of other plugins in this extension
 
 [pypi]: https://badge.fury.io/py/jupyterlab-hdf.svg
 [pypi-url]: https://badge.fury.io/py/jupyterlab-hdf

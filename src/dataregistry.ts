@@ -26,7 +26,6 @@ import { HdfDatasetMain } from "./dataset";
 const serverSettings = ServerConnection.makeSettings();
 
 export function parseHdfRegistryUrl(url: URL): { fpath: string } & HdfContents {
-  // deal with the possibility of leading "Hdf:" drive specifier via localPath
   if (url.protocol === "file:" && url.pathname.endsWith(".hdf5")) {
     return {
       fpath: url.pathname,
@@ -71,8 +70,8 @@ const labelConverter = createConverter(
     }
     // Return the last part of the path as the label
     // or the last part of the file path, if that is empty
-    const lastPath = params.uri.split("/").pop()
-    const lastFilePath = params.fpath.split("/").pop()
+    const lastPath = params.uri.split("/").pop();
+    const lastFilePath = params.fpath.split("/").pop();
     return of(lastPath || lastFilePath);
   }
 );
