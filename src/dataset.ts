@@ -48,21 +48,43 @@ interface ISlice {
   step?: number | null;
 }
 
-export const parseSlice = (slicestr: string): ISlice[] => {
-  let parsed: ISlice[] = [];
+const allSlices: ISlice[] = [
+  { start: null, stop: null },
+  { start: null, stop: null }
+];
+const noneSlices: ISlice[] = [{ start: 0, stop: 0 }, { start: 0, stop: 0 }];
 
-  return slicestr
+export const parseSlices = (strSlices: string): ISlice[] => {
+  if (!strSlices) {
+    return allSlices;
+  }
+
+  const slices = strSlices
     .split(/\s*,\s*/)
     .map(dim => dim.split(/\s*:\s*/))
-    .reduce((parsed, slice) => {
-      // don't treat single indices as slices
-      if (slice.length === 0) {
-        parsed.push({ start: null as any, stop: null as any });
-      } else if (slice.length === 2 || slice.length === 3) {
-        parsed.push({ start: parseInt(slice[0]), stop: parseInt(slice[1]) });
+    .reduce((slices: ISlice[], strSliceArr: string[]) => {
+      const start = parseInt(strSliceArr[0]);
+
+      if (strSliceArr.length === 1 && start) {
+        // single index in place of a slice
+        slices.push({ start, stop: start + 1 });
+      } else if (strSliceArr.length === 2 || strSliceArr.length === 3) {
+        // ignore strides
+        slices.push({ start, stop: parseInt(strSliceArr[1]) });
       }
-      return parsed;
-    }, parsed);
+      return slices;
+    }, []);
+
+  if (slices.length != 2 || !slices[0] || !slices[1]) {
+    // invalidate the slices
+    console.warn(
+      `Error parsing slices: invalid slices string input. strSlices: "${strSlices}"`
+    );
+
+    return noneSlices;
+  }
+
+  return slices;
 };
 
 /**
@@ -107,7 +129,7 @@ export class HdfDatasetModelBase extends DataModel {
   columnCount(region: DataModel.ColumnRegion): number {
     if (region === "body") {
       if (this.isColSlice()) {
-        return this._colSlice.stop - this._colSlice.start;
+        return this.colSlice.stop - this.colSlice.start;
       } else {
         return this._colCount;
       }
@@ -119,7 +141,7 @@ export class HdfDatasetModelBase extends DataModel {
   rowCount(region: DataModel.RowRegion): number {
     if (region === "body") {
       if (this.isRowSlice()) {
-        return this._rowSlice.stop - this._rowSlice.start;
+        return this.rowSlice.stop - this.rowSlice.start;
       } else {
         return this._rowCount;
       }
@@ -130,10 +152,10 @@ export class HdfDatasetModelBase extends DataModel {
 
   data(region: DataModel.CellRegion, row: number, col: number): any {
     // adjust row and col based on slice
-    if (this._rowSlice && this._rowSlice.start && this._rowSlice.stop) {
+    if (this.isRowSlice()) {
       row += this._rowSlice.start;
     }
-    if (this._colSlice && this._colSlice.start && this._colSlice.stop) {
+    if (this.isColSlice()) {
       col += this._colSlice.start;
     }
 
@@ -177,14 +199,14 @@ export class HdfDatasetModelBase extends DataModel {
   }
 
   refresh() {
-    const oldRow = this.rowCount("body");
-    const oldCol = this.columnCount("body");
+    const oldRowCount = this.rowCount("body");
+    const oldColCount = this.columnCount("body");
 
     // changing the row/col slices will also change the result
     // of the row/colCount methods
-    const parts = parseSlice(this._slice);
-    this._rowSlice = parts[0];
-    this._colSlice = parts[1];
+    const slices = parseSlices(this._slice);
+    this._rowSlice = slices[0];
+    this._colSlice = slices[1];
 
     this._blocks = Object();
 
@@ -192,13 +214,13 @@ export class HdfDatasetModelBase extends DataModel {
       type: "rows-removed",
       region: "body",
       index: 0,
-      span: oldRow
+      span: oldRowCount
     });
     this.emitChanged({
       type: "columns-removed",
       region: "body",
       index: 0,
-      span: oldCol
+      span: oldColCount
     });
 
     this.emitChanged({
@@ -218,11 +240,24 @@ export class HdfDatasetModelBase extends DataModel {
   }
 
   isRowSlice(): boolean {
-    return this._rowSlice.start && !!this._rowSlice.stop;
+    return !(isNaN(this._rowSlice.start) && isNaN(this._rowSlice.start));
   }
 
   isColSlice(): boolean {
-    return this._colSlice.start && !!this._colSlice.stop;
+    return !(isNaN(this._colSlice.start) && isNaN(this._colSlice.start));
+  }
+
+  get rowSlice() {
+    return {
+      start: this._rowSlice.start || 0,
+      stop: this._rowSlice.stop || this._rowCount
+    };
+  }
+  get colSlice() {
+    return {
+      start: this._colSlice.start || 0,
+      stop: this._colSlice.stop || this._colCount
+    };
   }
 
   get slice(): string {
