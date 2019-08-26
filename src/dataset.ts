@@ -5,6 +5,8 @@ import { PromiseDelegate, Token } from "@phosphor/coreutils";
 
 import { DataGrid, DataModel } from "@phosphor/datagrid";
 
+import { Signal } from "@phosphor/signaling";
+
 import {
   IWidgetTracker,
   MainAreaWidget,
@@ -30,7 +32,8 @@ import {
   IDatasetContent
 } from "./hdf";
 import { SliceInput } from "./toolbar";
-import { Signal } from "@phosphor/signaling";
+
+import { ISlice, parseSlices } from "./slice";
 
 /**
  * The CSS class for the data grid widget.
@@ -41,51 +44,6 @@ export const HDF_CLASS = "jp-HdfDataGrid";
  * The CSS class for our HDF5 container.
  */
 export const HDF_CONTAINER_CLASS = "jp-HdfContainer";
-
-interface ISlice {
-  start: number | null;
-  stop?: number | null;
-  step?: number | null;
-}
-
-const allSlices: ISlice[] = [
-  { start: null, stop: null },
-  { start: null, stop: null }
-];
-const noneSlices: ISlice[] = [{ start: 0, stop: 0 }, { start: 0, stop: 0 }];
-
-export const parseSlices = (strSlices: string): ISlice[] => {
-  if (!strSlices) {
-    return allSlices;
-  }
-
-  const slices = strSlices
-    .split(/\s*,\s*/)
-    .map(dim => dim.split(/\s*:\s*/))
-    .reduce((slices: ISlice[], strSliceArr: string[]) => {
-      const start = parseInt(strSliceArr[0]);
-
-      if (strSliceArr.length === 1 && start) {
-        // single index in place of a slice
-        slices.push({ start, stop: start + 1 });
-      } else if (strSliceArr.length === 2 || strSliceArr.length === 3) {
-        // ignore strides
-        slices.push({ start, stop: parseInt(strSliceArr[1]) });
-      }
-      return slices;
-    }, []);
-
-  if (slices.length != 2 || !slices[0] || !slices[1]) {
-    // invalidate the slices
-    console.warn(
-      `Error parsing slices: invalid slices string input. strSlices: "${strSlices}"`
-    );
-
-    return noneSlices;
-  }
-
-  return slices;
-};
 
 /**
  * Base implementation of a dataset model
