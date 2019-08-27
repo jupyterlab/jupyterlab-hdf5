@@ -12,10 +12,10 @@ import { PanelLayout, Widget } from '@phosphor/widgets';
 import { FileBrowser } from '@jupyterlab/filebrowser';
 
 import { HdfDrive } from './contents';
-import { localAbsPath, parseHdfQuery } from './hdf';
+
+import { HDF_DATASET_MIME_TYPE, localAbsPath, parseHdfQuery } from './hdf';
 
 const FACTORY = 'HDF Dataset';
-const DATA_MIME = 'application/x-hdf5.dataset';
 
 /**
  * Widget for hosting the Hdf filebrowser.
@@ -81,7 +81,8 @@ export class HdfFileBrowser extends Widget {
           .cd(localAbsPath(item.path))
           .catch(error => console.error(error));
       } else {
-        const factory = item.mimetype === DATA_MIME ? FACTORY : 'default';
+        const factory =
+          item.mimetype === HDF_DATASET_MIME_TYPE ? FACTORY : 'default';
         this._browser.model.manager.openOrReveal(item.path, factory);
       }
     };
