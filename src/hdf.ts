@@ -76,9 +76,16 @@ export function hdfDataRequest(
   // require the uri, row, and col query parameters
   const { fpath, uri, row, col } = parameters;
 
+  // Remove
+  console.log("TEST QUERY: " + URLExt.objectToQueryString({ "test-slice": "[0:1, 3:4, 5:6, 0:-1]"}));
+  console.log("TEST QUERY: " + URLExt.objectToQueryString({ "test-lists": [[0, 1], [1, 2], [3, 4], [5, 6]]}));
+  // Remove
+
   const fullUrl =
     URLExt.join(settings.baseUrl, "hdf", "data", fpath).split("?")[0] +
     URLExt.objectToQueryString({ uri, row, col });
+
+  console.log("fullUrl: " + fullUrl);
 
   return ServerConnection.makeRequest(fullUrl, {}, settings).then(response => {
     if (response.status !== 200) {
