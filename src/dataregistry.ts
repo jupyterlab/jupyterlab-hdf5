@@ -18,7 +18,7 @@ import {
 
 import { HdfContents, hdfContentsRequest, HdfDirectoryListing } from "./hdf";
 
-import { HdfDatasetMain } from "./dataset";
+import { createHdfGrid } from "./dataset";
 
 /**
  * Settings for the notebook server.
@@ -87,7 +87,7 @@ const datasetConverter = createConverter(
     const { fpath, uri, type } = params;
     if (type === "dataset") {
       return {
-        data: () => new HdfDatasetMain({ fpath, uri }),
+        data: () => createHdfGrid({ fpath, uri }),
         type: "Grid"
       };
     }
