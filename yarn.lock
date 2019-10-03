@@ -311,16 +311,16 @@
     "@phosphor/signaling" "^1.2.3"
     "@phosphor/widgets" "^1.8.0"
 
-"@jupyterlab/dataregistry-extension@^2.2.2":
-  version "2.2.2"
-  resolved "https://registry.yarnpkg.com/@jupyterlab/dataregistry-extension/-/dataregistry-extension-2.2.2.tgz#23425bcc2385ff42700a341fee980545546e7012"
-  integrity sha512-JYrscS81nClq404OWdqxpyR/n411vYQF6VxOMUlIwhJr/jq3QsXD+UKpvse9x4XFtCTepkHvIcc+sRqz9vZ1JQ==
+"@jupyterlab/dataregistry-extension@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@jupyterlab/dataregistry-extension/-/dataregistry-extension-3.0.0.tgz#6c6f2dd45455a779bb5addb29e9383af7ef13530"
+  integrity sha512-pylizpIuCqSj+kX0tnazvfiBkvj7zO7mSEH1qWANWaTNVyaFtVEbU8+SJ4U6Tylpw9VlS3YevOlGLCKnuBMPdw==
   dependencies:
     "@jupyterlab/application" "^1.0.0"
     "@jupyterlab/apputils" "^1.0.0"
     "@jupyterlab/coreutils" "^3.0.0"
     "@jupyterlab/csvviewer" "^1.0.0"
-    "@jupyterlab/dataregistry" "^2.0.0"
+    "@jupyterlab/dataregistry" "^3.0.0"
     "@jupyterlab/docmanager" "^1.0.0"
     "@jupyterlab/docregistry" "^1.0.4"
     "@jupyterlab/filebrowser" "^1.0.0"
@@ -338,13 +338,14 @@
     rxjs "6.5.2"
     styled-components "4.3.2"
 
-"@jupyterlab/dataregistry@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@jupyterlab/dataregistry/-/dataregistry-2.0.0.tgz#5f4b8e4acdae3a37812d0fa5fabbaee8dec0b93c"
-  integrity sha512-Ksie4BJ8AzUvhoeaFUGnTG2DmbUyTStlaLq2iXreQKBPY57v0s8H6Wl198aq1V/fRlUrUgEnZ3UEgEzr/kftdg==
+"@jupyterlab/dataregistry@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@jupyterlab/dataregistry/-/dataregistry-3.0.0.tgz#52a524fa50443afc54ef26a002b6d3d45e3fdd18"
+  integrity sha512-RTvD2g/feGuUf2ek6JwdTcuVgPnqmY0FU0rp3VyUz6BHgX5XadAf5rTbHUv+9jN5Ve85k0aytDPoFVjy1WKMLg==
   dependencies:
     rxjs "6.5.2"
     rxjs-spy "7.5.1"
+    uri-templates "0.2.0"
 
 "@jupyterlab/docmanager@^1.0.0", "@jupyterlab/docmanager@^1.0.4":
   version "1.0.4"
@@ -3184,6 +3185,11 @@ uri-js@^4.2.2:
   integrity sha512-KY9Frmirql91X2Qgjry0Wd4Y+YTdrdZheS8TFwvkbLWf/G5KNJDCh6pKL5OZctEW4+0Baa5idK2ZQuELRwPznQ==
   dependencies:
     punycode "^2.1.0"
+
+uri-templates@0.2.0:
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/uri-templates/-/uri-templates-0.2.0.tgz#2b5784511cc909868731e9233c268097d10b499f"
+  integrity sha1-K1eEURzJCYaHMekjPCaAl9ELSZ8=
 
 url-parse@~1.4.3:
   version "1.4.7"
