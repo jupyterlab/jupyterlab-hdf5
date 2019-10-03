@@ -1,5 +1,5 @@
 {
-  "name": "jupyterlab-hdf",
+  "name": "@jupyterlab/hdf5",
   "version": "0.1.2",
   "description": "Open and explore (very large) HDF5 files in Jupyterlab.",
   "keywords": [
@@ -7,16 +7,16 @@
     "jupyterlab",
     "jupyterlab-extension"
   ],
-  "homepage": "https://github.com/telamonian/jupyterlab-hdf5",
+  "homepage": "https://github.com/jupyterlab/jupyterlab-hdf5",
   "bugs": {
-    "url": "https://github.com/telamonian/jupyterlab-hdf5/issues"
+    "url": "https://github.com/jupyterlab/jupyterlab-hdf5/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/telamonian/jupyterlab-hdf5.git"
+    "url": "https://github.com/jupyterlab/jupyterlab-hdf5.git"
   },
   "license": "BSD-3-Clause",
-  "author": "Max Klein",
+  "author": "Project Jupyter",
   "files": [
     "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
     "style/**/*.{css,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
@@ -26,16 +26,20 @@
   "style": "style/index.css",
   "scripts": {
     "build": "jlpm install && tsc",
-    "build:dev": "jlpm run build && jlpm run lab:link",
+    "build:dev": "jlpm run build && jlpm run lab:install",
     "build:watch": "jlpm run build --watch",
     "clean": "rimraf lib && rimraf tsconfig.tsbuildinfo",
-    "clean:slate": "jlpm run clean && rimraf build && rimraf dist && rimraf node_modules",
-    "integrity": "echo integrity",
-    "lab:link": "jupyter labextension link . --no-build",
-    "lab:unlink": "jupyter labextension uninstall jupyterlab-hdf --no-build",
+    "clean:more": "jlpm run clean && rimraf build && rimraf dist && rimraf package && rimraf *.tgz",
+    "clean:slate": "jlpm run clean:more && rimraf node_modules",
+    "deduplicate": "jlpm yarn-deduplicate -s fewer",
+    "lab:install": "jupyter labextension install .",
+    "lab:link": "jupyter labextension install . --no-build",
+    "lab:uninstall": "jupyter labextension uninstall jupyter-unicron",
+    "lab:unlink": "jupyter labextension uninstall jupyter-unicron --no-build",
     "precommit": "lint-staged",
     "prepublishOnly": "jlpm run clean && jlpm run build",
     "prettier": "prettier --write '**/*{.ts,.tsx,.js,.jsx,.css,.json,.md}'",
+    "tslint": "tslint -c tslint.json --project tsconfig.json '**/*{.ts,.tsx}'",
     "watch": "tsc -w"
   },
   "lint-staged": {
@@ -72,9 +76,6 @@
     "tslint-config-prettier": "^1.13.0",
     "tslint-plugin-prettier": "^2.0.1",
     "typescript": "~3.5.1"
-  },
-  "publishConfig": {
-    "access": "public"
   },
   "jupyterlab": {
     "extension": true,

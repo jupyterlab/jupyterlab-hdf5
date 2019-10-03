@@ -1,7 +1,6 @@
-""" jupyterLab_hdf : HDF5 api for Jupyter/Jupyterlab
+# -*- coding: utf-8 -*-
 
-Copyright (c) Max Klein.
-Distributed under the terms of the Modified BSD License.
-"""
+# Copyright (c) Jupyter Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 __version__ = '0.1.1'
