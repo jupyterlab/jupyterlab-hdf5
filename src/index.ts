@@ -1,4 +1,4 @@
-// Copyright (c) Max Klein.
+// Copyright (c) Jupyter Development Team.
 // Distributed under the terms of the Modified BSD License.
 
 import { map, toArray } from "@phosphor/algorithm";
@@ -143,7 +143,9 @@ function activateHdfBrowserPlugin(
   hdfBrowser.id = HDF_BROWSER_NAMESPACE;
 
   // Add the file browser widget to the application restorer.
-  restorer.add(hdfBrowser, HDF_FILE_BROWSER_NAMESPACE);
+  if (restorer) {
+    restorer.add(hdfBrowser, HDF_FILE_BROWSER_NAMESPACE);
+  }
   app.shell.add(hdfBrowser, "left", { rank: 103 });
 
   addBrowserCommands(app, browserFactory, labShell, hdfBrowser, browser);

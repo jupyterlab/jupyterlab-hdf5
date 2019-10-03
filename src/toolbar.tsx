@@ -1,6 +1,6 @@
-/**
- * A toolbar widget that switches cell types.
- */
+// Copyright (c) Jupyter Development Team.
+// Distributed under the terms of the Modified BSD License.
+
 import * as React from "react";
 
 import { DataGrid } from "@phosphor/datagrid";

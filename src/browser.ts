@@ -1,21 +1,21 @@
-// Copyright (c) Max Klein.
+// Copyright (c) Jupyter Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-import { Message } from '@phosphor/messaging';
+import { Message } from "@phosphor/messaging";
 
-import { ISignal, Signal } from '@phosphor/signaling';
+import { ISignal, Signal } from "@phosphor/signaling";
 
-import { PanelLayout, Widget } from '@phosphor/widgets';
+import { PanelLayout, Widget } from "@phosphor/widgets";
 
 // import { ToolbarButton } from '@jupyterlab/apputils';
 
-import { FileBrowser } from '@jupyterlab/filebrowser';
+import { FileBrowser } from "@jupyterlab/filebrowser";
 
-import { HdfDrive } from './contents';
-import { localAbsPath, parseHdfQuery } from './hdf';
+import { HdfDrive } from "./contents";
+import { localAbsPath, parseHdfQuery } from "./hdf";
 
-const FACTORY = 'HDF Dataset';
-const DATA_MIME = 'application/x-hdf5.dataset';
+const FACTORY = "HDF Dataset";
+const DATA_MIME = "application/x-hdf5.dataset";
 
 /**
  * Widget for hosting the Hdf filebrowser.
@@ -23,7 +23,7 @@ const DATA_MIME = 'application/x-hdf5.dataset';
 export class HdfFileBrowser extends Widget {
   constructor(browser: FileBrowser, drive: HdfDrive) {
     super();
-    this.addClass('jp-HdfBrowser');
+    this.addClass("jp-HdfBrowser");
     this.layout = new PanelLayout();
     (this.layout as PanelLayout).addWidget(browser);
     this._browser = browser;
@@ -33,8 +33,8 @@ export class HdfFileBrowser extends Widget {
 
     // Create an editable name for the Hdf file path.
     this.fpathInput = new hdfFpathInput(browser);
-    this.fpathInput.node.title = 'Click to edit file path';
-    this._browser.toolbar.addItem('fpathInput', this.fpathInput);
+    this.fpathInput.node.title = "Click to edit file path";
+    this._browser.toolbar.addItem("fpathInput", this.fpathInput);
     this.fpathInput.pathChanged.connect(this._onFpathChanged, this);
 
     // // Add our own refresh button, since the other one is hidden
@@ -76,17 +76,17 @@ export class HdfFileBrowser extends Widget {
       if (!item) {
         return;
       }
-      if (item.type === 'directory') {
+      if (item.type === "directory") {
         this._browser.model
           .cd(localAbsPath(item.path))
           .catch(error => console.error(error));
       } else {
-        const factory = item.mimetype === DATA_MIME ? FACTORY : 'default';
+        const factory = item.mimetype === DATA_MIME ? FACTORY : "default";
         this._browser.model.manager.openOrReveal(item.path, factory);
       }
     };
 
-    this._browser.node.addEventListener('dblclick', handleDblClick, true);
+    this._browser.node.addEventListener("dblclick", handleDblClick, true);
   }
 
   /**
@@ -174,13 +174,13 @@ export class hdfFpathInput extends Widget {
     super();
     this._browser = browser;
 
-    this.addClass('jp-HdfUserInput');
+    this.addClass("jp-HdfUserInput");
     const layout = (this.layout = new PanelLayout());
     const wrapper = new Widget();
-    wrapper.addClass('jp-HdfUserInput-wrapper');
-    this._input = document.createElement('input');
-    this._input.placeholder = 'HDF5 Path';
-    this._input.className = 'jp-HdfUserInput-input';
+    wrapper.addClass("jp-HdfUserInput-wrapper");
+    this._input = document.createElement("input");
+    this._input.placeholder = "HDF5 Path";
+    this._input.className = "jp-HdfUserInput-input";
     wrapper.node.appendChild(this._input);
     layout.addWidget(wrapper);
 
@@ -230,7 +230,7 @@ export class hdfFpathInput extends Widget {
    */
   handleEvent(event: KeyboardEvent): void {
     switch (event.type) {
-      case 'keydown':
+      case "keydown":
         switch (event.keyCode) {
           case 13: // Enter
             event.stopPropagation();
@@ -242,12 +242,12 @@ export class hdfFpathInput extends Widget {
             break;
         }
         break;
-      case 'blur':
+      case "blur":
         event.stopPropagation();
         event.preventDefault();
         this.path = this._input.value;
         break;
-      case 'focus':
+      case "focus":
         event.stopPropagation();
         event.preventDefault();
         this._input.select();
@@ -261,18 +261,18 @@ export class hdfFpathInput extends Widget {
    * Handle `after-attach` messages for the widget.
    */
   protected onAfterAttach(msg: Message): void {
-    this._input.addEventListener('keydown', this);
-    this._input.addEventListener('blur', this);
-    this._input.addEventListener('focus', this);
+    this._input.addEventListener("keydown", this);
+    this._input.addEventListener("blur", this);
+    this._input.addEventListener("focus", this);
   }
 
   /**
    * Handle `before-detach` messages for the widget.
    */
   protected onBeforeDetach(msg: Message): void {
-    this._input.removeEventListener('keydown', this);
-    this._input.removeEventListener('blur', this);
-    this._input.removeEventListener('focus', this);
+    this._input.removeEventListener("keydown", this);
+    this._input.removeEventListener("blur", this);
+    this._input.removeEventListener("focus", this);
   }
 
   private _syncInputToBrowser() {
@@ -290,7 +290,7 @@ export class hdfFpathInput extends Widget {
   }
 
   private _browser: FileBrowser;
-  private _path = '';
+  private _path = "";
   private _pathChanged = new Signal<
     this,
     { newValue: string; oldValue: string }
@@ -305,11 +305,11 @@ export class hdfFpathInput extends Widget {
 export class HdfErrorPanel extends Widget {
   constructor(message: string) {
     super();
-    this.addClass('jp-HdfErrorPanel');
-    const image = document.createElement('div');
-    const text = document.createElement('div');
-    image.className = 'jp-HdfErrorImage';
-    text.className = 'jp-HdfErrorText';
+    this.addClass("jp-HdfErrorPanel");
+    const image = document.createElement("div");
+    const text = document.createElement("div");
+    image.className = "jp-HdfErrorImage";
+    text.className = "jp-HdfErrorText";
     text.textContent = message;
     this.node.appendChild(image);
     this.node.appendChild(text);

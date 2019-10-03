@@ -311,10 +311,10 @@
     "@phosphor/signaling" "^1.2.3"
     "@phosphor/widgets" "^1.8.0"
 
-"@jupyterlab/dataregistry-extension@^2.0.2":
-  version "2.0.2"
-  resolved "https://registry.yarnpkg.com/@jupyterlab/dataregistry-extension/-/dataregistry-extension-2.0.2.tgz#3875c228f121a1e2472819af4fa5412c3f0aa36a"
-  integrity sha512-2Ci34AgpziuZ3pD3JSzF6gAfsnwYqkiLtnWSlLeebgH98zyYMcoUg4XkTAv2qBHW8BdBM/o1i7rUazKjdppIzw==
+"@jupyterlab/dataregistry-extension@^2.2.2":
+  version "2.2.2"
+  resolved "https://registry.yarnpkg.com/@jupyterlab/dataregistry-extension/-/dataregistry-extension-2.2.2.tgz#23425bcc2385ff42700a341fee980545546e7012"
+  integrity sha512-JYrscS81nClq404OWdqxpyR/n411vYQF6VxOMUlIwhJr/jq3QsXD+UKpvse9x4XFtCTepkHvIcc+sRqz9vZ1JQ==
   dependencies:
     "@jupyterlab/application" "^1.0.0"
     "@jupyterlab/apputils" "^1.0.0"
