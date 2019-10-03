@@ -52,8 +52,8 @@
     "@jupyterlab/application": "^1.0.4",
     "@jupyterlab/apputils": "^1.0.4",
     "@jupyterlab/coreutils": "^3.0.0",
-    "@jupyterlab/dataregistry": "^2.0.0",
-    "@jupyterlab/dataregistry-extension": "^2.2.2",
+    "@jupyterlab/dataregistry": "^3.0.0",
+    "@jupyterlab/dataregistry-extension": "^3.0.0",
     "@jupyterlab/docmanager": "^1.0.4",
     "@jupyterlab/docregistry": "^1.0.4",
     "@jupyterlab/filebrowser": "^1.0.5",
@@ -63,7 +63,7 @@
     "@phosphor/datagrid": "^0.1.9",
     "@phosphor/messaging": "^1.2.3",
     "@phosphor/signaling": "^1.2.3",
-    "@phosphor/widgets": "^1.8.0",
+    "@phosphor/widgets": "^1.9.0",
     "rxjs": "^6.5.2"
   },
   "devDependencies": {
@@ -76,6 +76,9 @@
     "tslint-config-prettier": "^1.13.0",
     "tslint-plugin-prettier": "^2.0.1",
     "typescript": "~3.5.1"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "jupyterlab": {
     "extension": true,
