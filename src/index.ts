@@ -38,6 +38,7 @@ import {
 
 import {
   HDF_DATASET_MIME_TYPE,
+  HDF_MIME_TYPE,
   hdfContentsRequest,
   IContentsParameters,
   parseHdfQuery
@@ -61,6 +62,7 @@ const hdf5DataRegistryPluginId = "jupyterlab-hdf:dataregistry";
  * Hdf icon classnames
  */
 const HDF_ICON = "jp-HdfIcon";
+const HDF_FILE_ICON = `jp-MaterialIcon ${HDF_ICON}`;
 const HDF_DATASET_ICON = "jp-MaterialIcon jp-SpreadsheetIcon"; // jp-HdfDatasetIcon;
 
 /**
@@ -123,6 +125,19 @@ function activateHdfBrowserPlugin(
 ): void {
   const { createFileBrowser, defaultBrowser } = browserFactory;
 
+  // Add an hdf5 file type to the docregistry.
+  const ft: DocumentRegistry.IFileType = {
+    // driveName: 'Hdf',
+    contentType: "directory",
+    name: "hdf:file",
+    fileFormat: "json",
+    displayName: "HDF File",
+    extensions: [".hdf5", ".h5"],
+    mimeTypes: [HDF_MIME_TYPE],
+    iconClass: HDF_FILE_ICON
+  };
+  app.docRegistry.addFileType(ft);
+
   // Add the Hdf backend to the contents manager.
   const drive = new HdfDrive(app.docRegistry);
   manager.services.contents.addDrive(drive);
@@ -179,7 +194,8 @@ function monkeyPatchBrowser(app: JupyterFrontEnd, browser: FileBrowser) {
     }
 
     const { contents } = browser.model.manager.services;
-    if (PathExt.extname(item.path) === ".hdf5") {
+    const extname = PathExt.extname(item.path);
+    if (extname === ".hdf5" || extname === ".h5") {
       // special handling for .hdf5 files
       commands.execute(CommandIDs.openInBrowser);
     } else if (item.type === "directory") {

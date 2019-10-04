@@ -29,7 +29,10 @@ import { createHdfGrid } from "./dataset";
 const serverSettings = ServerConnection.makeSettings();
 
 export function parseHdfRegistryUrl(url: URL): { fpath: string } & HdfContents {
-  if (url.protocol === "file:" && url.pathname.endsWith(".hdf5")) {
+  if (
+    url.protocol === "file:" &&
+    (url.pathname.endsWith(".hdf5") || url.pathname.endsWith(".h5"))
+  ) {
     return {
       fpath: url.pathname,
       type: url.searchParams.get("type") === "dataset" ? "dataset" : "group",
