@@ -15,7 +15,6 @@ class HdfDataManager(HdfBaseManager):
     """Implements HDF5 data handling
     """
     def _get(self, f, uri, select):
-        print("SELECT: " + str(select))
         return dsetChunk(f[uri], select)
 
 

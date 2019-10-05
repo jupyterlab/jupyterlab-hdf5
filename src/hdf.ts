@@ -73,19 +73,12 @@ export function hdfDataRequest(
   parameters: IContentsParameters,
   settings: ServerConnection.ISettings
 ): Promise<number[][]> {
-  // require the uri, row, and col query parameters
-  const { fpath, uri, row, col } = parameters;
-
-  // Remove
-  console.log("TEST QUERY: " + URLExt.objectToQueryString({ "test-slice": "[0:1, 3:4, 5:6, 0:-1]"}));
-  console.log("TEST QUERY: " + URLExt.objectToQueryString({ "test-lists": [[0, 1], [1, 2], [3, 4], [5, 6]]}));
-  // Remove
+  // require the uri query parameter, select is optional
+  const { fpath, uri, ...select } = parameters;
 
   const fullUrl =
     URLExt.join(settings.baseUrl, "hdf", "data", fpath).split("?")[0] +
-    URLExt.objectToQueryString({ uri, row, col });
-
-  console.log("fullUrl: " + fullUrl);
+    URLExt.objectToQueryString({ uri, ...select });
 
   return ServerConnection.makeRequest(fullUrl, {}, settings).then(response => {
     if (response.status !== 200) {
@@ -112,14 +105,11 @@ export interface IContentsParameters {
   uri: string;
 
   /**
-   * Row slice. Up to 3 integers, same syntax as for Python `slice` built-in.
+   * String representing an array of slices that determine a
+   * hyperslab selection of an HDF5 dataset. Syntax and semantics
+   * matches that of h5py's Dataset indexing.
    */
-  row?: number[];
-
-  /**
-   * Column slice. Up to 3 integers, same syntax as for Python `slice` built-in.
-   */
-  col?: number[];
+  select?: string;
 }
 
 /**

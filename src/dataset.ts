@@ -251,8 +251,7 @@ export class HdfDatasetModelBase extends DataModel {
     const params = {
       fpath: this._fpath,
       uri: this._uri,
-      col: [colStart, colStop],
-      row: [rowStart, rowStop]
+      select: `[${rowStart}:${rowStop}, ${colStart}:${colStop}]`
     };
     hdfDataRequest(params, this._serverSettings).then(data => {
       this._blocks[rowBlock][colBlock] = data;
