@@ -6,6 +6,7 @@
 import h5py
 import json
 import os
+import traceback
 from tornado import gen
 from tornado.httpclient import HTTPError
 
@@ -57,14 +58,14 @@ class HdfBaseManager:
                 with h5py.File(fpath, 'r') as f: pass
             except Exception as e:
                 msg = (f'The request did not specify a file that `h5py` could understand.\n'
-                       f'Error: {e}')
+                       f'Error: {traceback.format_exc()}')
                 _handleErr(401, msg)
             try:
                 with h5py.File(fpath, 'r') as f:
                     out = self._get(f, uri, row, col)
             except Exception as e:
                 msg = (f'Found and opened file, error getting contents from object specified by the uri.\n'
-                       f'Error: {e}')
+                       f'Error: {traceback.format_exc()}')
                 _handleErr(500, msg)
 
             return out
