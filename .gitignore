@@ -16,6 +16,7 @@ dist
 MANIFEST
 
 # scratch cruft
+/scratch/*.h5
 /scratch/*.hdf5
 
 # temp/system files
@@ -29,4 +30,3 @@ MANIFEST
 # jetbrains stuff
 *.iml
 .idea/
-
