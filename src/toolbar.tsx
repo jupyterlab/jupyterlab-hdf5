@@ -69,7 +69,7 @@ export class SliceInputBox extends React.Component<
   constructor(props: SliceInput.IProps) {
     super(props);
     this.state = {
-      value: "",
+      value: ":, :",
       hasFocus: false
     };
   }
@@ -115,7 +115,7 @@ export class SliceInputBox extends React.Component<
 
   render() {
     return (
-      <label>
+      <label title={"Use Numpy syntax. 2D slices only"}>
         {"Slice: "}
         <input
           type="text"
