@@ -259,11 +259,11 @@ export class HdfDatasetModelBase extends DataModel {
       this.emitChanged({
         type: "cells-changed",
         region: "body",
-        rowIndex:
+        row:
           (rowBlock -
             (this.isRowSlice() ? this._rowSlice.start / this._blockSize : 0)) *
           this._blockSize, //rowBlock * this._blockSize,
-        columnIndex:
+        column:
           (colBlock -
             (this.isColSlice() ? this._colSlice.start / this._blockSize : 0)) *
           this._blockSize, //colBlock * this._blockSize,
@@ -362,7 +362,7 @@ export function createHdfGrid(params: {
   const model = new HdfDatasetModelParams(params);
 
   const grid = new DataGrid();
-  grid.model = model;
+  grid.dataModel = model;
 
   // const boundRepaint = grid.repaint.bind(grid);
   // model.refreshed.connect(boundRepaint);
@@ -382,7 +382,7 @@ export class HdfDatasetMain extends MainAreaWidget<DataGrid> {
     const content = createHdfGrid(params);
 
     const toolbar = Private.createToolbar(content);
-    const reveal = (content.model as HdfDatasetModelParams).ready;
+    const reveal = (content.dataModel as HdfDatasetModelParams).ready;
     super({ content, reveal, toolbar });
   }
 }
@@ -395,7 +395,7 @@ export class HdfDatasetDoc extends DocumentWidget<DataGrid>
   constructor(context: DocumentRegistry.Context) {
     const content = new DataGrid();
     const model = new HdfDatasetModelContext(context);
-    content.model = model;
+    content.dataModel = model;
 
     // model.refreshed.connect(() => content.repaint());
 

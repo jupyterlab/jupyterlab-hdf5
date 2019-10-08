@@ -643,6 +643,20 @@
     "@phosphor/signaling" "^1.3.0"
     "@phosphor/widgets" "^1.9.0"
 
+"@phosphor/datagrid@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@phosphor/datagrid/-/datagrid-0.3.0.tgz#afabed4223511448ad61e778d74f30c9694f2b2c"
+  integrity sha512-OP3YfNZ94v6chn/l3QtezSYyK05dCgZytq3Eni8xtFe1N9kl8eUrPMNI1PyxNFb77k8Y4Gm1ZtuSesNhnRaysQ==
+  dependencies:
+    "@phosphor/algorithm" "^1.2.0"
+    "@phosphor/coreutils" "^1.3.1"
+    "@phosphor/disposable" "^1.3.0"
+    "@phosphor/domutils" "^1.1.4"
+    "@phosphor/dragdrop" "^1.4.0"
+    "@phosphor/messaging" "^1.3.0"
+    "@phosphor/signaling" "^1.3.0"
+    "@phosphor/widgets" "^1.9.2"
+
 "@phosphor/disposable@^1.2.0", "@phosphor/disposable@^1.3.0":
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/@phosphor/disposable/-/disposable-1.3.0.tgz#3321a420e14acf0761a559f202bf98d4c46b8163"
