@@ -79,8 +79,8 @@ def main():
     parser = argp.ArgumentParser()
 
     parser.add_argument('-d', '--dry', action='store_true')
-    parser.add_argument('--pypi', action='store_true')
     parser.add_argument('--npmjs', action='store_true')
+    parser.add_argument('--pypi', action='store_true')
 
     parsed = vars(parser.parse_args())
     dry = 'dry' in parsed and parsed['dry']
