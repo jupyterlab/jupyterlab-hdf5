@@ -4,6 +4,8 @@
 # Distributed under the terms of the Modified BSD License.
 
 import re
+import numpy as np
+
 
 __all__ = ['chunkSlice', 'dsetChunk', 'dsetContentDict', 'dsetDict', 'groupDict', 'uriJoin', 'uriName']
 
@@ -18,11 +20,23 @@ def dsetChunk(dset, row, col):
     return dset[slice(*row), slice(*col)].tolist()
 
 
+def serialize_value(v):
+    """
+    Turns a value into a JSON serializable version
+    """
+    if isinstance(v, list):
+        return [serialize_value(i) for i in v]
+    if isinstance(v, np.ndarray):
+        return serialize_value(v.tolist())
+    if isinstance(v, bytes):
+        return v.decode()
+    return v
+
 ## create dicts to be converted to json
 def dsetContentDict(dset, row=None, col=None):
     return dict([
         # metadata
-        ('attrs', dict(*dset.attrs.items())),
+        ('attrs', {k: serialize_value(v) for k, v in dset.attrs.items()}),
         ('dtype', dset.dtype.str),
         ('ndim', dset.ndim),
         ('shape', dset.shape),
