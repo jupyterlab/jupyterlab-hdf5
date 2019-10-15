@@ -26,10 +26,10 @@ def genLeaf(group, ext=None, n=None, **dataKwargs):
 
     return leaf
 
-def genNested(name, N=None, ext=None, func=None, shape=None, umin=None, umax=None):
+def genNested(name, N=None, ext=None, func=None, shape=None, suffix='.hdf5', umin=None, umax=None):
     if N is None: N = 5
 
-    with h5py.File(Path(name).with_suffix('.hdf5'), 'w') as f:
+    with h5py.File(Path(name).with_suffix(suffix), 'w') as f:
         group = f
         for n in range(N):
             group = genLeaf(group, ext=ext, n=n, func=func, shape=shape, umin=umin, umax=umax)

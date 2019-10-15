@@ -1,3 +1,6 @@
+// Copyright (c) Jupyter Development Team.
+// Distributed under the terms of the Modified BSD License.
+
 import { from, of } from "rxjs";
 
 import { map } from "rxjs/operators";
@@ -18,7 +21,7 @@ import {
 
 import { HdfContents, hdfContentsRequest, HdfDirectoryListing } from "./hdf";
 
-import { HdfDatasetMain } from "./dataset";
+import { createHdfGrid } from "./dataset";
 
 /**
  * Settings for the notebook server.
@@ -26,7 +29,10 @@ import { HdfDatasetMain } from "./dataset";
 const serverSettings = ServerConnection.makeSettings();
 
 export function parseHdfRegistryUrl(url: URL): { fpath: string } & HdfContents {
-  if (url.protocol === "file:" && url.pathname.endsWith(".hdf5")) {
+  if (
+    url.protocol === "file:" &&
+    (url.pathname.endsWith(".hdf5") || url.pathname.endsWith(".h5"))
+  ) {
     return {
       fpath: url.pathname,
       type: url.searchParams.get("type") === "dataset" ? "dataset" : "group",
@@ -87,7 +93,7 @@ const datasetConverter = createConverter(
     const { fpath, uri, type } = params;
     if (type === "dataset") {
       return {
-        data: () => new HdfDatasetMain({ fpath, uri }),
+        data: () => createHdfGrid({ fpath, uri }),
         type: "Grid"
       };
     }

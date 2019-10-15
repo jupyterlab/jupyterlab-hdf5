@@ -17,7 +17,7 @@ Designed from the ground up to be as efficient as possible. Data will only be fe
 
 ```bash
 pip install jupyterlab_hdf
-jupyter labextension install jupyterlab-hdf
+jupyter labextension install @jupyterlab/hdf5
 ```
 
 This will install both the server extension and the labextension needed by this plugin.
@@ -80,5 +80,5 @@ The `@jupyterlab/dataregistry` extension allows for exploration of data in a ver
 
 [pypi]: https://badge.fury.io/py/jupyterlab-hdf.svg
 [pypi-url]: https://badge.fury.io/py/jupyterlab-hdf
-[npm]: https://badge.fury.io/js/jupyterlab-hdf.svg
-[npm-url]: https://badge.fury.io/js/jupyterlab-hdf
+[npm]: https://badge.fury.io/js/%40jupyterlab%2Fhdf5.svg
+[npm-url]: https://badge.fury.io/js/%40jupyterlab%2Fhdf5

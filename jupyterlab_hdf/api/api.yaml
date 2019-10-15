@@ -1,7 +1,7 @@
-# jupyterLab_hdf : HDF5 api for Jupyter/Jupyterlab
-#
-# Copyright (c) Max Klein.
+# Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
+#
+# jupyterLab_hdf : HDF5 api for Jupyter/Jupyterlab
 
 openapi: 3.0.0
 info:

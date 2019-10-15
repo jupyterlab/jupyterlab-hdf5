@@ -1,22 +1,22 @@
 {
-  "name": "jupyterlab-hdf",
-  "version": "0.1.2",
+  "name": "@jupyterlab/hdf5",
+  "version": "0.2.1",
   "description": "Open and explore (very large) HDF5 files in Jupyterlab.",
   "keywords": [
     "jupyter",
     "jupyterlab",
     "jupyterlab-extension"
   ],
-  "homepage": "https://github.com/telamonian/jupyterlab-hdf5",
+  "homepage": "https://github.com/jupyterlab/jupyterlab-hdf5",
   "bugs": {
-    "url": "https://github.com/telamonian/jupyterlab-hdf5/issues"
+    "url": "https://github.com/jupyterlab/jupyterlab-hdf5/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/telamonian/jupyterlab-hdf5.git"
+    "url": "https://github.com/jupyterlab/jupyterlab-hdf5.git"
   },
   "license": "BSD-3-Clause",
-  "author": "Max Klein",
+  "author": "Project Jupyter",
   "files": [
     "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
     "style/**/*.{css,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
@@ -26,16 +26,20 @@
   "style": "style/index.css",
   "scripts": {
     "build": "jlpm install && tsc",
-    "build:dev": "jlpm run build && jlpm run lab:link",
+    "build:dev": "jlpm run build && jlpm run lab:install",
     "build:watch": "jlpm run build --watch",
     "clean": "rimraf lib && rimraf tsconfig.tsbuildinfo",
-    "clean:slate": "jlpm run clean && rimraf build && rimraf dist && rimraf node_modules",
-    "integrity": "echo integrity",
-    "lab:link": "jupyter labextension link . --no-build",
-    "lab:unlink": "jupyter labextension uninstall jupyterlab-hdf --no-build",
+    "clean:more": "jlpm run clean && rimraf build && rimraf dist && rimraf package && rimraf *.tgz",
+    "clean:slate": "jlpm run clean:more && rimraf node_modules",
+    "deduplicate": "jlpm yarn-deduplicate -s fewer",
+    "lab:install": "jupyter labextension install .",
+    "lab:link": "jupyter labextension install . --no-build",
+    "lab:uninstall": "jupyter labextension uninstall @jupyterlab/hdf5",
+    "lab:unlink": "jupyter labextension uninstall @jupyterlab/hdf5 --no-build",
     "precommit": "lint-staged",
     "prepublishOnly": "jlpm run clean && jlpm run build",
     "prettier": "prettier --write '**/*{.ts,.tsx,.js,.jsx,.css,.json,.md}'",
+    "tslint": "tslint -c tslint.json --project tsconfig.json '**/*{.ts,.tsx}'",
     "watch": "tsc -w"
   },
   "lint-staged": {
@@ -45,21 +49,21 @@
     ]
   },
   "dependencies": {
-    "@jupyterlab/application": "^1.0.4",
-    "@jupyterlab/apputils": "^1.0.4",
-    "@jupyterlab/coreutils": "^3.0.0",
-    "@jupyterlab/dataregistry": "^2.0.0",
-    "@jupyterlab/dataregistry-extension": "^2.0.2",
-    "@jupyterlab/docmanager": "^1.0.4",
-    "@jupyterlab/docregistry": "^1.0.4",
-    "@jupyterlab/filebrowser": "^1.0.5",
-    "@jupyterlab/services": "^4.0.4",
-    "@phosphor/algorithm": "^1.1.3",
+    "@jupyterlab/application": "^1.1.0",
+    "@jupyterlab/apputils": "^1.1.0",
+    "@jupyterlab/coreutils": "^3.1.0",
+    "@jupyterlab/docmanager": "^1.1.0",
+    "@jupyterlab/docregistry": "^1.1.0",
+    "@jupyterlab/filebrowser": "^1.1.0",
+    "@jupyterlab/services": "^4.1.0",
+    "@jupyterlab/dataregistry": "^3.0.0",
+    "@jupyterlab/dataregistry-extension": "^3.0.0",
+    "@phosphor/algorithm": "^1.2.0",
     "@phosphor/coreutils": "^1.3.1",
-    "@phosphor/datagrid": "^0.1.9",
-    "@phosphor/messaging": "^1.2.3",
-    "@phosphor/signaling": "^1.2.3",
-    "@phosphor/widgets": "^1.8.0",
+    "@phosphor/datagrid": "^0.1.11",
+    "@phosphor/messaging": "^1.3.0",
+    "@phosphor/signaling": "^1.3.0",
+    "@phosphor/widgets": "^1.9.2",
     "rxjs": "^6.5.2"
   },
   "devDependencies": {
@@ -71,7 +75,8 @@
     "tslint": "^5.10.0",
     "tslint-config-prettier": "^1.13.0",
     "tslint-plugin-prettier": "^2.0.1",
-    "typescript": "~3.5.1"
+    "typescript": "~3.5.1",
+    "yarn-deduplicate": "^1.1.1"
   },
   "publishConfig": {
     "access": "public"
