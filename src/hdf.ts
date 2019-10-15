@@ -105,9 +105,11 @@ export interface IContentsParameters {
   uri: string;
 
   /**
-   * String representing an array of slices that determine a
-   * hyperslab selection of an HDF5 dataset. Syntax and semantics
-   * matches that of h5py's Dataset indexing.
+   * String representing an array of slices which determine a
+   * hyperslab selection of an n-dimensional HDF5 dataset.
+   * Syntax and semantics matches that of h5py's Dataset indexing.
+   * E.g, ?select=[0:3, 1:5, :, 9]
+   * See jupyterlab_hdf/util.py for full details.
    */
   select?: string;
 }
