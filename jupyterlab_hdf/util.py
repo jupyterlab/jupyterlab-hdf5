@@ -111,9 +111,11 @@ def _getHyperslabSlices(dsetshape, select):
         stop = extent
         step = 1
         if dim_slice.find(':') < 0:
-            # just a number - return slice(start, start + 1, 1) for this dimension
+            # just a number - append to SLICES, and continue to next iteration
             try:
-                start = int(dim_slice)
+                # start = int(dim_slice)
+                slices.append(int(dim_slice))
+                continue
             except ValueError:
                 msg = "Bad Request: invalid selection parameter (can't convert to int) for dimension: " + str(dim)
                 raise HTTPError(400, reason=msg)
