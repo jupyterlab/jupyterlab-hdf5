@@ -41,7 +41,8 @@ setup_dict = dict(
     ],
     install_requires=[
         'h5py',
-        'notebook'
+        'notebook',
+        'simplejson'
     ]
 )
 

@@ -4,8 +4,8 @@
 # Distributed under the terms of the Modified BSD License.
 
 import h5py
-import json
 import os
+import simplejson
 import traceback
 from tornado import gen
 from tornado.httpclient import HTTPError
@@ -102,7 +102,7 @@ class HdfBaseHandler(APIHandler):
         col = self.getQueryArguments('col', int)
 
         try:
-            self.finish(json.dumps(self.manager.get(path, uri, row, col)))
+            self.finish(simplejson.dumps(self.manager.get(path, uri, row, col), ignore_nan=True))
 
         except HTTPError as err:
             self.set_status(err.code)
