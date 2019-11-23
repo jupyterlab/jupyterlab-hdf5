@@ -113,7 +113,6 @@ def _getHyperslabSlices(dsetshape, select):
         if dim_slice.find(':') < 0:
             # just a number - append to SLICES, and continue to next iteration
             try:
-                # start = int(dim_slice)
                 slices.append(int(dim_slice))
                 continue
             except ValueError:

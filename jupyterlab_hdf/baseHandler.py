@@ -4,10 +4,11 @@
 # Distributed under the terms of the Modified BSD License.
 
 import h5py
-import json
+# import json
 import os
 from tornado import gen
 from tornado.httpclient import HTTPError
+import simplejson
 
 from notebook.base.handlers import APIHandler
 from notebook.utils import url_path_join
@@ -82,7 +83,7 @@ class HdfBaseHandler(APIHandler):
         uri = '/' + self.get_query_argument('uri').lstrip('/')
         select = self.get_query_argument('select', default=None)
         try:
-            self.finish(json.dumps(self.manager.get(path, uri, select)))
+            self.finish(simplejson.dumps(self.manager.get(path, uri, select), ignore_nan=True))
         except HTTPError as err:
             self.set_status(err.code)
             response = err.response.body if err.response else str(err.code)
