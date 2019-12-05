@@ -12,7 +12,7 @@ import {
 
 import { WidgetTracker } from '@jupyterlab/apputils';
 
-import { PathExt } from '@jupyterlab/coreutils';
+// import { PathExt } from '@jupyterlab/coreutils';
 
 import { IDocumentManager } from '@jupyterlab/docmanager';
 
@@ -70,6 +70,11 @@ const HDF_DATASET_ICON = 'jp-MaterialIcon jp-SpreadsheetIcon'; // jp-HdfDatasetI
  */
 const serverSettings = ServerConnection.makeSettings();
 
+/**
+ * mimetypes
+ */
+const JSON_MIME_TYPE = 'application/json';
+
 namespace CommandIDs {
   /**
    * Fetch metadata from an hdf5 file
@@ -123,20 +128,8 @@ function activateHdfBrowserPlugin(
   restorer: ILayoutRestorer
   // settingRegistry: ISettingRegistry
 ): void {
-  const { createFileBrowser, defaultBrowser } = browserFactory;
-
-  // Add an hdf5 file type to the docregistry.
-  const ft: DocumentRegistry.IFileType = {
-    name: 'hdf:file',
-    contentType: 'dirlike',
-    fileFormat: 'json',
-    displayName: 'HDF File',
-    extensions: ['.hdf5'],
-    mimeTypes: [HDF_MIME_TYPE],
-    iconClass: HDF_FILE_ICON,
-    driveName: 'Hdf'
-  };
-  app.docRegistry.addFileType(ft);
+  // const { createFileBrowser, defaultBrowser } = browserFactory;
+  const { createFileBrowser } = browserFactory;
 
   // Add the Hdf backend to the contents manager.
   const drive = new HdfDrive(app.docRegistry);
@@ -162,50 +155,63 @@ function activateHdfBrowserPlugin(
   app.shell.add(hdfBrowser, 'left', { rank: 103 });
 
   addBrowserCommands(app, browserFactory, labShell, hdfBrowser, browser);
-  monkeyPatchBrowser(app, defaultBrowser);
+  // monkeyPatchBrowser(app, defaultBrowser);
+
+  // Add an hdf5 file type to the docregistry.
+  const ft: DocumentRegistry.IFileType = {
+    // browser: browser,
+    contentType: 'directory', //'dirlike',
+    name: 'hdf:file',
+    fileFormat: 'json',
+    displayName: 'HDF File',
+    extensions: ['.hdf5'],
+    mimeTypes: [HDF_MIME_TYPE, JSON_MIME_TYPE],
+    iconClass: HDF_FILE_ICON
+  };
+  app.docRegistry.addFileType(ft);
 
   return;
 }
 
-function monkeyPatchBrowser(app: JupyterFrontEnd, browser: FileBrowser) {
-  const { commands } = app;
-
-  const handleDblClick = async (evt: Event): Promise<void> => {
-    const event = evt as MouseEvent;
-    // Do nothing if it's not a left mouse press.
-    if (event.button !== 0) {
-      return;
-    }
-
-    // Do nothing if any modifier keys are pressed.
-    if (event.ctrlKey || event.shiftKey || event.altKey || event.metaKey) {
-      return;
-    }
-
-    // Stop the event propagation.
-    event.preventDefault();
-    event.stopPropagation();
-
-    const item = browser.modelForClick(event);
-    if (!item) {
-      return;
-    }
-
-    const { contents } = browser.model.manager.services;
-    if (PathExt.extname(item.path) === '.hdf5') {
-      // special handling for .hdf5 files
-      commands.execute(CommandIDs.openInBrowser);
-    } else if (item.type === 'directory') {
-      browser.model
-        .cd('/' + contents.localPath(item.path))
-        .catch(error => console.error(error));
-    } else {
-      browser.model.manager.openOrReveal(item.path);
-    }
-  };
-
-  browser.node.addEventListener('dblclick', handleDblClick, true);
-}
+// function monkeyPatchBrowser(app: JupyterFrontEnd, browser: FileBrowser) {
+//   const { commands } = app;
+//
+//   const handleDblClick = async (evt: Event): Promise<void> => {
+//     const event = evt as MouseEvent;
+//     // Do nothing if it's not a left mouse press.
+//     if (event.button !== 0) {
+//       return;
+//     }
+//
+//     // Do nothing if any modifier keys are pressed.
+//     if (event.ctrlKey || event.shiftKey || event.altKey || event.metaKey) {
+//       return;
+//     }
+//
+//     // Stop the event propagation.
+//     event.preventDefault();
+//     event.stopPropagation();
+//
+//     const item = browser.modelForClick(event);
+//     if (!item) {
+//       return;
+//     }
+//
+//     const { contents } = browser.model.manager.services;
+//     if (PathExt.extname(item.path) === '.hdf5') {
+//       // special handling for .hdf5 files
+//       commands.execute(CommandIDs.openInBrowser);
+//     } else if (item.type === 'directory') {
+//       browser.model
+//         .cd('/' + contents.localPath(item.path))
+//         .catch(error => console.error(error));
+//     } else {
+//       browser.model.manager.openOrReveal(item.path);
+//     }
+//   };
+//
+//   browser.node.addEventListener('dblclick', handleDblClick, true);
+// }
 
 function addBrowserCommands(
   app: JupyterFrontEnd,
@@ -289,7 +295,7 @@ function activateHdfDatasetPlugin(
     fileFormat: 'json',
     displayName: 'HDF Dataset',
     extensions: ['.data'],
-    mimeTypes: [HDF_DATASET_MIME_TYPE],
+    mimeTypes: [HDF_DATASET_MIME_TYPE, JSON_MIME_TYPE],
     iconClass: HDF_DATASET_ICON
   };
   app.docRegistry.addFileType(ft);
@@ -298,6 +304,7 @@ function activateHdfDatasetPlugin(
   const factory = new HdfDatasetDocFactory({
     name: 'HDF Dataset',
     fileTypes: ['hdf:dataset'],
+    // mimeTypes: [HDF_DATASET_MIME_TYPE],
     defaultFor: ['hdf:dataset'],
     readOnly: true
   });
