@@ -1,6 +1,8 @@
 [![PyPI version][pypi]][pypi-url]
 [![npm_version][npm]][npm-url]
 
+[interactive api docs][swagger-url]
+
 # jupyterlab-hdf5
 
 Open and explore HDF5 files in JupyterLab. Can handle very large (TB) sized files. Now integrated with the standard filebrowser!
@@ -82,3 +84,4 @@ The `@jupyterlab/dataregistry` extension allows for exploration of data in a ver
 [pypi-url]: https://badge.fury.io/py/jupyterlab-hdf
 [npm]: https://badge.fury.io/js/%40jupyterlab%2Fhdf5.svg
 [npm-url]: https://badge.fury.io/js/%40jupyterlab%2Fhdf5
+[swagger-url]: https://petstore.swagger.io/?url=https://raw.githubusercontent.com/jupyterlab/jupyterlab-hdf5/master/jupyterlab_hdf/api/api.yaml
