@@ -6,71 +6,21 @@
 openapi: 3.0.0
 info:
   title: JupyterLab HDF5 proxy
-  description: Proxies HDF5 API requests from JupyterLab to HDF5.
-  version: 0.1.0-alpha
-components:
-  parameters:
-    - name: fpath
-      in: path
-      required: true
-      description: "Path on disk to an HDF5 file."
-      schema:
-        type: string
-        format: uri
-    - name: uri
-      in: query
-      required: true
-      description: "Path within an HDF5 file to a specific group or dataset."
-      schema:
-        type: string
-    - name: row
-      in: query
-      description: "Row slice. Up to 3 integers, same syntax as for Python `slice` built-in."
-      explode: false
-      schema:
-        type: array
-        items:
-          type: integer
-        nullable: true
-        maxItems: 3
-    - name: col
-      in: query
-      description: "Column slice. Up to 3 integers, same syntax as for Python `slice` built-in."
-      explode: false
-      schema:
-        type: array
-        items:
-          type: integer
-        nullable: true
-        maxItems: 3
+  description: "Proxies HDF5 API requests from JupyterLab to HDF5."
+  version: 0.3.0
 
 paths:
-  /hdf/contents/{fpath}{?uri,row,col}:
+  /hdf/contents/{fpath}{?uri}:
     get:
-      summary: Get the contents of the hdf object pointed to by the uri in the file at fpath.
+      summary: "Get the contents of the hdf object pointed to by the uri in the file at fpath."
       parameters:
         - $ref: '#/components/parameters/fpath'
         - $ref: '#/components/parameters/uri'
-        - $ref: '#/components/parameters/row'
-        - $ref: '#/components/parameters/col'
       responses:
         '200':
-          description: Found hdf object, got contents.
-          schema:
-            type: array
-            items:
-              type: object
-              properties:
-                type:
-                  type: string
-                name:
-                  type: string
-                uri:
-                  type: string
-                content:
-                  type: string
+          $ref: '#/components/responses/hobjs'
         '400':
-          description: The request was malformed; should be of the format "file/path?uri=uri/path&row=[start,stop,step]&col=[start,stop,step]"
+          description: The request was malformed; url should be of the format "fpath?uri=uri"
         '401':
           description: The request did not specify a file that `h5py` could understand.
         '403':
@@ -78,24 +28,91 @@ paths:
         '500':
           description: Found and opened file, error getting contents from object specified by the uri.
 
-  /hdf/data/{fpath}{?uri,row,col}:
-    get:
-      summary: Get slices of data from the hdf dataset pointed to by the uri in the file at fpath.
+    post:
+      summary: "Get slices of data from the hdf dataset pointed to by the uri in the file at fpath."
       parameters:
         - $ref: '#/components/parameters/fpath'
         - $ref: '#/components/parameters/uri'
-        - $ref: '#/components/parameters/row'
-        - $ref: '#/components/parameters/col'
+      requestBody:
+        $ref: '#/components/requestBodies/slices'
       responses:
         '200':
-          description: Found hdf dataset, got data.
-          schema:
-            type: string
+          $ref: '#/components/responses/dataslab'
         '400':
-          description: The request was malformed; should be of the format "file/path?uri=uri/path&row=[start,stop,step]&col=[start,stop,step]"
+          description: The request was malformed; url should be of the format "fpath?uri=uri"
         '401':
           description: The request did not specify a file that `h5py` could understand.
         '403':
           description: The request specified a file that does not exist.
         '500':
           description: Found and opened file, error getting data from dataset specified by the uri.
+
+components:
+  parameters:
+    fpath:
+      name: fpath
+      in: path
+      required: true
+      description: "Path on disk to an HDF5 file."
+      schema:
+        type: string
+        format: uri
+    uri:
+      name: uri
+      in: query
+      required: true
+      description: "Path within an HDF5 file to a specific group or dataset."
+      schema:
+        type: string
+
+  requestBodies:
+    slices:
+      description: "list of slices"
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/slice'
+
+  responses:
+    hobjs:
+      description: "list of hdf5 objects"
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/hobj'
+    dataslab:
+      description: "slab of hdf5 dataset represented as list-of-list-of-number (always 2D)"
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: array
+              items:
+                type: number
+
+  schemas:
+    hobj:
+      description: "data representing an arbitrary hdf5 object"
+      type: object
+      properties:
+        type:
+          description: "`group` or `dataset` (for now)"
+          type: string
+        name:
+          description: "object name"
+          type: string
+        uri:
+          description: "full uri pointing to the object"
+          type: string
+    slice:
+      description: "a slice. Up to 3 integers, same syntax as for Python `slice` built-in"
+      type: array
+      items:
+        type: integer
+      nullable: true
+      maxItems: 3
