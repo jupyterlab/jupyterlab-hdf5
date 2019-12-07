@@ -101,7 +101,7 @@ components:
       type: object
       properties:
         type:
-          description: "`group` or `dataset` (for now)"
+          description: "only `group` or `dataset` (for now)"
           type: string
         name:
           description: "object name"
