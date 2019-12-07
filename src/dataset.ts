@@ -3,7 +3,13 @@
 
 import { PromiseDelegate, Token } from "@phosphor/coreutils";
 
-import { DataGrid, DataModel } from "@phosphor/datagrid";
+import {
+  BasicKeyHandler,
+  BasicMouseHandler,
+  BasicSelectionModel,
+  DataGrid,
+  DataModel
+} from "@phosphor/datagrid";
 
 import { Signal } from "@phosphor/signaling";
 
@@ -363,9 +369,13 @@ export function createHdfGrid(params: {
 
   const grid = new DataGrid();
   grid.dataModel = model;
+  grid.keyHandler = new BasicKeyHandler();
+  grid.mouseHandler = new BasicMouseHandler();
+  grid.selectionModel = new BasicSelectionModel({ dataModel: model });
 
-  // const boundRepaint = grid.repaint.bind(grid);
-  // model.refreshed.connect(boundRepaint);
+  const repainter = grid as any;
+  const boundRepaint = repainter._repaintContent.bind(repainter);
+  model.refreshed.connect(boundRepaint);
 
   // model.refreshed.connect(grid.repaint, grid);
 
@@ -396,8 +406,11 @@ export class HdfDatasetDoc extends DocumentWidget<DataGrid>
     const content = new DataGrid();
     const model = new HdfDatasetModelContext(context);
     content.dataModel = model;
+    content.keyHandler = new BasicKeyHandler();
+    content.mouseHandler = new BasicMouseHandler();
+    content.selectionModel = new BasicSelectionModel({ dataModel: model });
 
-    // model.refreshed.connect(() => content.repaint());
+    model.refreshed.connect(() => (content as any)._repaintContent());
 
     const toolbar = Private.createToolbar(content);
     const reveal = context.ready;
