@@ -48,7 +48,7 @@ export class SliceInput extends ReactWidget {
     this.addClass(TOOLBAR_SLICEINPUT_CLASS);
 
     this._grid = widget;
-    this._model = this._grid.model as HdfDatasetModelBase;
+    this._model = this._grid.dataModel as HdfDatasetModelBase;
   }
 
   render() {
