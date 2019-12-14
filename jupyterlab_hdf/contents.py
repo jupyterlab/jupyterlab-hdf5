@@ -5,16 +5,16 @@
 
 import h5py
 
-from .baseHandler import HdfBaseManager, HdfBaseHandler
+from .baseHandler import HdfFileManager, HdfBaseHandler
 from .util import dsetContentDict, dsetDict, groupDict, uriJoin, uriName
 
 __all__ = ['HdfContentsManager', 'HdfContentsHandler']
 
 ## manager
-class HdfContentsManager(HdfBaseManager):
+class HdfContentsManager(HdfFileManager):
     """Implements HDF5 contents handling
     """
-    def _get(self, f, uri, row, col):
+    def _getFromFile(self, f, uri, row, col):
         obj = f[uri]
 
         if isinstance(obj, h5py.Group):
