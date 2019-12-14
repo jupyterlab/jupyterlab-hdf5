@@ -69,7 +69,7 @@ class HdfBaseManager:
 
             return out
 
-class HdfFileManager:
+class HdfFileManager(HdfBaseManager):
     """Implements base HDF5 file handling
     """
     def _get(self, fpath, uri, row, col):
