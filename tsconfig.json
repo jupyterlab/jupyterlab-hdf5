@@ -1,12 +1,12 @@
 {
   "extends": "./tsconfigbase",
   "compilerOptions": {
+    "inlineSources": true,
     "lib": ["es2017", "dom"],
     "outDir": "lib",
     "rootDir": "src",
-    "module": "commonjs",
-    "types": ["node"],
-    "composite": true
+    "sourceRoot": "./@jupyterlab/hdf5/src",
+    "types": ["node"]
   },
   "include": ["src/**/*"]
 }
