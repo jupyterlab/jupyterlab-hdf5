@@ -1,46 +1,37 @@
 // Copyright (c) Jupyter Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-import { map, toArray } from "@phosphor/algorithm";
-
 import {
-  ILabShell,
-  ILayoutRestorer,
   JupyterFrontEnd,
-  JupyterFrontEndPlugin
+  JupyterFrontEndPlugin,
+  ILabShell,
+  ILayoutRestorer
 } from "@jupyterlab/application";
-
 import { WidgetTracker } from "@jupyterlab/apputils";
-
 import { PathExt } from "@jupyterlab/coreutils";
-
 import { IDocumentManager } from "@jupyterlab/docmanager";
-
 import { DocumentRegistry } from "@jupyterlab/docregistry";
-
 import { FileBrowser, IFileBrowserFactory } from "@jupyterlab/filebrowser";
-
+import { INotebookTracker } from "@jupyterlab/notebook";
 import { ServerConnection } from "@jupyterlab/services";
+import { map, toArray } from "@phosphor/algorithm";
 
 import { IRegistry } from "@jupyterlab/dataregistry-extension";
 
-import { HdfFileBrowser } from "./browser";
-
+import { HdfSidepanel } from "./browser";
 import { HdfDrive } from "./contents";
-
 import { addHdfConverters } from "./dataregistry";
-
 import {
-  IHdfDatasetDocTracker,
+  HdfDatasetDoc,
   HdfDatasetDocFactory,
-  HdfDatasetDoc
+  IHdfDatasetDocTracker
 } from "./dataset";
-
 import {
+  IContentsParameters,
   HDF_DATASET_MIME_TYPE,
   HDF_MIME_TYPE,
   hdfContentsRequest,
-  IContentsParameters,
+  hdfSnippetRequest,
   parseHdfQuery
 } from "./hdf";
 
@@ -65,11 +56,6 @@ const HDF_ICON = "jp-HdfIcon";
 const HDF_FILE_ICON = `jp-MaterialIcon ${HDF_ICON}`;
 const HDF_DATASET_ICON = "jp-MaterialIcon jp-SpreadsheetIcon"; // jp-HdfDatasetIcon;
 
-/**
- * Settings for the notebook server.
- */
-const serverSettings = ServerConnection.makeSettings();
-
 namespace CommandIDs {
   /**
    * Fetch metadata from an hdf5 file
@@ -77,6 +63,8 @@ namespace CommandIDs {
   export const fetchContents = "hdf:fetch-contents";
 
   export const openInBrowser = "hdf:open-in-browser";
+
+  export const openSnippet = "hdf:open-snippet";
 }
 
 /**
@@ -84,7 +72,13 @@ namespace CommandIDs {
  */
 const hdfBrowserExtension: JupyterFrontEndPlugin<void> = {
   id: hdf5BrowserPluginId,
-  requires: [IDocumentManager, IFileBrowserFactory, ILabShell, ILayoutRestorer],
+  requires: [
+    IDocumentManager,
+    IFileBrowserFactory,
+    ILabShell,
+    ILayoutRestorer,
+    INotebookTracker
+  ],
 
   activate: activateHdfBrowserPlugin,
   autoStart: true
@@ -94,10 +88,11 @@ const hdfBrowserExtension: JupyterFrontEndPlugin<void> = {
  * The HTML file handler extension.
  */
 const hdfDatasetPlugin: JupyterFrontEndPlugin<IHdfDatasetDocTracker> = {
-  activate: activateHdfDatasetPlugin,
   id: hdf5DatasetPluginId,
   provides: IHdfDatasetDocTracker,
   optional: [ILayoutRestorer],
+
+  activate: activateHdfDatasetPlugin,
   autoStart: true
 };
 
@@ -106,9 +101,10 @@ const hdfDatasetPlugin: JupyterFrontEndPlugin<IHdfDatasetDocTracker> = {
  * extension, if it is installed.
  */
 const hdfDataRegistryPlugin: JupyterFrontEndPlugin<void> = {
-  activate: activateHdfDataRegistryPlugin,
   id: hdf5DataRegistryPluginId,
   optional: [IRegistry],
+
+  activate: activateHdfDataRegistryPlugin,
   autoStart: true
 };
 
@@ -120,7 +116,8 @@ function activateHdfBrowserPlugin(
   manager: IDocumentManager,
   browserFactory: IFileBrowserFactory,
   labShell: ILabShell,
-  restorer: ILayoutRestorer
+  restorer: ILayoutRestorer,
+  notebookTracker: INotebookTracker
   // settingRegistry: ISettingRegistry
 ): void {
   const { createFileBrowser, defaultBrowser } = browserFactory;
@@ -129,41 +126,47 @@ function activateHdfBrowserPlugin(
   const ft: DocumentRegistry.IFileType = {
     // driveName: 'Hdf',
     contentType: "directory",
-    name: "hdf:file",
-    fileFormat: "json",
     displayName: "HDF File",
     extensions: [".hdf5", ".h5"],
+    fileFormat: "json",
+    iconClass: HDF_FILE_ICON,
     mimeTypes: [HDF_MIME_TYPE],
-    iconClass: HDF_FILE_ICON
+    name: "hdf:file"
   };
   app.docRegistry.addFileType(ft);
 
   // Add the Hdf backend to the contents manager.
-  const drive = new HdfDrive(app.docRegistry);
-  manager.services.contents.addDrive(drive);
+  const hdfDrive = new HdfDrive(app.docRegistry);
+  manager.services.contents.addDrive(hdfDrive);
 
   // Create the embedded filebrowser. Hdf files likely
   // don't need as often of a refresh interval as standard
   // filesystem dirs, so we give a 5 second refresh interval.
-  const browser = createFileBrowser(HDF_BROWSER_NAMESPACE, {
-    driveName: drive.name,
+  const _hdfBrowser = createFileBrowser(HDF_BROWSER_NAMESPACE, {
+    driveName: hdfDrive.name,
     refreshInterval: 5000
   });
 
-  const hdfBrowser = new HdfFileBrowser(browser, drive);
+  const hdfSidepanel = new HdfSidepanel(_hdfBrowser, hdfDrive);
 
-  hdfBrowser.title.iconClass = `${HDF_ICON} jp-SideBar-tabIcon`;
-  hdfBrowser.title.caption = "Browse Hdf";
+  hdfSidepanel.title.iconClass = `${HDF_ICON} jp-SideBar-tabIcon`;
+  hdfSidepanel.title.caption = "Browse Hdf";
 
-  hdfBrowser.id = HDF_BROWSER_NAMESPACE;
+  hdfSidepanel.id = HDF_BROWSER_NAMESPACE;
 
   // Add the file browser widget to the application restorer.
   if (restorer) {
-    restorer.add(hdfBrowser, HDF_FILE_BROWSER_NAMESPACE);
+    restorer.add(hdfSidepanel, HDF_FILE_BROWSER_NAMESPACE);
   }
-  app.shell.add(hdfBrowser, "left", { rank: 103 });
+  app.shell.add(hdfSidepanel, "left", { rank: 103 });
 
-  addBrowserCommands(app, browserFactory, labShell, hdfBrowser, browser);
+  addBrowserCommands(
+    app,
+    browserFactory,
+    hdfSidepanel,
+    labShell,
+    notebookTracker
+  );
   monkeyPatchBrowser(app, defaultBrowser);
 
   return;
@@ -213,12 +216,13 @@ function monkeyPatchBrowser(app: JupyterFrontEnd, browser: FileBrowser) {
 function addBrowserCommands(
   app: JupyterFrontEnd,
   browserFactory: IFileBrowserFactory,
+  hdfSidepanel: HdfSidepanel,
   labShell: ILabShell,
-  hdfBrowser: HdfFileBrowser,
-  browser: FileBrowser
+  notebookTracker: INotebookTracker
 ): void {
   const { tracker } = browserFactory;
   const { commands } = app;
+  const serverSettings = ServerConnection.makeSettings();
 
   commands.addCommand(CommandIDs.fetchContents, {
     execute: args => {
@@ -252,28 +256,50 @@ function addBrowserCommands(
         return fpath;
       });
 
-      labShell.activateById(hdfBrowser.id);
+      labShell.activateById(hdfSidepanel.id);
 
       return Promise.all(
         toArray(
           map(fpaths, fpath => {
-            return browser.model.cd(fpath);
+            return hdfSidepanel.browser.model.cd(fpath);
           })
         )
       );
     }
   });
 
+  commands.addCommand(CommandIDs.openSnippet, {
+    label: "Snippet",
+    execute: args => {
+      const widget = tracker.currentWidget;
+      if (!widget) {
+        return;
+      }
+
+      const items = toArray(
+        map(widget.selectedItems(), item => {
+          return item;
+        })
+      );
+      const params = parseHdfQuery(items[0].path);
+
+      hdfSnippetRequest(params, serverSettings).then(snipStr => {
+        notebookTracker.activeCell.model.value.insert(0, snipStr);
+      });
+    }
+  });
+
   // add context menu items for commands
 
-  // // matches all filebrowser items
-  // const selectorDefaultItem = "#filebrowser .jp-DirListing-item[data-isdir]";
+  // matches all hdf filebrowser items
+  const selectorDefaultItem =
+    "#hdf-file-browser .jp-DirListing-item[data-isdir]";
 
-  // app.contextMenu.addItem({
-  //   command: CommandIDs.openInBrowser,
-  //   selector: selectorDefaultItem,
-  //   rank: 3
-  // });
+  app.contextMenu.addItem({
+    command: CommandIDs.openSnippet,
+    rank: 3,
+    selector: selectorDefaultItem
+  });
 
   return;
 }
@@ -287,21 +313,21 @@ function activateHdfDatasetPlugin(
 ): IHdfDatasetDocTracker {
   // Add an hdf dataset file type to the docregistry.
   const ft: DocumentRegistry.IFileType = {
-    name: "hdf:dataset",
     contentType: "file",
-    fileFormat: "json",
     displayName: "HDF Dataset",
     extensions: [".data"],
+    fileFormat: "json",
+    iconClass: HDF_DATASET_ICON,
     mimeTypes: [HDF_DATASET_MIME_TYPE],
-    iconClass: HDF_DATASET_ICON
+    name: "hdf:dataset"
   };
   app.docRegistry.addFileType(ft);
 
   // Create a new dataset viewer factory.
   const factory = new HdfDatasetDocFactory({
-    name: "HDF Dataset",
-    fileTypes: ["hdf:dataset"],
     defaultFor: ["hdf:dataset"],
+    fileTypes: ["hdf:dataset"],
+    name: "HDF Dataset",
     readOnly: true
   });
 
