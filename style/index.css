@@ -11,12 +11,12 @@
   background-image: url(dataset.svg);
 }
 
-.jp-HdfBrowser {
+.jp-HdfSidepanel {
   background-color: var(--jp-layout-color1);
   height: 100%;
 }
 
-.jp-HdfBrowser .jp-FileBrowser {
+.jp-HdfSidepanel .jp-FileBrowser {
   flex-grow: 1;
   height: 100%;
 }
@@ -65,19 +65,19 @@
   text-transform: uppercase;
 }
 
-.jp-HdfBrowser .jp-ToolbarButton.jp-Toolbar-item.jp-Hdf-toolbar-item {
+.jp-HdfSidepanel .jp-ToolbarButton.jp-Toolbar-item.jp-Hdf-toolbar-item {
   display: block;
 }
 
-.jp-HdfBrowser .jp-ToolbarButton.jp-Toolbar-item {
+.jp-HdfSidepanel .jp-ToolbarButton.jp-Toolbar-item {
   display: none;
 }
 
-.jp-HdfBrowser .jp-DirListing-headerItem.jp-id-modified {
+.jp-HdfSidepanel .jp-DirListing-headerItem.jp-id-modified {
   display: none;
 }
 
-.jp-HdfBrowser .jp-DirListing-itemModified {
+.jp-HdfSidepanel .jp-DirListing-itemModified {
   display: none;
 }
 

@@ -11,11 +11,11 @@ info:
 
 paths:
   /hdf/contents/{fpath}{?uri}:
+    parameters:
+      - $ref: '#/components/parameters/fpath'
+      - $ref: '#/components/parameters/uri'
     get:
       summary: "Get the contents of the hdf object pointed to by the uri in the file at fpath."
-      parameters:
-        - $ref: '#/components/parameters/fpath'
-        - $ref: '#/components/parameters/uri'
       responses:
         '200':
           $ref: '#/components/responses/hobjs'
@@ -30,9 +30,6 @@ paths:
 
     post:
       summary: "Get slices of data from the hdf dataset pointed to by the uri in the file at fpath."
-      parameters:
-        - $ref: '#/components/parameters/fpath'
-        - $ref: '#/components/parameters/uri'
       requestBody:
         $ref: '#/components/requestBodies/slices'
       responses:
@@ -46,6 +43,25 @@ paths:
           description: The request specified a file that does not exist.
         '500':
           description: Found and opened file, error getting data from dataset specified by the uri.
+
+  /hdf/snippet/{fpath}{?uri}:
+    parameters:
+      - $ref: '#/components/parameters/fpath'
+      - $ref: '#/components/parameters/uri'
+    get:
+      summary: "Get a Python snippet that fetches the indicated dataset/group"
+      responses:
+        '200':
+          $ref: '#/components/responses/py_snippet'
+        '400':
+          description: The request was malformed; url should be of the format "fpath?uri=uri"
+        '401':
+          description: The request did not specify a file that `h5py` could understand.
+        '403':
+          description: The request specified a file that does not exist.
+        '500':
+          description: Found and opened file, error getting contents from object specified by the uri.
+
 
 components:
   parameters:
@@ -94,6 +110,12 @@ components:
               type: array
               items:
                 type: number
+    py_snippet:
+      description: "Python snippet"
+      content:
+        application/json:
+          schema:
+            type: string
 
   schemas:
     hobj:

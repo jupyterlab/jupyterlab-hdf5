@@ -2,8 +2,8 @@
 // Distributed under the terms of the Modified BSD License.
 
 import { PathExt, URLExt } from "@jupyterlab/coreutils";
-
 import { ServerConnection } from "@jupyterlab/services";
+import { JSONObject } from "@phosphor/coreutils";
 
 /**
  * Hdf mime types
@@ -55,14 +55,7 @@ export function hdfContentsRequest(
     URLExt.join(settings.baseUrl, "hdf", "contents", fpath).split("?")[0] +
     URLExt.objectToQueryString({ ...rest });
 
-  return ServerConnection.makeRequest(fullUrl, {}, settings).then(response => {
-    if (response.status !== 200) {
-      return response.text().then(data => {
-        throw new ServerConnection.ResponseError(response, data);
-      });
-    }
-    return response.json();
-  });
+  return hdfApiRequest(fullUrl, {}, settings);
 }
 
 /**
@@ -80,7 +73,37 @@ export function hdfDataRequest(
     URLExt.join(settings.baseUrl, "hdf", "data", fpath).split("?")[0] +
     URLExt.objectToQueryString({ uri, row, col });
 
-  return ServerConnection.makeRequest(fullUrl, {}, settings).then(response => {
+  return hdfApiRequest(fullUrl, {}, settings);
+}
+
+/**
+ * Send a parameterized request to the `hdf/snippet` api, and
+ * return the result.
+ */
+export function hdfSnippetRequest(
+  parameters: IContentsParameters,
+  settings: ServerConnection.ISettings
+): Promise<string> {
+  // require the uri, row, and col query parameters
+  const { fpath, uri } = parameters;
+
+  const fullUrl =
+    URLExt.join(settings.baseUrl, "hdf", "snippet", fpath).split("?")[0] +
+    URLExt.objectToQueryString({ uri });
+
+  return hdfApiRequest(fullUrl, {}, settings);
+}
+
+/**
+ * Send a parameterized request to one of the hdf api endpoints,
+ * and return the result.
+ */
+export function hdfApiRequest(
+  url: string,
+  body: JSONObject,
+  settings: ServerConnection.ISettings
+): Promise<any> {
+  return ServerConnection.makeRequest(url, body, settings).then(response => {
     if (response.status !== 200) {
       return response.text().then(data => {
         throw new ServerConnection.ResponseError(response, data);

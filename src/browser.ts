@@ -20,10 +20,10 @@ const DATA_MIME = "application/x-hdf5.dataset";
 /**
  * Widget for hosting the Hdf filebrowser.
  */
-export class HdfFileBrowser extends Widget {
+export class HdfSidepanel extends Widget {
   constructor(browser: FileBrowser, drive: HdfDrive) {
     super();
-    this.addClass("jp-HdfBrowser");
+    this.addClass("jp-HdfSidepanel");
     this.layout = new PanelLayout();
     (this.layout as PanelLayout).addWidget(browser);
     this._browser = browser;
@@ -54,6 +54,13 @@ export class HdfFileBrowser extends Widget {
    * An editable widget hosting the current file path.
    */
   readonly fpathInput: hdfFpathInput;
+
+  /**
+   * The inner filebrowser widget that HdfSidepanel wraps
+   */
+  get browser(): FileBrowser {
+    return this._browser;
+  }
 
   private _monkeyPatch() {
     const handleDblClick = async (evt: Event): Promise<void> => {

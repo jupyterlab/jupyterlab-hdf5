@@ -15,7 +15,7 @@ from notebook.utils import url_path_join
 
 # from .config import HdfConfig
 
-__all__ = ['HdfBaseManager', 'HdfBaseHandler']
+__all__ = ['HdfBaseManager', 'HdfFileManager', 'HdfBaseHandler']
 
 
 ## manager
@@ -61,8 +61,7 @@ class HdfBaseManager:
                        f'Error: {traceback.format_exc()}')
                 _handleErr(401, msg)
             try:
-                with h5py.File(fpath, 'r') as f:
-                    out = self._get(f, uri, row, col)
+                out = self._get(fpath, uri, row, col)
             except Exception as e:
                 msg = (f'Found and opened file, error getting contents from object specified by the uri.\n'
                        f'Error: {traceback.format_exc()}')
@@ -70,6 +69,15 @@ class HdfBaseManager:
 
             return out
 
+class HdfFileManager(HdfBaseManager):
+    """Implements base HDF5 file handling
+    """
+    def _get(self, fpath, uri, row, col):
+        with h5py.File(fpath, 'r') as f:
+            return self._getFromFile(f, uri, row, col)
+
+    def _getFromFile(self, f, uri, row, col):
+        raise NotImplementedError
 
 ## handler
 class HdfBaseHandler(APIHandler):

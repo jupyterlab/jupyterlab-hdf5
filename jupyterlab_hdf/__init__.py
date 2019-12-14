@@ -7,8 +7,9 @@ from ._version import __version__
 
 from notebook.utils import url_path_join
 
-from .contents import HdfContentsManager, HdfContentsHandler
+from .contents import HdfContentsHandler
 from .data import HdfDataHandler
+from .snippet import HdfSnippetHandler
 
 path_regex = r'(?P<path>(?:(?:/[^/]+)+|/?))'
 
@@ -20,9 +21,10 @@ def _jupyter_server_extension_paths():
 def _load_handlers(nb_server_app, web_app):
     # Prepend the base_url so that it works in a jupyterhub setting
     base_url = web_app.settings['base_url']
-    hdf = url_path_join(base_url, 'hdf')
-    contents = url_path_join(hdf, 'contents')
-    data = url_path_join(hdf, 'data')
+
+    contents = url_path_join(base_url, 'hdf/contents')
+    data = url_path_join(base_url, 'hdf/data')
+    snippet = url_path_join(base_url, 'hdf/snippet')
 
     handlers = [
         (contents + '/(.*)',
@@ -30,6 +32,9 @@ def _load_handlers(nb_server_app, web_app):
          {"notebook_dir": nb_server_app.notebook_dir}),
         (data + '/(.*)',
          HdfDataHandler,
+         {"notebook_dir": nb_server_app.notebook_dir}),
+        (snippet + '/(.*)',
+         HdfSnippetHandler,
          {"notebook_dir": nb_server_app.notebook_dir}),
     ]
 
