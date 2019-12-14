@@ -22,6 +22,7 @@ setup_dict = dict(
     name='jupyterlab_hdf',
     description="A Jupyter Notebook server extension that provides APIs for fetching hdf5 contents and data. Built on h5py.",
     long_description=long_description,
+    long_description_content_type="text/markdown",
     packages=find_packages(),
     cmdclass=cmdclass,
     author          = 'Max Klein',
