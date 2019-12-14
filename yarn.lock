@@ -189,7 +189,7 @@
     "@phosphor/widgets" "^1.9.0"
     font-awesome "~4.7.0"
 
-"@jupyterlab/apputils@^1.0.0", "@jupyterlab/apputils@^1.0.4", "@jupyterlab/apputils@^1.1.3", "@jupyterlab/apputils@^1.2.0", "@jupyterlab/apputils@^1.2.1":
+"@jupyterlab/apputils@^1.0.0", "@jupyterlab/apputils@^1.0.4", "@jupyterlab/apputils@^1.2.0", "@jupyterlab/apputils@^1.2.1":
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/@jupyterlab/apputils/-/apputils-1.2.1.tgz#8fac728277e8ca8a4f35668184201f33fffb32b8"
   integrity sha512-xp4GBpMJrK8DTLQmZr0cXwUJElbAbRRtNTxHempigmCEQhzaC1OUN+0M+xOc4Z45Ir0XgcefdCzdwyEUFx1UyQ==
@@ -281,7 +281,7 @@
     codemirror "~5.47.0"
     react "~16.8.4"
 
-"@jupyterlab/coreutils@^3.0.0", "@jupyterlab/coreutils@^3.1.0", "@jupyterlab/coreutils@^3.2.0":
+"@jupyterlab/coreutils@^3.0.0", "@jupyterlab/coreutils@^3.2.0":
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/@jupyterlab/coreutils/-/coreutils-3.2.0.tgz#dd4d887bdedfea4c8545d46d297531749cb13724"
   integrity sha512-LATiUsHuwze/h3JC2EZOBV+kGBoUKO3npqw/Pcgge4bz09xF/oTDrx4G8jl5eew3w1dCUNp9eLduNh8Orrw7xQ==
@@ -369,7 +369,7 @@
     "@phosphor/widgets" "^1.9.0"
     react "~16.8.4"
 
-"@jupyterlab/docregistry@^1.0.4", "@jupyterlab/docregistry@^1.1.3", "@jupyterlab/docregistry@^1.2.0", "@jupyterlab/docregistry@^1.2.1":
+"@jupyterlab/docregistry@^1.0.4", "@jupyterlab/docregistry@^1.2.0", "@jupyterlab/docregistry@^1.2.1":
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/@jupyterlab/docregistry/-/docregistry-1.2.1.tgz#cae16eca2be5982a2171d54063cc5e19dca86507"
   integrity sha512-EUj0c6VKB5YD7RrH/b4xyJLExNsgKNjysegLLN9dFGamz4azfylOJlbxqyN1n1GeLIG4rGsGT1pD7qzDlTQGEA==
@@ -467,7 +467,7 @@
     "@phosphor/signaling" "^1.3.0"
     "@phosphor/widgets" "^1.9.0"
 
-"@jupyterlab/rendermime-interfaces@^1.4.0", "@jupyterlab/rendermime-interfaces@^1.5.0":
+"@jupyterlab/rendermime-interfaces@^1.5.0":
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/@jupyterlab/rendermime-interfaces/-/rendermime-interfaces-1.5.0.tgz#ffb8cd6ac4f831eb56c2f7b7df48768a2d76119c"
   integrity sha512-k6DjX/srKl1FA1CZyrAzz1qA2v1arXUIAmbEddZ5L3O+dnvDlOKjkI/NexaRQvmQ62aziSln+wKrr2P1JPNmGg==
@@ -475,7 +475,7 @@
     "@phosphor/coreutils" "^1.3.1"
     "@phosphor/widgets" "^1.9.0"
 
-"@jupyterlab/rendermime@^1.0.0", "@jupyterlab/rendermime@^1.1.3", "@jupyterlab/rendermime@^1.2.1":
+"@jupyterlab/rendermime@^1.0.0", "@jupyterlab/rendermime@^1.2.1":
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/@jupyterlab/rendermime/-/rendermime-1.2.1.tgz#b965e9eead73db1d64e03c93d49c2cbf1040b487"
   integrity sha512-S57dOCQRXoGpUl9bGryAgAcLlDbXBk+Y8HPR2oO95slgk45vVktWl+6f/euNQcjOCX+RkuQuLLsBYeWzCZKCRw==
@@ -494,7 +494,7 @@
     lodash.escape "^4.0.1"
     marked "^0.7.0"
 
-"@jupyterlab/services@^4.1.1", "@jupyterlab/services@^4.2.0":
+"@jupyterlab/services@^4.2.0":
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/@jupyterlab/services/-/services-4.2.0.tgz#71b1c60668c6386c8333c95123993160f280cc26"
   integrity sha512-diqiWCYLROwZoeZ46hO4oCINQKr3S789GOA3drw5gDie18/u1nJcvegnY9Oo58xHINnKTs0rKZmFgTe2DvYgQg==
@@ -527,7 +527,7 @@
     react "~16.8.4"
     typestyle "^2.0.1"
 
-"@jupyterlab/ui-components@^1.1.2", "@jupyterlab/ui-components@^1.2.1":
+"@jupyterlab/ui-components@^1.2.1":
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/@jupyterlab/ui-components/-/ui-components-1.2.1.tgz#c3690585c4bf4a41b3a9d9238584f4ec4274e277"
   integrity sha512-GUtIRwTmFnlJaPUM8SiFw1STmsyMVGjchLKqIoQnn0qYAJvaSUGyRqqoSD5iIpwov6OHCOOyxH6fQ5OAtH1kwA==
@@ -598,7 +598,7 @@
   resolved "https://registry.yarnpkg.com/@phosphor/algorithm/-/algorithm-1.2.0.tgz#4a19aa59261b7270be696672dc3f0663f7bef152"
   integrity sha512-C9+dnjXyU2QAkWCW6QVDGExk4hhwxzAKf5/FIuYlHAI9X5vFv99PYm0EREDxX1PbMuvfFBZhPNu0PvuSDQ7sFA==
 
-"@phosphor/application@^1.6.3", "@phosphor/application@^1.7.0":
+"@phosphor/application@^1.7.0":
   version "1.7.3"
   resolved "https://registry.yarnpkg.com/@phosphor/application/-/application-1.7.3.tgz#2bc9ac64a73bd77a0993b3311637775dfa8e0a88"
   integrity sha512-ohxrW7rv5Tms4PSyPRZT6YArZQQGQNG4MgTeFzkoLJ+7mp/BcbFuvEoaV1/CUKQArofl0DCkKDOTOIkXP+/32A==
@@ -614,7 +614,7 @@
   dependencies:
     "@phosphor/algorithm" "^1.2.0"
 
-"@phosphor/commands@^1.6.3", "@phosphor/commands@^1.7.0", "@phosphor/commands@^1.7.2":
+"@phosphor/commands@^1.7.0", "@phosphor/commands@^1.7.2":
   version "1.7.2"
   resolved "https://registry.yarnpkg.com/@phosphor/commands/-/commands-1.7.2.tgz#df724f2896ae43c4a3a9e2b5a6445a15e0d60487"
   integrity sha512-iSyBIWMHsus323BVEARBhuVZNnVel8USo+FIPaAxGcq+icTSSe6+NtSxVQSmZblGN6Qm4iw6I6VtiSx0e6YDgQ==
