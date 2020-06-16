@@ -18,13 +18,13 @@ Designed from the ground up to be as efficient as possible. Data will only be fe
 ## Installation
 
 ```bash
-pip install jupyterlab_hdf
+pip install jupyterlab-hdf
 jupyter labextension install @jupyterlab/hdf5
 ```
 
 This will install both the server extension and the labextension needed by this plugin.
 
-You can also install the labextension via Jupyterlab's extension manager GUI. Keep in mind that if you use the GUI, you'll still need to install the `jupyterlab_hdf` server extension via `pip`.
+You can also install the labextension via Jupyterlab's extension manager GUI. Keep in mind that if you use the GUI, you'll still need to install the `jupyterlab-hdf` server extension via `pip`.
 
 ## Development
 
