@@ -16,11 +16,11 @@ import { INotebookTracker } from "@jupyterlab/notebook";
 import { ServerConnection } from "@jupyterlab/services";
 import { map, toArray } from "@lumino/algorithm";
 
-import { IRegistry } from "@jupyterlab/dataregistry-extension";
+// import { IRegistry } from "@jupyterlab/dataregistry-extension";
 
 import { HdfSidepanel } from "./browser";
 import { HdfDrive } from "./contents";
-import { addHdfConverters } from "./dataregistry";
+// import { addHdfConverters } from "./dataregistry";
 import {
   HdfDatasetDoc,
   HdfDatasetDocFactory,
@@ -47,7 +47,7 @@ const HDF_DATASET_NAMESPACE = "hdf-dataset";
  */
 const hdf5BrowserPluginId = "jupyterlab-hdf:browser";
 const hdf5DatasetPluginId = "jupyterlab-hdf:dataset";
-const hdf5DataRegistryPluginId = "jupyterlab-hdf:dataregistry";
+// const hdf5DataRegistryPluginId = "jupyterlab-hdf:dataregistry";
 
 /**
  * Hdf icon classnames
@@ -96,17 +96,17 @@ const hdfDatasetPlugin: JupyterFrontEndPlugin<IHdfDatasetDocTracker> = {
   autoStart: true
 };
 
-/**
- * Provides hdf5 support for the @jupyterlab/dataregistry
- * extension, if it is installed.
- */
-const hdfDataRegistryPlugin: JupyterFrontEndPlugin<void> = {
-  id: hdf5DataRegistryPluginId,
-  optional: [IRegistry],
+// /**
+//  * Provides hdf5 support for the @jupyterlab/dataregistry
+//  * extension, if it is installed.
+//  */
+// const hdfDataRegistryPlugin: JupyterFrontEndPlugin<void> = {
+//   id: hdf5DataRegistryPluginId,
+//   optional: [IRegistry],
 
-  activate: activateHdfDataRegistryPlugin,
-  autoStart: true
-};
+//   activate: activateHdfDataRegistryPlugin,
+//   autoStart: true
+// };
 
 /**
  * Activate the file browser.
@@ -361,27 +361,27 @@ function activateHdfDatasetPlugin(
   return tracker;
 }
 
-/**
- * Activate the HTMLViewer extension.
- */
-function activateHdfDataRegistryPlugin(
-  app: JupyterFrontEnd,
-  dataRegistry: IRegistry | null
-): void {
-  if (!dataRegistry) {
-    // bail
-    return;
-  }
+// /**
+//  * Activate the HTMLViewer extension.
+//  */
+// function activateHdfDataRegistryPlugin(
+//   app: JupyterFrontEnd,
+//   dataRegistry: IRegistry | null
+// ): void {
+//   if (!dataRegistry) {
+//     // bail
+//     return;
+//   }
 
-  addHdfConverters(dataRegistry);
-}
+//   addHdfConverters(dataRegistry);
+// }
 
 /**
  * Export the plugins as default.
  */
 const plugins: JupyterFrontEndPlugin<any>[] = [
   hdfBrowserExtension,
-  hdfDatasetPlugin,
-  hdfDataRegistryPlugin
+  hdfDatasetPlugin
+  // hdfDataRegistryPlugin
 ];
 export default plugins;
