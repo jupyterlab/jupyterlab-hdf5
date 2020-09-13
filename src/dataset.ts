@@ -1,7 +1,7 @@
 // Copyright (c) Jupyter Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-import { PromiseDelegate, Token } from "@phosphor/coreutils";
+import { PromiseDelegate, Token } from "@lumino/coreutils";
 
 import {
   BasicKeyHandler,
@@ -9,9 +9,9 @@ import {
   BasicSelectionModel,
   DataGrid,
   DataModel
-} from "@phosphor/datagrid";
+} from "@lumino/datagrid";
 
-import { Signal } from "@phosphor/signaling";
+import { Signal } from "@lumino/signaling";
 
 import {
   IWidgetTracker,
@@ -198,6 +198,10 @@ export class HdfDatasetModelBase extends DataModel {
       region: "body",
       index: 0,
       span: this.columnCount("body")
+    });
+
+    this.emitChanged({
+      type: "model-reset"
     });
 
     this._refreshed.emit();

@@ -14,7 +14,7 @@ import { DocumentRegistry } from "@jupyterlab/docregistry";
 import { FileBrowser, IFileBrowserFactory } from "@jupyterlab/filebrowser";
 import { INotebookTracker } from "@jupyterlab/notebook";
 import { ServerConnection } from "@jupyterlab/services";
-import { map, toArray } from "@phosphor/algorithm";
+import { map, toArray } from "@lumino/algorithm";
 
 import { IRegistry } from "@jupyterlab/dataregistry-extension";
 

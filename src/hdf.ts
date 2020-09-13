@@ -3,7 +3,7 @@
 
 import { PathExt, URLExt } from "@jupyterlab/coreutils";
 import { ServerConnection } from "@jupyterlab/services";
-import { JSONObject } from "@phosphor/coreutils";
+import { JSONObject } from "@lumino/coreutils";
 
 /**
  * Hdf mime types

@@ -4,7 +4,6 @@ node_modules/
 # build/test cruft
 *.bundle.*
 .cache
-.vscode
 *.py[co]
 .pytest_cache
 __pycache__
@@ -16,6 +15,7 @@ dist
 MANIFEST
 
 # scratch cruft
+/scratch/*.cutie
 /scratch/*.h5
 /scratch/*.hdf5
 
@@ -27,6 +27,11 @@ MANIFEST
 \#*#
 .#*
 
-# jetbrains stuff
+# jetbrains IDE stuff
 *.iml
 .idea/
+
+# ms IDE stuff
+*.code-workspace
+.history
+.vscode

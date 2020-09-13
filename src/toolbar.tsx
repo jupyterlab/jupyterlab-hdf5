@@ -3,7 +3,7 @@
 
 import * as React from "react";
 
-import { DataGrid } from "@phosphor/datagrid";
+import { DataGrid } from "@lumino/datagrid";
 
 import { ReactWidget } from "@jupyterlab/apputils";
 

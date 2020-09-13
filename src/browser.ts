@@ -1,11 +1,11 @@
 // Copyright (c) Jupyter Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-import { Message } from "@phosphor/messaging";
+import { Message } from "@lumino/messaging";
 
-import { ISignal, Signal } from "@phosphor/signaling";
+import { ISignal, Signal } from "@lumino/signaling";
 
-import { PanelLayout, Widget } from "@phosphor/widgets";
+import { PanelLayout, Widget } from "@lumino/widgets";
 
 // import { ToolbarButton } from '@jupyterlab/apputils';
 
