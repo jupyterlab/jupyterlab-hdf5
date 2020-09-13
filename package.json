@@ -25,8 +25,8 @@
   "types": "lib/index.d.ts",
   "style": "style/index.css",
   "scripts": {
-    "build": "jlpm install && tsc",
-    "build:dev": "jlpm run build && jlpm run lab:install",
+    "build": "tsc",
+    "build:dev": "jlpm install && jlpm run build && jlpm run lab:install",
     "build:watch": "jlpm run build --watch",
     "clean": "rimraf lib && rimraf tsconfig.tsbuildinfo",
     "clean:more": "jlpm run clean && rimraf build && rimraf dist && rimraf package && rimraf *.tgz",
@@ -37,7 +37,7 @@
     "lab:uninstall": "jupyter labextension uninstall @jupyterlab/hdf5",
     "lab:unlink": "jupyter labextension uninstall @jupyterlab/hdf5 --no-build",
     "precommit": "lint-staged",
-    "prepublishOnly": "jlpm run clean && jlpm run build",
+    "prepublishOnly": "jlpm install && jlpm build",
     "prettier": "prettier --write '**/*{.ts,.tsx,.js,.jsx,.css,.json,.md}'",
     "tslint": "tslint -c tslint.json --project tsconfig.json '**/*{.ts,.tsx}'",
     "watch": "tsc -w"
