@@ -32,8 +32,8 @@ def assertEqualVersion():
     assert serverVersion == frontendVersion, error_msg
 
 def prepLabextensionBundle():
-    subprocess.run(['jlpm', 'install'])
-    subprocess.run(['jlpm', 'clean:slate'])
+    subprocess.run(['jlpm', 'install'], check=True)
+    subprocess.run(['jlpm', 'clean:slate'], check=True)
 
 def tag(version, dry_run=False, kind=None):
     """git tagging
@@ -44,37 +44,37 @@ def tag(version, dry_run=False, kind=None):
     if dry_run:
         print("Would tag: {}".format(tag))
     else:
-        subprocess.run(['git', 'tag', '-a', tag])
-        subprocess.run(['git', 'push', 'upstream', tag])
+        subprocess.run(['git', 'tag', '-a', tag], check=True)
+        subprocess.run(['git', 'push', 'upstream', tag], check=True)
 
 def pypi(wheel=True, dry_run=False):
     """release on pypi
     """
     if wheel:
-        subprocess.run(['python', '-m', 'pip', 'install', '--upgrade', 'setuptools', 'wheel'])
+        subprocess.run(['python', '-m', 'pip', 'install', '--upgrade', 'setuptools', 'wheel'], check=True)
 
         # build the source (sdist) and binary wheel (bdist_wheel) releases
-        subprocess.run(['python', 'setup.py', 'sdist', 'bdist_wheel'])
+        subprocess.run(['python', 'setup.py', 'sdist', 'bdist_wheel'], check=True)
     else:
         # build just the source release
-        subprocess.run(['python', 'setup.py', 'sdist'])
+        subprocess.run(['python', 'setup.py', 'sdist'], check=True)
 
     if dry_run:
         # check the dist
-        subprocess.run(['twine', 'check', 'dist/*'])
+        subprocess.run(['twine', 'check', 'dist/*'], check=True)
     else:
         # release to the production pypi server
-        subprocess.run(['twine', 'upload', 'dist/*'])
+        subprocess.run(['twine', 'upload', 'dist/*'], check=True)
 
 def npmjs(dry_run=False):
     """release on npmjs
     """
     if dry_run:
         # dry run build and release
-        subprocess.run(['npm', 'publish', '--access', 'public', '--dry-run'])
+        subprocess.run(['npm', 'publish', '--access', 'public', '--dry-run'], check=True)
     else:
         # build and release
-        subprocess.run(['npm', 'publish', '--access', 'public'])
+        subprocess.run(['npm', 'publish', '--access', 'public'], check=True)
 
 def labExtensionVersion(dry_run=False, version=None):
     if version:
@@ -90,7 +90,7 @@ def labExtensionVersion(dry_run=False, version=None):
         else:
             # force the labextension version to match the supplied version
             print("> {}".format(force_ver_info))
-            subprocess.run(force_ver_cmd)
+            subprocess.run(force_ver_cmd, check=True)
     else:
         # get single source of truth from the Typescript labextension
         with open('package.json') as f:
@@ -125,10 +125,6 @@ def doRelease(actions, dry_run=False):
         pypi(dry_run=dry_run)
 
     if 'npmjs' in actions:
-        if 'pypi' not in actions:
-            # ensure ts build is up to date
-            subprocess.run(['jlpm', 'build:integrity'])
-
         # release to npmjs
         npmjs(dry_run=dry_run)
 
