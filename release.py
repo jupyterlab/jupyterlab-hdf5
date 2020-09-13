@@ -110,7 +110,7 @@ def doRelease(actions, dry_run=False):
 
     if 'version' in actions:
         # force the labextension version to agree with the serverextension version
-        labExtensionVersion(version=version)
+        labExtensionVersion(dry_run=dry_run, version=version)
 
     if 'tag' in actions:
         # tag with version and push the tag
