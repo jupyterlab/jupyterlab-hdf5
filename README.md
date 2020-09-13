@@ -5,7 +5,7 @@
 
 # jupyterlab-hdf5
 
-Open and explore HDF5 files in JupyterLab. Can handle very large (TB) sized files. Now integrated with the standard filebrowser!
+Open and explore HDF5 files in JupyterLab. Can handle very large (TB) sized files. As of release v0.4.0, jupyterlab-hdf5 now supports jupyterlab 2.x
 
 ![hdf_preview](README.png)
 
