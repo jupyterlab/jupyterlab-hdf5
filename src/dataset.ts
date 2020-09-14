@@ -261,8 +261,8 @@ export class HdfDatasetModelBase extends DataModel {
     const params = {
       fpath: this._fpath,
       uri: this._uri,
-      col: [colStart, colStop],
-      row: [rowStart, rowStop]
+      row: [rowStart, rowStop],
+      col: [colStart, colStop]
     };
     hdfDataRequest(params, this._serverSettings).then(data => {
       this._blocks[rowBlock][colBlock] = data;
@@ -277,8 +277,10 @@ export class HdfDatasetModelBase extends DataModel {
           (colBlock -
             (this.isColSlice() ? this._colSlice.start / this._blockSize : 0)) *
           this._blockSize, //colBlock * this._blockSize,
-        rowSpan: this._blockSize,
-        columnSpan: this._blockSize
+        rowSpan:
+          this._rowCount <= this._blockSize ? this._rowCount : this._blockSize,
+        columnSpan:
+          this._colCount <= this._blockSize ? this._colCount : this._blockSize
       });
     });
   };
@@ -378,12 +380,8 @@ export function createHdfGrid(params: {
   grid.selectionModel = new BasicSelectionModel({ dataModel: model });
 
   const repainter = grid as any;
-  const boundRepaint = repainter._repaintContent.bind(repainter);
+  const boundRepaint = repainter.repaintContent.bind(repainter);
   model.refreshed.connect(boundRepaint);
-
-  // model.refreshed.connect(grid.repaint, grid);
-
-  // model.refreshed.connect(() => grid.repaint());
 
   return grid;
 }
@@ -407,16 +405,20 @@ export class HdfDatasetMain extends MainAreaWidget<DataGrid> {
 export class HdfDatasetDoc extends DocumentWidget<DataGrid>
   implements IDocumentWidget<DataGrid> {
   constructor(context: DocumentRegistry.Context) {
-    const content = new DataGrid();
+    const grid = new DataGrid();
     const model = new HdfDatasetModelContext(context);
-    content.dataModel = model;
-    content.keyHandler = new BasicKeyHandler();
-    content.mouseHandler = new BasicMouseHandler();
-    content.selectionModel = new BasicSelectionModel({ dataModel: model });
+    grid.dataModel = model;
+    grid.keyHandler = new BasicKeyHandler();
+    grid.mouseHandler = new BasicMouseHandler();
+    grid.selectionModel = new BasicSelectionModel({ dataModel: model });
 
-    model.refreshed.connect(() => (content as any)._repaintContent());
+    // model.refreshed.connect(() => (grid as any).repaintContent());
+    const repainter = grid as any;
+    const boundRepaint = repainter.repaintContent.bind(repainter);
+    model.refreshed.connect(boundRepaint);
+    const content = grid;
 
-    const toolbar = Private.createToolbar(content);
+    const toolbar = Private.createToolbar(grid);
     const reveal = context.ready;
     super({ content, context, reveal, toolbar });
   }
