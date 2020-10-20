@@ -25,26 +25,18 @@ class HdfBaseManager:
     def __init__(self, notebook_dir):
         self.notebook_dir = notebook_dir
 
-    def _get(self, f, uri, row, col):
+    def _get(self, f, uri, ixstr):
         raise NotImplementedError
 
-    def get(self, relfpath, uri, row, col):
+    def get(self, relfpath, uri, ixstr):
         def _handleErr(code, msg):
             raise HTTPError(code, '\n'.join((
                 msg,
-                f'relfpath: {relfpath}, uri: {uri}, row: {row}, col: {col}'
+                f'relfpath: {relfpath}, uri: {uri}, ixstr: {ixstr}'
             )))
 
         if not relfpath:
             msg = f'The request was malformed; fpath should not be empty.'
-            _handleErr(400, msg)
-
-        if row and not col:
-            msg = f'The request was malformed; row slice was specified, but col slice was empty.'
-            _handleErr(400, msg)
-
-        if col and not row:
-            msg = f'The request was malformed; col slice was specified, but row slice was empty.'
             _handleErr(400, msg)
 
         fpath = url_path_join(self.notebook_dir, relfpath)
@@ -61,7 +53,7 @@ class HdfBaseManager:
                        f'Error: {traceback.format_exc()}')
                 _handleErr(401, msg)
             try:
-                out = self._get(fpath, uri, row, col)
+                out = self._get(fpath, uri, ixstr)
             except Exception as e:
                 msg = (f'Found and opened file, error getting contents from object specified by the uri.\n'
                        f'Error: {traceback.format_exc()}')
@@ -72,11 +64,11 @@ class HdfBaseManager:
 class HdfFileManager(HdfBaseManager):
     """Implements base HDF5 file handling
     """
-    def _get(self, fpath, uri, row, col):
+    def _get(self, fpath, uri, ixstr):
         with h5py.File(fpath, 'r') as f:
-            return self._getFromFile(f, uri, row, col)
+            return self._getFromFile(f, uri, ixstr)
 
-    def _getFromFile(self, f, uri, row, col):
+    def _getFromFile(self, f, uri, ixstr):
         raise NotImplementedError
 
 ## handler
@@ -98,11 +90,31 @@ class HdfBaseHandler(APIHandler):
         slice of a dataset and return it as serialized JSON.
         """
         uri = '/' + self.get_query_argument('uri').lstrip('/')
-        row = self.getQueryArguments('row', int)
+
+        # TEMP: change request in frontend to just use ixstr
         col = self.getQueryArguments('col', int)
+        if col is not None:
+            colSlice = slice(*col)
+            colSliceStr = ':'.join(str(x) if x is not None else '' for x in (colSlice.start, colSlice.stop))
+        else:
+            colSliceStr = None
+
+        row = self.getQueryArguments('row', int)
+        if row is not None:
+            rowSlice = slice(*row)
+            rowSliceStr = ':'.join(str(x) if x is not None else '' for x in (rowSlice.start, rowSlice.stop))
+        else:
+            rowSliceStr = None
+
+        if rowSliceStr is None or colSliceStr is None:
+            ixstr = None
+        else:
+            ixstr = '{}, {}'.format(rowSliceStr, colSliceStr)
+
+        self.log.info('ixstr: {}'.format(ixstr))
 
         try:
-            self.finish(simplejson.dumps(self.manager.get(path, uri, row, col), ignore_nan=True))
+            self.finish(simplejson.dumps(self.manager.get(path, uri, ixstr), ignore_nan=True))
 
         except HTTPError as err:
             self.set_status(err.code)

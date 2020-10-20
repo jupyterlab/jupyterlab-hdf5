@@ -18,7 +18,7 @@ dsetTemp = '''with h5py.File('{fpath}', 'r') as f:
 class HdfSnippetManager(HdfBaseManager):
     """Implements HDF5 contents handling
     """
-    def _get(self, fpath, uri, row, col):
+    def _get(self, fpath, uri, ixstr):
         return dsetTemp.format(fpath=fpath, uri=uri)
 
 
