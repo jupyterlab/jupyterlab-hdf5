@@ -11,7 +11,10 @@ const allSlices: ISlice[] = [
   { start: null, stop: null },
   { start: null, stop: null }
 ];
-const noneSlices: ISlice[] = [{ start: 0, stop: 0 }, { start: 0, stop: 0 }];
+const noneSlices: ISlice[] = [
+  { start: 0, stop: 0 },
+  { start: 0, stop: 0 }
+];
 
 export const parseSlices = (strSlices: string): ISlice[] => {
   if (!strSlices) {
@@ -40,7 +43,7 @@ export const parseSlices = (strSlices: string): ISlice[] => {
       `Error parsing slices: invalid slices string input. strSlices: "${strSlices}"`
     );
 
-    return noneSlices;
+    return [...noneSlices];
   }
 
   return slices;

@@ -9,22 +9,22 @@ import { ReactWidget } from "@jupyterlab/apputils";
 
 import { HdfDatasetModelBase } from "./dataset";
 
-const TOOLBAR_SLICEINPUT_CLASS = ".jp-SliceInputToolbar";
-const TOOLBAR_SLICEINPUT_BOX_CLASS = ".jp-SliceInputToolbar-box";
+const TOOLBAR_IX_INPUT_CLASS = ".jp-IxInputToolbar";
+const TOOLBAR_IX_INPUT_BOX_CLASS = ".jp-IxInputToolbar-box";
 
 /**
- * A namespace for SliceInput statics.
+ * A namespace for IxInput statics.
  */
-namespace SliceInput {
+namespace IxInput {
   /**
-   * The props for SliceInput.
+   * The props for IxInput.
    */
   export interface IProps {
     handleEnter: (val: string) => void;
   }
 
   /**
-   * The props for SliceInput.
+   * The props for IxInput.
    */
   export interface IState {
     /**
@@ -39,34 +39,34 @@ namespace SliceInput {
   }
 }
 
-export class SliceInput extends ReactWidget {
+export class IxInput extends ReactWidget {
   /**
    * Construct a new text input for a slice.
    */
   constructor(widget: DataGrid) {
     super();
-    this.addClass(TOOLBAR_SLICEINPUT_CLASS);
+    this.addClass(TOOLBAR_IX_INPUT_CLASS);
 
     this._grid = widget;
     this._model = this._grid.dataModel as HdfDatasetModelBase;
   }
 
   render() {
-    return <SliceInputBox handleEnter={val => (this._model.slice = val)} />;
+    return <IxInputBox handleEnter={val => (this._model.ixstr = val)} />;
   }
 
   private _grid: DataGrid;
   private _model: HdfDatasetModelBase;
 }
 
-export class SliceInputBox extends React.Component<
-  SliceInput.IProps,
-  SliceInput.IState
+export class IxInputBox extends React.Component<
+  IxInput.IProps,
+  IxInput.IState
 > {
   /**
    * Construct a new cell type switcher.
    */
-  constructor(props: SliceInput.IProps) {
+  constructor(props: IxInput.IProps) {
     super(props);
     this.state = {
       value: ":, :",
@@ -119,7 +119,7 @@ export class SliceInputBox extends React.Component<
         {"Slice: "}
         <input
           type="text"
-          className={TOOLBAR_SLICEINPUT_BOX_CLASS}
+          className={TOOLBAR_IX_INPUT_BOX_CLASS}
           onChange={this._handleChange}
           onFocus={this._handleFocus}
           onBlur={this._handleBlur}
