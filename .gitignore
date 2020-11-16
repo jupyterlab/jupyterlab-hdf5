@@ -1,3 +1,4 @@
+.autoversion
 lib/
 node_modules/
 
@@ -18,6 +19,7 @@ MANIFEST
 /scratch/*.cutie
 /scratch/*.h5
 /scratch/*.hdf5
+/scratch/Untitled*
 
 # temp/system files
 *~
@@ -36,4 +38,6 @@ MANIFEST
 .history
 .vscode
 
-.autoversion
+# tmp dev stuff
+json.py
+json.ts

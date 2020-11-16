@@ -23,7 +23,7 @@ const DATA_MIME = "application/x-hdf5.dataset";
 export class HdfSidepanel extends Widget {
   constructor(browser: FileBrowser, drive: HdfDrive) {
     super();
-    this.addClass("jp-HdfSidepanel");
+    this.addClass("jhdf-sidepanel");
     this.layout = new PanelLayout();
     (this.layout as PanelLayout).addWidget(browser);
     this._browser = browser;
@@ -46,7 +46,7 @@ export class HdfSidepanel extends Widget {
     //   },
     //   tooltip: 'Refresh File List'
     // });
-    // refresher.addClass('jp-Hdf-toolbar-item');
+    // refresher.addClass('jhdf-toolbar-item');
     // this._browser.toolbar.addItem('gh-refresher', refresher);
   }
 
@@ -181,13 +181,13 @@ export class hdfFpathInput extends Widget {
     super();
     this._browser = browser;
 
-    this.addClass("jp-HdfUserInput");
+    this.addClass("jhdf-userInput");
     const layout = (this.layout = new PanelLayout());
     const wrapper = new Widget();
-    wrapper.addClass("jp-HdfUserInput-wrapper");
+    wrapper.addClass("jhdf-userInput-wrapper");
     this._input = document.createElement("input");
     this._input.placeholder = "HDF5 Path";
-    this._input.className = "jp-HdfUserInput-input";
+    this._input.className = "jhdf-userInput-input";
     wrapper.node.appendChild(this._input);
     layout.addWidget(wrapper);
 
@@ -312,11 +312,11 @@ export class hdfFpathInput extends Widget {
 export class HdfErrorPanel extends Widget {
   constructor(message: string) {
     super();
-    this.addClass("jp-HdfErrorPanel");
+    this.addClass("jhdf-errorPanel");
     const image = document.createElement("div");
     const text = document.createElement("div");
-    image.className = "jp-HdfErrorImage";
-    text.className = "jp-HdfErrorText";
+    image.className = "jhdf-errorPanel-image";
+    text.className = "jhdf-errorPanel-text";
     text.textContent = message;
     this.node.appendChild(image);
     this.node.appendChild(text);

@@ -5,6 +5,7 @@ import { PathExt, URLExt } from "@jupyterlab/coreutils";
 import { ServerConnection } from "@jupyterlab/services";
 import { JSONObject, PartialJSONObject } from "@lumino/coreutils";
 
+import { HdfResponseError } from "./exception";
 import { ISlice } from "./slice";
 
 /**
@@ -125,12 +126,56 @@ export function hdfApiRequest(
   return ServerConnection.makeRequest(url, body, settings).then(response => {
     if (response.status !== 200) {
       return response.text().then(data => {
-        throw new ServerConnection.ResponseError(response, data);
+        let json;
+        if (data.length > 0) {
+          try {
+            // HTTPError on the python side adds some leading cruft, strip it
+            json = JSON.parse(data.substring(data.indexOf("{")));
+          } catch (error) {}
+        }
+
+        if (json?.type === "JhdfError") {
+          const { message, debugVars, traceback } = json;
+          throw new HdfResponseError({
+            response,
+            message,
+            debugVars,
+            traceback
+          });
+        } else {
+          throw new ServerConnection.ResponseError(response, data);
+        }
       });
     }
     return response.json();
   });
 }
+
+// export async function hdfApiRequest(
+//   url: string,
+//   body: JSONObject,
+//   settings: ServerConnection.ISettings
+// ): Promise<any> {
+//   const response = await ServerConnection.makeRequest(url, body, settings)
+//   if (response.status !== 200) {
+//     const data = await response.text()
+//     let json;
+//     if (data.length > 0) {
+//       try {
+//         // HTTPError on the python side adds some leading cruft, strip it
+//         json = JSON.parse(data.substring(data.indexOf("{")))
+//       } catch (error) {}
+//     }
+
+//     if (json?.type === 'JhdfError') {
+//       const {message, debugVars, traceback} = json;
+//       throw new HdfResponseError({response, message, debugVars, traceback});
+//     } else {
+//       throw new ServerConnection.ResponseError(response, data);
+//     }
+//   }
+//   return response.json();
+// }
 
 /**
  * The parameters that make up the input of an hdf contents request.

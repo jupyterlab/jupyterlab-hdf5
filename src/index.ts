@@ -52,9 +52,9 @@ const hdf5DatasetPluginId = "jupyterlab-hdf:dataset";
 /**
  * hdf icon classnames
  */
-const HDF_ICON = "jp-HdfIcon";
+const HDF_ICON = "jhdf-icon";
 const HDF_FILE_ICON = `jp-MaterialIcon ${HDF_ICON}`;
-const HDF_DATASET_ICON = "jp-MaterialIcon jp-SpreadsheetIcon"; // jp-HdfDatasetIcon;
+const HDF_DATASET_ICON = "jp-MaterialIcon jp-SpreadsheetIcon"; // jhdf-datasetIcon;
 
 namespace CommandIDs {
   /**

@@ -19,7 +19,7 @@ class HdfDataManager(HdfFileManager):
         logd['subixstr'] = subixstr
         if subixstr is not None:
             logd['ixcompound'] = parseSubindex(ixstr, subixstr, f[uri].shape)
-        kwargs['log'].info('{}'.format(logd))
+        self.log.info('{}'.format(logd))
 
         return dsetChunk(f[uri], ixstr, subixstr)
 

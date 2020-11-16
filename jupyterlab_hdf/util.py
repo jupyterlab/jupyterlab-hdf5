@@ -7,6 +7,7 @@ import ast
 import re
 import numpy as np
 
+from .exception import JhdfError
 
 __all__ = ['dsetChunk', 'dsetContentDict', 'dsetDict', 'groupDict', 'parseIndex', 'parseSubindex', 'uriJoin', 'uriName']
 
@@ -45,7 +46,7 @@ def dsetContentDict(dset, ixstr=None):
         ('shape', dset.shape),
         ('ixstr', ixstr),
 
-        *validateIxstr(ixstr, dset.shape),
+        *validateIxstr(ixstr, dset.shape).items(),
     ))
 
 def dsetDict(uri, name=None, content=None):
@@ -176,20 +177,34 @@ def validateIxstr(ixstr, shape):
     vislabels = getVislabels(ix, shape)
     visshape = getVisshape(ix, shape)
 
-    if len(visdims) != len(vislabels):
-        raise ValueError('malformed ixstr: number of visible dimensions not equal to number of index labels. visdims: {}, ixlables: {}'.format(visdims, vislabels))
-
-    if len(visdims) < 1:
-        raise ValueError('malformed ixstr: number of visible dimensions less than 1. visdims: {}'.format(visdims))
-
-    if len(visdims) > 2:
-        raise ValueError('malformed ixstr: number of visible dimensions greater than 2. visdims: {}'.format(visdims))
-
-    return (
+    visdict = dict((
         ('vislabels', serialize_value(vislabels)),
         ('visdims', visdims),
         ('visshape', visshape),
-    )
+    ))
+
+    if len(visdims) != len(vislabels):
+        msg = dict((
+            ('message', 'malformed ixstr: number of visible dimensions not equal to number of index labels.'),
+            ('debugVars', {**visdict}),
+        ))
+        raise JhdfError(msg)
+
+    if len(visdims) < 1:
+        msg = dict((
+            ('message', 'malformed ixstr: number of visible dimensions less than 1.'),
+            ('debugVars', {**visdict}),
+        ))
+        raise JhdfError(msg)
+
+    if len(visdims) > 2:
+        msg = dict((
+            ('message', 'malformed ixstr: number of visible dimensions greater than 2.'),
+            ('debugVars', {**visdict}),
+        ))
+        raise JhdfError(msg)
+
+    return visdict
 
 def parseSubindex(ixstr, subixstr, shape):
     ix = parseIndex(ixstr)
@@ -201,7 +216,15 @@ def parseSubindex(ixstr, subixstr, shape):
     vislabels = getVislabels(ix, shape)
 
     if len(visdims) != len(subix):
-        raise ValueError('malformed subixstr: number of visible dimensions in ix not equal to number of dimensions in subix. visdims: {}, subix: {}'.format(visdims, subix))
+        msg = dict((
+            ('message', 'malformed subixstr: number of visible dimensions in index not equal to number of dimensions in subindex.'),
+            ('debugVars', dict((
+                ('subix', subix),
+                ('visdims', visdims),
+                ('vislabels', vislabels),
+            ))),
+        ))
+        raise JhdfError(msg)
 
     ixcompound = list(ix)
     for d, dlabel, subdix in zip(visdims, vislabels, subix):

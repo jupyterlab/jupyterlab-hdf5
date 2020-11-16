@@ -14,6 +14,7 @@ from notebook.base.handlers import APIHandler
 from notebook.utils import url_path_join
 
 # from .config import HdfConfig
+from .exception import JhdfError
 
 __all__ = ['HdfBaseManager', 'HdfFileManager', 'HdfBaseHandler']
 
@@ -22,7 +23,8 @@ __all__ = ['HdfBaseManager', 'HdfFileManager', 'HdfBaseHandler']
 class HdfBaseManager:
     """Base class for implementing HDF5 handling
     """
-    def __init__(self, notebook_dir):
+    def __init__(self, log, notebook_dir):
+        self.log = log
         self.notebook_dir = notebook_dir
 
     def _get(self, f, uri, **kwargs):
@@ -30,10 +32,24 @@ class HdfBaseManager:
 
     def get(self, relfpath, uri, **kwargs):
         def _handleErr(code, msg):
-            raise HTTPError(code, '\n'.join((
-                msg,
-                f'relfpath: {relfpath}, uri: {uri}, kwargs: {kwargs}'
-            )))
+            extra = dict((
+                ('relfpath', relfpath),
+                ('uri', uri),
+                *kwargs.items(),
+            ))
+
+            if isinstance(msg, dict):
+                # encode msg as json
+                msg['debugVars'] = {**msg.get('debugVars', {}), **extra}
+                msg = simplejson.dumps(msg, ignore_nan=True)
+            else:
+                msg = '\n'.join((
+                    msg,
+                    ', '.join(f'{key}: {val}' for key,val in extra.items())
+                ))
+
+            self.log.error(msg)
+            raise HTTPError(code, msg)
 
         if not relfpath:
             msg = f'The request was malformed; fpath should not be empty.'
@@ -54,6 +70,11 @@ class HdfBaseManager:
                 _handleErr(401, msg)
             try:
                 out = self._get(fpath, uri, **kwargs)
+            except JhdfError as e:
+                msg = e.args[0]
+                msg['traceback'] = traceback.format_exc()
+                msg['type'] = 'JhdfError'
+                _handleErr(400, msg)
             except Exception as e:
                 msg = (f'Found and opened file, error getting contents from object specified by the uri.\n'
                        f'Error: {traceback.format_exc()}')
@@ -82,7 +103,7 @@ class HdfBaseHandler(APIHandler):
             raise NotImplementedError
 
         self.notebook_dir = notebook_dir
-        self.manager = self.managerClass(notebook_dir=notebook_dir)
+        self.manager = self.managerClass(log=self.log, notebook_dir=notebook_dir)
 
     @gen.coroutine
     def get(self, path):
@@ -94,8 +115,6 @@ class HdfBaseHandler(APIHandler):
         _kws = ('ixstr', 'subixstr')
         _vals = (self.get_query_argument(kw, default=None) for kw in _kws)
         kwargs = {kw:(val if val else None) for kw,val in zip(_kws, _vals)}
-
-        kwargs['log'] = self.log
 
         try:
             self.finish(simplejson.dumps(self.manager.get(path, uri, **kwargs), ignore_nan=True))

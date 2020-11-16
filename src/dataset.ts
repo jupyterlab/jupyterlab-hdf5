@@ -29,6 +29,8 @@ import {
 
 import { ServerConnection } from "@jupyterlab/services";
 
+import { HdfResponseError, modalHdfError } from "./exception";
+
 import {
   HdfContents,
   hdfContentsRequest,
@@ -45,12 +47,12 @@ import { IxInput } from "./toolbar";
 /**
  * The CSS class for the data grid widget.
  */
-export const HDF_CLASS = "jp-HdfDataGrid";
+export const HDF_CLASS = "jhdf-dataGrid";
 
 /**
  * The CSS class for our HDF5 container.
  */
-export const HDF_CONTAINER_CLASS = "jp-HdfContainer";
+export const HDF_CONTAINER_CLASS = "jhdf-container";
 
 /**
  * Base implementation of a dataset model
@@ -190,9 +192,19 @@ export class HdfDatasetModelBase extends DataModel {
       ixstr: this._ixstr
     };
 
-    return hdfContentsRequest(params, this._serverSettings).then(contents => {
-      return this._refresh((contents as HdfContents).content!);
-    });
+    return hdfContentsRequest(params, this._serverSettings).then(
+      contents => {
+        return this._refresh((contents as HdfContents).content!);
+      },
+      err => {
+        if (err instanceof HdfResponseError) {
+          modalHdfError(err);
+        } else {
+          console.error(err);
+        }
+        return Promise.reject(err);
+      }
+    );
   }
 
   get rowSlice(): ISlice {
@@ -239,19 +251,29 @@ export class HdfDatasetModelBase extends DataModel {
       ixstr: this._ixstr,
       subixstr: `${row}:${rowStop}, ${column}:${colStop}`
     };
-    hdfDataRequest(params, this._serverSettings).then(data => {
-      this._blocks[rowBlock][colBlock] = data;
+    hdfDataRequest(params, this._serverSettings).then(
+      data => {
+        this._blocks[rowBlock][colBlock] = data;
 
-      const msg = {
-        type: "cells-changed",
-        region: "body",
-        row,
-        column,
-        rowSpan: rowStop - row,
-        columnSpan: colStop - column
-      };
-      this.emitChanged(msg as DataModel.ChangedArgs);
-    });
+        const msg = {
+          type: "cells-changed",
+          region: "body",
+          row,
+          column,
+          rowSpan: rowStop - row,
+          columnSpan: colStop - column
+        };
+        this.emitChanged(msg as DataModel.ChangedArgs);
+      },
+      err => {
+        if (err instanceof HdfResponseError) {
+          modalHdfError(err);
+        } else {
+          console.error(err);
+        }
+        return Promise.reject(err);
+      }
+    );
   };
 
   protected _serverSettings: ServerConnection.ISettings;
@@ -461,7 +483,7 @@ namespace Private {
     const toolbar = new Toolbar();
 
     toolbar.addClass("jp-Toolbar");
-    toolbar.addClass("jp-Hdf-toolbar");
+    toolbar.addClass("jhdf-toolbar");
 
     toolbar.addItem("slice input", new IxInput(grid));
 
