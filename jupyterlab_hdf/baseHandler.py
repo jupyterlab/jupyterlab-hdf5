@@ -25,14 +25,14 @@ class HdfBaseManager:
     def __init__(self, notebook_dir):
         self.notebook_dir = notebook_dir
 
-    def _get(self, f, uri, ixstr):
+    def _get(self, f, uri, **kwargs):
         raise NotImplementedError
 
-    def get(self, relfpath, uri, ixstr):
+    def get(self, relfpath, uri, **kwargs):
         def _handleErr(code, msg):
             raise HTTPError(code, '\n'.join((
                 msg,
-                f'relfpath: {relfpath}, uri: {uri}, ixstr: {ixstr}'
+                f'relfpath: {relfpath}, uri: {uri}, kwargs: {kwargs}'
             )))
 
         if not relfpath:
@@ -53,7 +53,7 @@ class HdfBaseManager:
                        f'Error: {traceback.format_exc()}')
                 _handleErr(401, msg)
             try:
-                out = self._get(fpath, uri, ixstr)
+                out = self._get(fpath, uri, **kwargs)
             except Exception as e:
                 msg = (f'Found and opened file, error getting contents from object specified by the uri.\n'
                        f'Error: {traceback.format_exc()}')
@@ -64,11 +64,11 @@ class HdfBaseManager:
 class HdfFileManager(HdfBaseManager):
     """Implements base HDF5 file handling
     """
-    def _get(self, fpath, uri, ixstr):
+    def _get(self, fpath, uri, **kwargs):
         with h5py.File(fpath, 'r') as f:
-            return self._getFromFile(f, uri, ixstr)
+            return self._getFromFile(f, uri, **kwargs)
 
-    def _getFromFile(self, f, uri, ixstr):
+    def _getFromFile(self, f, uri, **kwargs):
         raise NotImplementedError
 
 ## handler
@@ -91,31 +91,13 @@ class HdfBaseHandler(APIHandler):
         """
         uri = '/' + self.get_query_argument('uri').lstrip('/')
 
-        # TEMP: change request in frontend to just use ixstr
-        col = self.getQueryArguments('col', int)
-        if col is not None:
-            colSlice = slice(*col)
-            colSliceStr = ':'.join(str(x) if x is not None else '' for x in (colSlice.start, colSlice.stop))
-        else:
-            colSliceStr = None
+        kws = ('ixstr', 'subixstr')
+        kwargs = {kw:self.get_query_argument(kw) for kw in kws}
 
-        row = self.getQueryArguments('row', int)
-        if row is not None:
-            rowSlice = slice(*row)
-            rowSliceStr = ':'.join(str(x) if x is not None else '' for x in (rowSlice.start, rowSlice.stop))
-        else:
-            rowSliceStr = None
-
-        if rowSliceStr is None or colSliceStr is None:
-            ixstr = None
-        else:
-            ixstr = '{}, {}'.format(rowSliceStr, colSliceStr)
-
-        self.log.info('ixstr: {}'.format(ixstr))
+        self.log.info('kwargs: {}'.format(kwargs))
 
         try:
-            self.finish(simplejson.dumps(self.manager.get(path, uri, ixstr), ignore_nan=True))
-
+            self.finish(simplejson.dumps(self.manager.get(path, uri, **kwargs), ignore_nan=True))
         except HTTPError as err:
             self.set_status(err.code)
             response = err.response.body if err.response else str(err.code)
@@ -124,8 +106,8 @@ class HdfBaseHandler(APIHandler):
                 err.message
             )))
 
-    def getQueryArguments(self, key, func=None):
-        if func is not None:
-            return [func(x) for x in self.get_query_argument(key).split(',')] if key in self.request.query_arguments else None
-        else:
-            return [x for x in self.get_query_argument(key).split(',')] if key in self.request.query_arguments else None
+    # def getQueryArguments(self, key, func=None):
+    #     if func is not None:
+    #         return [func(x) for x in self.get_query_argument(key).split(',')] if key in self.request.query_arguments else None
+    #     else:
+    #         return [x for x in self.get_query_argument(key).split(',')] if key in self.request.query_arguments else None

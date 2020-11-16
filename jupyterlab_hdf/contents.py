@@ -14,7 +14,7 @@ __all__ = ['HdfContentsManager', 'HdfContentsHandler']
 class HdfContentsManager(HdfFileManager):
     """Implements HDF5 contents handling
     """
-    def _getFromFile(self, f, uri, ixstr):
+    def _getFromFile(self, f, uri, ixstr, **kwargs):
         obj = f[uri]
 
         if isinstance(obj, h5py.Group):

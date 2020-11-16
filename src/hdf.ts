@@ -78,24 +78,6 @@ export function hdfContentsRequest(
 }
 
 /**
- * Send a parameterized request to the `hdf/ix` api, and
- * return the result.
- */
-export function hdfIxRequest(
-  parameters: IIxParameters,
-  settings: ServerConnection.ISettings
-): Promise<IIxMeta> {
-  // require the uri, row, and col query parameters
-  const { fpath, uri, ixstr } = parameters;
-
-  const fullUrl =
-    URLExt.join(settings.baseUrl, "hdf", "ix", fpath).split("?")[0] +
-    objectToQueryString({ uri, ixstr });
-
-  return hdfApiRequest(fullUrl, {}, settings);
-}
-
-/**
  * Send a parameterized request to the `hdf/data` api, and
  * return the result.
  */
@@ -163,13 +145,11 @@ export interface IContentsParameters {
    * Path within an HDF5 file to a specific group or dataset.
    */
   uri: string;
-}
 
-export interface IIxParameters extends IContentsParameters {
   ixstr?: string;
 }
 
-export interface IDataParameters extends IIxParameters {
+export interface IDataParameters extends IContentsParameters {
   subixstr?: string;
 }
 
@@ -207,13 +187,11 @@ export interface IDatasetMeta {
 
   ixstr: string;
 
+  visdims: number[];
+
+  ixlabels: ISlice[];
+
   attrs: { [key: string]: any };
-}
-
-export interface IIxMeta {
-  dims: number[];
-
-  slices: ISlice[];
 }
 
 /**

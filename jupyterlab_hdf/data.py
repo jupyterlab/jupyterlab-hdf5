@@ -15,8 +15,8 @@ __all__ = ['HdfDataManager', 'HdfDataHandler']
 class HdfDataManager(HdfFileManager):
     """Implements HDF5 data handling
     """
-    def _getFromFile(self, f, uri, ixstr):
-        return dsetChunk(f[uri], ixstr)
+    def _getFromFile(self, f, uri, ixstr, subixstr, **kwargs):
+        return dsetChunk(f[uri], ixstr, subixstr)
 
 
 ## handler
