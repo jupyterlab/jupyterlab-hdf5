@@ -78,22 +78,6 @@ export class HdfDatasetModelBase extends DataModel {
 
     this._ixstr = meta.ixstr;
 
-    // this._rowCount = shape[0];
-    // this._colCount = shape[1];
-
-    // this.emitChanged({
-    //   type: "rows-inserted",
-    //   region: "body",
-    //   index: 0,
-    //   span: this._rowCount
-    // });
-    // this.emitChanged({
-    //   type: "columns-inserted",
-    //   region: "body",
-    //   index: 0,
-    //   span: this._colCount
-    // });
-
     // Refresh wrt the newly set ix and then resolve the ready promise.
     this._refresh(meta).then(() => {
       this._ready.resolve(undefined);
@@ -195,7 +179,7 @@ export class HdfDatasetModelBase extends DataModel {
       type: "model-reset"
     });
 
-    this._refreshed.emit();
+    this._refreshed.emit(this.ixstr);
   }
 
   async refresh() {
@@ -206,7 +190,7 @@ export class HdfDatasetModelBase extends DataModel {
     };
 
     return hdfContentsRequest(params, this._serverSettings).then(contents => {
-      this._refresh((contents as HdfContents).content!);
+      return this._refresh((contents as HdfContents).content!);
     });
   }
 
@@ -281,7 +265,7 @@ export class HdfDatasetModelBase extends DataModel {
   private _blockSize: number = 100;
 
   private _ready = new PromiseDelegate<void>();
-  private _refreshed = new Signal<this, void>(this);
+  private _refreshed = new Signal<this, string>(this);
 }
 
 /**
@@ -348,23 +332,34 @@ class HdfDatasetModelParams extends HdfDatasetModelBase {
   }
 }
 
-export function createHdfGrid(params: {
-  fpath: string;
-  uri: string;
-}): DataGrid {
-  const model = new HdfDatasetModelParams(params);
-
+export function createHdfGrid(
+  dataModel: HdfDatasetModelBase
+): { grid: DataGrid; toolbar: Toolbar<ToolbarButton> } {
   const grid = new DataGrid();
-  grid.dataModel = model;
+  grid.dataModel = dataModel;
   grid.keyHandler = new BasicKeyHandler();
   grid.mouseHandler = new BasicMouseHandler();
-  grid.selectionModel = new BasicSelectionModel({ dataModel: model });
+  grid.selectionModel = new BasicSelectionModel({ dataModel });
 
   const repainter = grid as any;
   const boundRepaint = repainter.repaintContent.bind(repainter);
-  model.refreshed.connect(boundRepaint);
+  dataModel.refreshed.connect(boundRepaint);
 
-  return grid;
+  const toolbar = Private.createToolbar(grid);
+
+  return { grid, toolbar };
+}
+
+export function createHdfGridFromPath(params: {
+  fpath: string;
+  uri: string;
+}): { grid: DataGrid; reveal: Promise<void>; toolbar: Toolbar<ToolbarButton> } {
+  const model = new HdfDatasetModelParams(params);
+  const reveal = model.ready;
+
+  const { grid, toolbar } = createHdfGrid(model);
+
+  return { grid, reveal, toolbar };
 }
 
 /**
@@ -372,10 +367,8 @@ export function createHdfGrid(params: {
  */
 export class HdfDatasetMain extends MainAreaWidget<DataGrid> {
   constructor(params: { fpath: string; uri: string }) {
-    const content = createHdfGrid(params);
+    const { grid: content, reveal, toolbar } = createHdfGridFromPath(params);
 
-    const toolbar = Private.createToolbar(content);
-    const reveal = (content.dataModel as HdfDatasetModelParams).ready;
     super({ content, reveal, toolbar });
   }
 }
@@ -386,21 +379,10 @@ export class HdfDatasetMain extends MainAreaWidget<DataGrid> {
 export class HdfDatasetDoc extends DocumentWidget<DataGrid>
   implements IDocumentWidget<DataGrid> {
   constructor(context: DocumentRegistry.Context) {
-    const grid = new DataGrid();
     const model = new HdfDatasetModelContext(context);
-    grid.dataModel = model;
-    grid.keyHandler = new BasicKeyHandler();
-    grid.mouseHandler = new BasicMouseHandler();
-    grid.selectionModel = new BasicSelectionModel({ dataModel: model });
-
-    // model.refreshed.connect(() => (grid as any).repaintContent());
-    const repainter = grid as any;
-    const boundRepaint = repainter.repaintContent.bind(repainter);
-    model.refreshed.connect(boundRepaint);
-    const content = grid;
-
-    const toolbar = Private.createToolbar(grid);
+    const { grid: content, toolbar } = createHdfGrid(model);
     const reveal = context.ready;
+
     super({ content, context, reveal, toolbar });
   }
 }
