@@ -187,9 +187,11 @@ export interface IDatasetMeta {
 
   ixstr: string;
 
+  vislabels: ISlice[];
+
   visdims: number[];
 
-  ixlabels: ISlice[];
+  visshape: number[];
 
   attrs: { [key: string]: any };
 }

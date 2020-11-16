@@ -7,14 +7,16 @@ export interface ISlice {
   step?: number | null;
 }
 
-const allSlices: ISlice[] = [
-  { start: null, stop: null },
-  { start: null, stop: null }
-];
-const noneSlices: ISlice[] = [
-  { start: 0, stop: 0 },
-  { start: 0, stop: 0 }
-];
+export function allSlice(): ISlice {
+  return { start: null, stop: null, step: 1 };
+}
+
+export function noneSlice(): ISlice {
+  return { start: 0, stop: 0, step: 1 };
+}
+
+const allSlices: ISlice[] = [allSlice(), allSlice()];
+const noneSlices: ISlice[] = [noneSlice(), noneSlice()];
 
 export const parseSlices = (strSlices: string): ISlice[] => {
   if (!strSlices) {

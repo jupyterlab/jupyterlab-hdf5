@@ -1,10 +1,10 @@
 {
   "extends": "./tsconfigbase",
   "compilerOptions": {
-    "inlineSources": true,
+    // "inlineSources": true,
     "outDir": "lib",
-    "rootDir": "src",
-    "sourceRoot": "./@jupyterlab/hdf5/src"
+    "rootDir": "src"
+    // "sourceRoot": "./@jupyterlab/hdf5/src"
   },
   "include": ["src/**/*"]
 }

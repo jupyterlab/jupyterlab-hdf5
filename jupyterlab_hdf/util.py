@@ -12,14 +12,19 @@ __all__ = ['dsetChunk', 'dsetContentDict', 'dsetDict', 'groupDict', 'parseIndex'
 
 ## chunk handling
 def dsetChunk(dset, ixstr, subixstr=None):
-    return dset[parseSubindex(ixstr, subixstr)].tolist()
+    return dset[parseSubindex(ixstr, subixstr, dset.shape)].tolist()
 
 def serialize_value(v):
+    """Turns a value into a JSON serializable version
     """
-    Turns a value into a JSON serializable version
-    """
-    if isinstance(v, list):
+    if isinstance(v, (list, tuple)):
         return [serialize_value(i) for i in v]
+    if isinstance(v, slice):
+        return dict((
+            ('start', v.start),
+            ('stop', v.stop),
+            ('step', v.step),
+        ))
     if isinstance(v, np.ndarray):
         return serialize_value(v.tolist())
     if isinstance(v, bytes):
@@ -32,31 +37,32 @@ def dsetContentDict(dset, ixstr=None):
     if ixstr is None:
         ixstr = defaultIxstr(dset.ndim)
 
-    return dict([
+    return dict((
         # metadata
         ('attrs', {k: serialize_value(v) for k, v in dset.attrs.items()}),
         ('dtype', dset.dtype.str),
         ('ndim', dset.ndim),
         ('shape', dset.shape),
+        ('ixstr', ixstr),
 
-        *validateIxstr(ixstr)
-    ])
+        *validateIxstr(ixstr, dset.shape),
+    ))
 
 def dsetDict(name, uri, content=None):
-    return dict([
+    return dict((
         ('type', 'dataset'),
         ('name', name),
         ('uri', uri),
-        ('content', content)
-    ])
+        ('content', content),
+    ))
 
 def groupDict(name, uri):
-    return dict([
+    return dict((
         ('type', 'group'),
         ('name', name),
         ('uri', uri),
-        ('content', None)
-    ])
+        ('content', None),
+    ))
 
 
 ## index parsing and handling
@@ -72,8 +78,7 @@ class _Guard:
             return False
 
 def parseIndex(node_or_string):
-    """
-    "Safely" (needs validation) evaluate an expression node or a string containing
+    """Safely evaluate an expression node or a string containing
     a (limited subset) of valid numpy index or slice expressions.
     """
     if isinstance(node_or_string, str):
@@ -152,17 +157,27 @@ def defaultIxstr(ndim):
 def getVisdims(ix):
     return [d for d,dix in enumerate(ix) if isinstance(dix, slice)]
 
-def getIxlabels(ix):
-    return [dix for dix in ix if isinstance(dix, slice)]
+def getVislabels(ix, shape):
+    return [slice(*dix.indices(dshape)) for dix,dshape in zip(ix, shape) if isinstance(dix, slice)]
 
-def validateIxstr(ixstr):
+def getVisshape(ix, shape):
+    return [sliceLen(dix, dshape) for dix,dshape in zip(ix, shape) if isinstance(dix, slice)]
+
+def sliceLen(slyce, seqlen):
+    """Based on https://stackoverflow.com/a/36188683
+    """
+    start, stop, step = slyce.indices(seqlen)
+    return max(0, (stop - start + (step - (1 if step > 0 else -1))) // step)
+
+def validateIxstr(ixstr, shape):
     ix = parseIndex(ixstr)
 
-    ixlabels = getIxlabels(ix)
+    vislabels = getVislabels(ix, shape)
     visdims = getVisdims(ix)
+    visshape = getVisshape(ix, shape)
 
-    if len(visdims) != len(ixlabels):
-        raise ValueError('malformed ixstr: number of visible dimensions not equal to number of index labels. visdims: {}, ixlables: {}'.format(visdims, ixlabels))
+    if len(visdims) != len(vislabels):
+        raise ValueError('malformed ixstr: number of visible dimensions not equal to number of index labels. visdims: {}, ixlables: {}'.format(visdims, vislabels))
 
     if len(visdims) < 1:
         raise ValueError('malformed ixstr: number of visible dimensions less than 1. visdims: {}'.format(visdims))
@@ -171,28 +186,28 @@ def validateIxstr(ixstr):
         raise ValueError('malformed ixstr: number of visible dimensions greater than 2. visdims: {}'.format(visdims))
 
     return (
-        ('ixlabels', ixlabels),
-        ('ixstr', ixstr),
+        ('vislabels', serialize_value(vislabels)),
         ('visdims', visdims),
+        ('visshape', visshape),
     )
 
-def parseSubindex(ixstr, subixstr=None):
+def parseSubindex(ixstr, subixstr, shape):
     ix = parseIndex(ixstr)
-
-    if subixstr is None:
+    if subixstr is None or shape is None:
         return ix
 
-    ixmeta = dict(validateIxstr(ixstr))
-    visdims = ixmeta['visdims']
-
     subix = parseIndex(subixstr)
+    visdims = getVisdims(ix)
+    vislabels = getVislabels(ix, shape)
+
     if len(visdims) != len(subix):
         raise ValueError('malformed subixstr: number of visible dimensions in ix not equal to number of dimensions in subix. visdims: {}, subix: {}'.format(visdims, subix))
 
-    for d, subDix in zip(visdims, subix):
-        ix[d] = subDix
+    ixcompound = list(ix)
+    for d, dlabel, subdix in zip(visdims, vislabels, subix):
+        ixcompound[d] = slice(dlabel.start + (subdix.start * dlabel.step), dlabel.start + (subdix.stop * dlabel.step))
 
-    return ix
+    return tuple(ixcompound)
 
 
 ## uri handling
