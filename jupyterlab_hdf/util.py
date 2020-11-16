@@ -48,10 +48,10 @@ def dsetContentDict(dset, ixstr=None):
         *validateIxstr(ixstr, dset.shape),
     ))
 
-def dsetDict(name, uri, content=None):
+def dsetDict(uri, name=None, content=None):
     return dict((
         ('type', 'dataset'),
-        ('name', name),
+        ('name', uriName(name) if name is None else name),
         ('uri', uri),
         ('content', content),
     ))
@@ -172,8 +172,8 @@ def sliceLen(slyce, seqlen):
 def validateIxstr(ixstr, shape):
     ix = parseIndex(ixstr)
 
-    vislabels = getVislabels(ix, shape)
     visdims = getVisdims(ix)
+    vislabels = getVislabels(ix, shape)
     visshape = getVisshape(ix, shape)
 
     if len(visdims) != len(vislabels):
@@ -205,7 +205,9 @@ def parseSubindex(ixstr, subixstr, shape):
 
     ixcompound = list(ix)
     for d, dlabel, subdix in zip(visdims, vislabels, subix):
-        ixcompound[d] = slice(dlabel.start + (subdix.start * dlabel.step), dlabel.start + (subdix.stop * dlabel.step))
+        start = dlabel.start + (subdix.start*dlabel.step)
+        stop = dlabel.start + (min(subdix.stop, dlabel.stop // dlabel.step)*dlabel.step) # dlabel.start + (subdix.stop*dlabel.step)
+        ixcompound[d] = slice(start, stop)
 
     return tuple(ixcompound)
 

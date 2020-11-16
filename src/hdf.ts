@@ -68,11 +68,11 @@ export function hdfContentsRequest(
   settings: ServerConnection.ISettings
 ): Promise<HdfDirectoryListing | HdfContents> {
   // allow the query parameters to be optional
-  const { fpath, uri } = parameters;
+  const { fpath, uri, ixstr } = parameters;
 
   const fullUrl =
     URLExt.join(settings.baseUrl, "hdf", "contents", fpath).split("?")[0] +
-    objectToQueryString({ uri });
+    objectToQueryString({ uri, ixstr });
 
   return hdfApiRequest(fullUrl, {}, settings);
 }

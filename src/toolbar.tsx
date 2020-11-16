@@ -15,31 +15,42 @@ const TOOLBAR_IX_INPUT_CLASS = ".jp-IxInputToolbar";
 const TOOLBAR_IX_INPUT_BOX_CLASS = ".jp-IxInputToolbar-box";
 
 /**
- * A namespace for IxInput statics.
+ * a namespace for IxInputBox statics
  */
 namespace IxInputBox {
   /**
-   * The props for IxInput.
+   * the props for IxInputBox
    */
   export interface IProps {
+    /**
+     * function run when enter key is pressed in input box
+     */
     handleEnter: (val: string) => void;
 
-    initialValue: string;
+    /**
+     * initial value shown in input box
+     */
+    initialValue?: string;
 
+    /**
+     * signal by which input value can be updated.
+     * Updates the value in an isolated way, without
+     * triggering eg handleEnter
+     */
     signal: ISignal<any, string>;
   }
 
   /**
-   * The props for IxInput.
+   * the state for IxInputBox
    */
   export interface IState {
     /**
-     * The current value of the form.
+     * the current value of the input box
      */
     value: string;
 
     /**
-     * Whether the form has focus.
+     * whether the input box has focus
      */
     hasFocus: boolean;
   }
@@ -47,7 +58,7 @@ namespace IxInputBox {
 
 export class IxInput extends ReactWidget {
   /**
-   * Construct a new text input for a slice.
+   * construct a new text input for an index
    */
   constructor(widget: DataGrid) {
     super();
@@ -76,18 +87,18 @@ export class IxInputBox extends React.Component<
   IxInputBox.IState
 > {
   /**
-   * Construct a new cell type switcher.
+   * construct a new input box for an index
    */
   constructor(props: IxInputBox.IProps) {
     super(props);
     this.state = {
-      value: this.props.initialValue,
+      value: this.props.initialValue || "",
       hasFocus: false
     };
   }
 
   /**
-   * Attach the value change signal and focus the element on mount.
+   * attach the value change signal and focus the element on mount
    */
   componentDidMount() {
     this.props.signal.connect(this._slot);
@@ -102,7 +113,7 @@ export class IxInputBox extends React.Component<
   }
 
   /**
-   * Handle `keydown` events for the HTMLSelect component.
+   * handle `keydown` events for the HTMLSelect component
    */
   private _handleKeyDown = (
     event: React.KeyboardEvent<HTMLInputElement>
@@ -113,26 +124,29 @@ export class IxInputBox extends React.Component<
   };
 
   /**
-   * Handle a change to the value in the input field.
+   * handle a change to the value in the input field
    */
   private _handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     this.setState({ value: event.currentTarget.value });
   };
 
   /**
-   * Handle focusing of the input field.
+   * handle focusing of the input field
    */
   private _handleFocus = () => {
     this.setState({ hasFocus: true });
   };
 
   /**
-   * Handle blurring of the input field.
+   * handle blurring of the input field
    */
   private _handleBlur = () => {
     this.setState({ hasFocus: false });
   };
 
+  /**
+   * update value on signal emit
+   */
   private _slot = (_: any, args: string) => {
     // skip setting new state if incoming val is equal to existing value
     if (args === this.state.value) {
