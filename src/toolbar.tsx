@@ -1,11 +1,13 @@
 // Copyright (c) Jupyter Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-import * as React from "react";
-
 import { DataGrid } from "@lumino/datagrid";
 
+import { ISignal } from "@lumino/signaling";
+
 import { ReactWidget } from "@jupyterlab/apputils";
+
+import * as React from "react";
 
 import { HdfDatasetModelBase } from "./dataset";
 
@@ -15,12 +17,16 @@ const TOOLBAR_IX_INPUT_BOX_CLASS = ".jp-IxInputToolbar-box";
 /**
  * A namespace for IxInput statics.
  */
-namespace IxInput {
+namespace IxInputBox {
   /**
    * The props for IxInput.
    */
   export interface IProps {
     handleEnter: (val: string) => void;
+
+    initialValue: string;
+
+    signal: ISignal<any, string>;
   }
 
   /**
@@ -52,7 +58,13 @@ export class IxInput extends ReactWidget {
   }
 
   render() {
-    return <IxInputBox handleEnter={val => (this._model.ixstr = val)} />;
+    return (
+      <IxInputBox
+        handleEnter={val => (this._model.ixstr = val)}
+        initialValue={this._model.ixstr}
+        signal={this._model.refreshed}
+      />
+    );
   }
 
   private _grid: DataGrid;
@@ -60,25 +72,33 @@ export class IxInput extends ReactWidget {
 }
 
 export class IxInputBox extends React.Component<
-  IxInput.IProps,
-  IxInput.IState
+  IxInputBox.IProps,
+  IxInputBox.IState
 > {
   /**
    * Construct a new cell type switcher.
    */
-  constructor(props: IxInput.IProps) {
+  constructor(props: IxInputBox.IProps) {
     super(props);
     this.state = {
-      value: ":, :",
+      value: this.props.initialValue,
       hasFocus: false
     };
   }
 
   /**
-   * Focus the element on mount.
+   * Attach the value change signal and focus the element on mount.
    */
   componentDidMount() {
+    this.props.signal.connect(this._slot);
     this._textInput!.focus();
+  }
+
+  /**
+   * detach the value change signal on unmount
+   */
+  componentWillUnmount() {
+    this.props.signal.disconnect(this._slot);
   }
 
   /**
@@ -111,6 +131,15 @@ export class IxInputBox extends React.Component<
    */
   private _handleBlur = () => {
     this.setState({ hasFocus: false });
+  };
+
+  private _slot = (_: any, args: string) => {
+    // skip setting new state if incoming val is equal to existing value
+    if (args === this.state.value) {
+      return;
+    }
+
+    this.setState({ value: args });
   };
 
   render() {

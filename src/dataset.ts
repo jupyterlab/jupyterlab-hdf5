@@ -37,9 +37,10 @@ import {
   IDatasetMeta,
   parseHdfQuery
 } from "./hdf";
-import { IxInput } from "./toolbar";
 
 import { ISlice, noneSlice } from "./slice";
+
+import { IxInput } from "./toolbar";
 
 /**
  * The CSS class for the data grid widget.
