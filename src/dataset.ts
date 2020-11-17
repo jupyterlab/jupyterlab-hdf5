@@ -89,7 +89,12 @@ export class HdfDatasetModelBase extends DataModel {
 
   columnCount(region: DataModel.ColumnRegion): number {
     if (region === "body") {
-      return this._meta?.visshape[1] || 0;
+      // always nonzero for 1D support
+      return this._meta
+        ? this._meta.visshape[1]
+          ? this._meta.visshape[1]
+          : 1
+        : 0;
     }
 
     return 1;
@@ -97,7 +102,11 @@ export class HdfDatasetModelBase extends DataModel {
 
   rowCount(region: DataModel.RowRegion): number {
     if (region === "body") {
-      return this._meta?.visshape[0] || 0;
+      return this._meta
+        ? this._meta.visshape[0]
+          ? this._meta.visshape[0]
+          : 1
+        : 0;
     }
 
     return 1;
@@ -113,6 +122,7 @@ export class HdfDatasetModelBase extends DataModel {
     if (region === "corner-header") {
       return null;
     }
+
     const relRow = row % this._blockSize;
     const relCol = col % this._blockSize;
     const rowBlock = (row - relRow) / this._blockSize;
@@ -133,6 +143,7 @@ export class HdfDatasetModelBase extends DataModel {
       this._blocks[rowBlock] = Object();
       this._fetchBlock(rowBlock, colBlock);
     }
+
     return null;
   }
 
@@ -245,14 +256,24 @@ export class HdfDatasetModelBase extends DataModel {
       this.columnCount("body")
     );
 
+    const subixstrs = [
+      this.rowSlice.stop - this.rowSlice.start > 0 ? `${row}:${rowStop}` : "",
+      this.colSlice.stop - this.colSlice.start > 0 ? `${column}:${colStop}` : ""
+    ].filter(x => x);
+
     const params = {
       fpath: this._fpath,
       uri: this._uri,
       ixstr: this._ixstr,
-      subixstr: `${row}:${rowStop}, ${column}:${colStop}`
+      subixstr: subixstrs.join(", ")
     };
     hdfDataRequest(params, this._serverSettings).then(
       data => {
+        if (subixstrs.length < 1) {
+          data = [[data as any]];
+        } else if (subixstrs.length === 1) {
+          data = data.map(x => [x]) as any;
+        }
         this._blocks[rowBlock][colBlock] = data;
 
         const msg = {

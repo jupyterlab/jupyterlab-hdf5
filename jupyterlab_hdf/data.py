@@ -4,7 +4,7 @@
 # Distributed under the terms of the Modified BSD License.
 
 from .baseHandler import HdfFileManager, HdfBaseHandler
-from .util import dsetChunk, dsetContentDict, parseSubindex
+from .util import dsetChunk
 
 __all__ = ['HdfDataManager', 'HdfDataHandler']
 
@@ -14,12 +14,13 @@ class HdfDataManager(HdfFileManager):
     """Implements HDF5 data handling
     """
     def _getFromFile(self, f, uri, ixstr, subixstr, **kwargs):
-        # uncomment for debug logging
-        logd = dsetContentDict(f[uri], ixstr=ixstr)
-        logd['subixstr'] = subixstr
-        if subixstr is not None:
-            logd['ixcompound'] = parseSubindex(ixstr, subixstr, f[uri].shape)
-        self.log.info('{}'.format(logd))
+        # # DEBUG: uncomment for logging
+        # from .util import dsetContentDict, parseSubindex
+        # logd = dsetContentDict(f[uri], ixstr=ixstr)
+        # logd['subixstr'] = subixstr
+        # if subixstr is not None:
+        #     logd['ixcompound'] = parseSubindex(ixstr, subixstr, f[uri].shape)
+        # self.log.info('{}'.format(logd))
 
         return dsetChunk(f[uri], ixstr, subixstr)
 

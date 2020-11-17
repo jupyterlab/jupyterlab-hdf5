@@ -15,11 +15,11 @@ __all__ = ['dsetChunk', 'dsetContentDict', 'dsetDict', 'groupDict', 'parseIndex'
 def dsetChunk(dset, ixstr, subixstr=None):
     return dset[parseSubindex(ixstr, subixstr, dset.shape)].tolist()
 
-def serialize_value(v):
+def jsonize(v):
     """Turns a value into a JSON serializable version
     """
     if isinstance(v, (list, tuple)):
-        return [serialize_value(i) for i in v]
+        return [jsonize(i) for i in v]
     if isinstance(v, slice):
         return dict((
             ('start', v.start),
@@ -27,7 +27,7 @@ def serialize_value(v):
             ('step', v.step),
         ))
     if isinstance(v, np.ndarray):
-        return serialize_value(v.tolist())
+        return jsonize(v.tolist())
     if isinstance(v, bytes):
         return v.decode()
     return v
@@ -40,7 +40,7 @@ def dsetContentDict(dset, ixstr=None):
 
     return dict((
         # metadata
-        ('attrs', {k: serialize_value(v) for k, v in dset.attrs.items()}),
+        ('attrs', {k: jsonize(v) for k, v in dset.attrs.items()}),
         ('dtype', dset.dtype.str),
         ('ndim', dset.ndim),
         ('shape', dset.shape),
@@ -83,6 +83,9 @@ def parseIndex(node_or_string):
     a (limited subset) of valid numpy index or slice expressions.
     """
     if isinstance(node_or_string, str):
+        if ',' not in node_or_string:
+            # handle ndim <= 1 case
+            node_or_string += ','
         node_or_string = ast.parse('dummy[{}]'.format(node_or_string.lstrip(" \t")) , mode='eval')
     if isinstance(node_or_string, ast.Expression):
         node_or_string = node_or_string.body
@@ -151,7 +154,7 @@ def defaultIxstr(ndim):
     if ndim < 1:
         raise ValueError('dataset has wrong number of dimensions. ndim: {}'.format(ndim))
     elif ndim == 1:
-        return ':, 0'
+        return ':'
 
     return ', '.join([':', ':'] + (['0'] * (ndim - 2)))
 
@@ -178,7 +181,7 @@ def validateIxstr(ixstr, shape):
     visshape = getVisshape(ix, shape)
 
     visdict = dict((
-        ('vislabels', serialize_value(vislabels)),
+        ('vislabels', jsonize(vislabels)),
         ('visdims', visdims),
         ('visshape', visshape),
     ))
@@ -219,9 +222,9 @@ def parseSubindex(ixstr, subixstr, shape):
         msg = dict((
             ('message', 'malformed subixstr: number of visible dimensions in index not equal to number of dimensions in subindex.'),
             ('debugVars', dict((
-                ('subix', subix),
+                ('subix', jsonize(subix)),
                 ('visdims', visdims),
-                ('vislabels', vislabels),
+                ('vislabels', jsonize(vislabels)),
             ))),
         ))
         raise JhdfError(msg)
