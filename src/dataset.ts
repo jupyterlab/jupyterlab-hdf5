@@ -89,10 +89,10 @@ export class HdfDatasetModelBase extends DataModel {
 
   data(region: DataModel.CellRegion, row: number, col: number): any {
     if (region === "row-header") {
-      return `${this._rowslice.start + row * this._rowslice.step}`;
+      return `${this._slice[0].start + row * this._slice[0].step}`;
     }
     if (region === "column-header") {
-      return `${this._colslice.start + col * this._colslice.step}`;
+      return `${this._slice[1].start + col * this._slice[1].step}`;
     }
     if (region === "corner-header") {
       return null;
@@ -137,27 +137,27 @@ export class HdfDatasetModelBase extends DataModel {
     if (this._meta.visshape.length < 1) {
       // for 0d (scalar), use (1, 1)
       this._hassubix = [false, false];
-      [this._nrowheader, this._ncolheader] = [0, 0];
-      [this._nrow, this._ncol] = [1, 1];
-      [this._rowslice, this._colslice] = [slice(0, 1), slice(0, 1)];
+      this._n = [1, 1];
+      this._nheader = [0, 0];
+      this._slice = [slice(0, 1), slice(0, 1)];
     } else if (this._meta.vissize <= 0) {
       // for 0d (empty), use (0, 0)
       this._hassubix = [false, false];
-      [this._nrowheader, this._ncolheader] = [0, 0];
-      [this._nrow, this._ncol] = [0, 0];
-      [this._rowslice, this._colslice] = [noneSlice(), noneSlice()];
+      this._n = [0, 0];
+      this._nheader = [0, 0];
+      this._slice = [noneSlice(), noneSlice()];
     } else if (this._meta.visshape.length < 2) {
       // for 1d, use (1, size)
       this._hassubix = [false, true];
-      [this._nrow, this._ncol] = [1, this._meta.vissize];
-      [this._nrowheader, this._ncolheader] = [1, 0];
-      [this._rowslice, this._colslice] = [slice(0, 1), this._meta.vislabels[0]];
+      this._n = [1, this._meta.vissize];
+      this._nheader = [1, 0];
+      this._slice = [slice(0, 1), this._meta.vislabels[0]];
     } else {
       // for 2d up, use standard shape
       this._hassubix = [true, true];
-      [this._nrow, this._ncol] = this._meta.visshape;
-      [this._nrowheader, this._ncolheader] = [1, 1];
-      [this._rowslice, this._colslice] = this._meta.vislabels;
+      this._n = this._meta.visshape;
+      this._nheader = [1, 1];
+      this._slice = this._meta.vislabels;
     }
   }
 
@@ -238,17 +238,17 @@ export class HdfDatasetModelBase extends DataModel {
 
   rowCount(region: DataModel.RowRegion): number {
     if (region === "body") {
-      return this._nrow;
+      return this._n[0];
     }
 
-    return this._nrowheader;
+    return this._nheader[0];
   }
   columnCount(region: DataModel.ColumnRegion): number {
     if (region === "body") {
-      return this._ncol;
+      return this._n[1];
     }
 
-    return this._ncolheader;
+    return this._nheader[1];
   }
 
   /**
@@ -317,14 +317,12 @@ export class HdfDatasetModelBase extends DataModel {
   protected _uri: string = "";
   protected _meta: IDatasetMeta;
 
-  protected _hassubix = [false, false];
   protected _ixstr: string = "";
-  protected _nrow = 0;
-  protected _ncol = 0;
-  protected _nrowheader = 0;
-  protected _ncolheader = 0;
-  protected _rowslice = noneSlice();
-  protected _colslice = noneSlice();
+
+  protected _hassubix = [false, false];
+  protected _n = [0, 0];
+  protected _nheader = [0, 0];
+  protected _slice = [noneSlice(), noneSlice()];
 
   private _blocks: any = Object();
   private _blockSize: number = 100;
