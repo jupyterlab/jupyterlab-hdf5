@@ -3,7 +3,10 @@
 
 import { PathExt, URLExt } from "@jupyterlab/coreutils";
 import { ServerConnection } from "@jupyterlab/services";
-import { JSONObject } from "@lumino/coreutils";
+import { JSONObject, PartialJSONObject } from "@lumino/coreutils";
+
+import { HdfResponseError } from "./exception";
+import { ISlice } from "./slice";
 
 /**
  * Hdf mime types
@@ -11,6 +14,23 @@ import { JSONObject } from "@lumino/coreutils";
 export const HDF_MIME_TYPE = "application/x-hdf5";
 export const HDF_DATASET_MIME_TYPE = `${HDF_MIME_TYPE}.dataset`;
 // export const HDF_GROUP_MIME_TYPE = `${HDF_MIME_TYPE}.group`;
+
+/**
+ * A helper function that copies an object without any null or undefined props
+ */
+function filterNull<T>(obj: T): Partial<T> {
+  return (Object.entries(obj) as [keyof T, any]).reduce(
+    (a, [k, v]) => (v ? ((a[k] = v), a) : a),
+    {}
+  );
+}
+
+/**
+ * objectToQueryString that excludes parameters with null/undefined values
+ */
+function objectToQueryString(value: PartialJSONObject) {
+  return URLExt.objectToQueryString(filterNull(value));
+}
 
 /**
  * A static version of the localPath method from ContentsManager
@@ -49,11 +69,11 @@ export function hdfContentsRequest(
   settings: ServerConnection.ISettings
 ): Promise<HdfDirectoryListing | HdfContents> {
   // allow the query parameters to be optional
-  const { fpath, ...rest } = parameters;
+  const { fpath, uri, ixstr } = parameters;
 
   const fullUrl =
     URLExt.join(settings.baseUrl, "hdf", "contents", fpath).split("?")[0] +
-    URLExt.objectToQueryString({ ...rest });
+    objectToQueryString({ uri, ixstr });
 
   return hdfApiRequest(fullUrl, {}, settings);
 }
@@ -63,15 +83,15 @@ export function hdfContentsRequest(
  * return the result.
  */
 export function hdfDataRequest(
-  parameters: IContentsParameters,
+  parameters: IDataParameters,
   settings: ServerConnection.ISettings
 ): Promise<number[][]> {
   // require the uri, row, and col query parameters
-  const { fpath, uri, row, col } = parameters;
+  const { fpath, uri, ixstr, atleast_2d, subixstr } = parameters;
 
   const fullUrl =
     URLExt.join(settings.baseUrl, "hdf", "data", fpath).split("?")[0] +
-    URLExt.objectToQueryString({ uri, row, col });
+    objectToQueryString({ uri, ixstr, atleast_2d, subixstr });
 
   return hdfApiRequest(fullUrl, {}, settings);
 }
@@ -81,15 +101,15 @@ export function hdfDataRequest(
  * return the result.
  */
 export function hdfSnippetRequest(
-  parameters: IContentsParameters,
+  parameters: IDataParameters,
   settings: ServerConnection.ISettings
 ): Promise<string> {
   // require the uri, row, and col query parameters
-  const { fpath, uri } = parameters;
+  const { fpath, uri, ixstr, subixstr } = parameters;
 
   const fullUrl =
     URLExt.join(settings.baseUrl, "hdf", "snippet", fpath).split("?")[0] +
-    URLExt.objectToQueryString({ uri });
+    objectToQueryString({ uri, ixstr, subixstr });
 
   return hdfApiRequest(fullUrl, {}, settings);
 }
@@ -106,12 +126,56 @@ export function hdfApiRequest(
   return ServerConnection.makeRequest(url, body, settings).then(response => {
     if (response.status !== 200) {
       return response.text().then(data => {
-        throw new ServerConnection.ResponseError(response, data);
+        let json;
+        if (data.length > 0) {
+          try {
+            // HTTPError on the python side adds some leading cruft, strip it
+            json = JSON.parse(data.substring(data.indexOf("{")));
+          } catch (error) {}
+        }
+
+        if (json?.type === "JhdfError") {
+          const { message, debugVars, traceback } = json;
+          throw new HdfResponseError({
+            response,
+            message,
+            debugVars,
+            traceback
+          });
+        } else {
+          throw new ServerConnection.ResponseError(response, data);
+        }
       });
     }
     return response.json();
   });
 }
+
+// export async function hdfApiRequest(
+//   url: string,
+//   body: JSONObject,
+//   settings: ServerConnection.ISettings
+// ): Promise<any> {
+//   const response = await ServerConnection.makeRequest(url, body, settings)
+//   if (response.status !== 200) {
+//     const data = await response.text()
+//     let json;
+//     if (data.length > 0) {
+//       try {
+//         // HTTPError on the python side adds some leading cruft, strip it
+//         json = JSON.parse(data.substring(data.indexOf("{")))
+//       } catch (error) {}
+//     }
+
+//     if (json?.type === 'JhdfError') {
+//       const {message, debugVars, traceback} = json;
+//       throw new HdfResponseError({response, message, debugVars, traceback});
+//     } else {
+//       throw new ServerConnection.ResponseError(response, data);
+//     }
+//   }
+//   return response.json();
+// }
 
 /**
  * The parameters that make up the input of an hdf contents request.
@@ -127,15 +191,13 @@ export interface IContentsParameters {
    */
   uri: string;
 
-  /**
-   * Row slice. Up to 3 integers, same syntax as for Python `slice` built-in.
-   */
-  row?: number[];
+  ixstr?: string;
+}
 
-  /**
-   * Column slice. Up to 3 integers, same syntax as for Python `slice` built-in.
-   */
-  col?: number[];
+export interface IDataParameters extends IContentsParameters {
+  atleast_2d?: boolean;
+
+  subixstr?: string;
 }
 
 /**
@@ -160,19 +222,23 @@ export class HdfContents {
   /**
    * If object is a dataset, all of its metadata encoded as a JSON string.
    */
-  content?: IDatasetContent;
+  content?: IDatasetMeta;
 }
 
-export interface IDatasetContent {
-  dtype: string;
+export interface IDatasetMeta {
+  attrs: { [key: string]: any };
 
-  ndim: number;
+  dtype: string;
 
   shape: number[];
 
-  attrs: { [key: string]: any };
+  ixstr: string;
 
-  data?: number[][];
+  vislabels: ISlice[];
+
+  visshape: number[];
+
+  vissize: number;
 }
 
 /**

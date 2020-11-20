@@ -6,7 +6,7 @@
 import h5py
 
 from .baseHandler import HdfFileManager, HdfBaseHandler
-from .util import dsetContentDict, dsetDict, groupDict, uriJoin, uriName
+from .util import dsetContentDict, dsetDict, groupDict, jsonize, uriJoin, uriName
 
 __all__ = ['HdfContentsManager', 'HdfContentsHandler']
 
@@ -14,19 +14,21 @@ __all__ = ['HdfContentsManager', 'HdfContentsHandler']
 class HdfContentsManager(HdfFileManager):
     """Implements HDF5 contents handling
     """
-    def _getFromFile(self, f, uri, row, col):
+    def _getFromFile(self, f, uri, ixstr, **kwargs):
         obj = f[uri]
 
         if isinstance(obj, h5py.Group):
             return [(groupDict if isinstance(val, h5py.Group) else dsetDict)
                         (name=name, uri=uriJoin(uri, name))
                     for name,val in obj.items()]
-        else:
+        elif isinstance(obj, h5py.Dataset):
             return dsetDict(
                 name=uriName(uri),
                 uri=uri,
-                content=dsetContentDict(obj, row, col),
+                content=jsonize(dsetContentDict(obj, ixstr)),
             )
+        else:
+            raise ValueError("unknown h5py obj: %s" % obj)
 
 
 ## handler

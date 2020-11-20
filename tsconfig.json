@@ -1,12 +1,10 @@
 {
   "extends": "./tsconfigbase",
   "compilerOptions": {
-    "inlineSources": true,
-    "lib": ["es2017", "dom"],
+    // "inlineSources": true,
     "outDir": "lib",
-    "rootDir": "src",
-    "sourceRoot": "./@jupyterlab/hdf5/src",
-    "types": ["node"]
+    "rootDir": "src"
+    // "sourceRoot": "./@jupyterlab/hdf5/src"
   },
   "include": ["src/**/*"]
 }

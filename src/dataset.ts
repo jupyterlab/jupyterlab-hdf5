@@ -29,30 +29,33 @@ import {
 
 import { ServerConnection } from "@jupyterlab/services";
 
+import { HdfResponseError, modalHdfError } from "./exception";
+
 import {
   HdfContents,
   hdfContentsRequest,
   hdfDataRequest,
   IContentsParameters,
-  parseHdfQuery,
-  IDatasetContent
+  IDatasetMeta,
+  parseHdfQuery
 } from "./hdf";
-import { SliceInput } from "./toolbar";
 
-import { ISlice, parseSlices } from "./slice";
+import { noneSlice, slice } from "./slice";
+
+import { IxInput } from "./toolbar";
 
 /**
  * The CSS class for the data grid widget.
  */
-export const HDF_CLASS = "jp-HdfDataGrid";
+export const HDF_CLASS = "jhdf-dataGrid";
 
 /**
  * The CSS class for our HDF5 container.
  */
-export const HDF_CONTAINER_CLASS = "jp-HdfContainer";
+export const HDF_CONTAINER_CLASS = "jhdf-container";
 
 /**
- * Base implementation of a dataset model
+ * Base implementation of the hdf dataset model.
  */
 export class HdfDatasetModelBase extends DataModel {
   constructor() {
@@ -64,74 +67,37 @@ export class HdfDatasetModelBase extends DataModel {
   /**
    * Handle actions that should be taken when the context is ready.
    */
-  init(content: { fpath: string; uri: string } & IDatasetContent): void {
-    const { fpath, uri, shape } = content;
-
+  init({
+    fpath,
+    uri,
+    meta
+  }: {
+    fpath: string;
+    uri: string;
+    meta: IDatasetMeta;
+  }): void {
     this._fpath = fpath;
     this._uri = uri;
 
-    this._rowCount = shape[0];
-    this._colCount = shape[1];
+    this._ixstr = meta.ixstr;
 
-    this.emitChanged({
-      type: "rows-inserted",
-      region: "body",
-      index: 0,
-      span: this._rowCount
+    // Refresh wrt the newly set ix and then resolve the ready promise.
+    this._refresh(meta).then(() => {
+      this._ready.resolve(undefined);
     });
-    this.emitChanged({
-      type: "columns-inserted",
-      region: "body",
-      index: 0,
-      span: this._colCount
-    });
-
-    // Resolve the ready promise.
-    this._ready.resolve(undefined);
-  }
-
-  columnCount(region: DataModel.ColumnRegion): number {
-    if (region === "body") {
-      if (this.isColSlice()) {
-        return this.colSlice.stop - this.colSlice.start;
-      } else {
-        return this._colCount;
-      }
-    }
-
-    return 1;
-  }
-
-  rowCount(region: DataModel.RowRegion): number {
-    if (region === "body") {
-      if (this.isRowSlice()) {
-        return this.rowSlice.stop - this.rowSlice.start;
-      } else {
-        return this._rowCount;
-      }
-    }
-
-    return 1;
   }
 
   data(region: DataModel.CellRegion, row: number, col: number): any {
-    // adjust row and col based on slice
-    if (this.isRowSlice()) {
-      row += this._rowSlice.start;
-    }
-    if (this.isColSlice()) {
-      col += this._colSlice.start;
-    }
-
     if (region === "row-header") {
-      return `${row}`;
+      return `${this._slice[0].start + row * this._slice[0].step}`;
     }
     if (region === "column-header") {
-      return `${col}`;
+      return `${this._slice[1].start + col * this._slice[1].step}`;
     }
     if (region === "corner-header") {
       return null;
     }
+
     const relRow = row % this._blockSize;
     const relCol = col % this._blockSize;
     const rowBlock = (row - relRow) / this._blockSize;
@@ -152,7 +118,47 @@ export class HdfDatasetModelBase extends DataModel {
       this._blocks[rowBlock] = Object();
       this._fetchBlock(rowBlock, colBlock);
     }
+
     return null;
+  }
+
+  get ixstr(): string {
+    return this._ixstr;
+  }
+  set ixstr(ixstr: string) {
+    this._ixstr = ixstr;
+    this.refresh();
+  }
+
+  set meta(meta: IDatasetMeta) {
+    this._meta = meta;
+
+    // all reasoning about 0d vs 1d vs nd goes here
+    if (this._meta.visshape.length < 1) {
+      // for 0d (scalar), use (1, 1)
+      this._hassubix = [false, false];
+      this._n = [1, 1];
+      this._nheader = [0, 0];
+      this._slice = [slice(0, 1), slice(0, 1)];
+    } else if (this._meta.vissize <= 0) {
+      // for 0d (empty), use (0, 0)
+      this._hassubix = [false, false];
+      this._n = [0, 0];
+      this._nheader = [0, 0];
+      this._slice = [noneSlice(), noneSlice()];
+    } else if (this._meta.visshape.length < 2) {
+      // for 1d, use (1, size)
+      this._hassubix = [false, true];
+      this._n = [1, this._meta.vissize];
+      this._nheader = [1, 0];
+      this._slice = [slice(0, 1), this._meta.vislabels[0]];
+    } else {
+      // for 2d up, use standard shape
+      this._hassubix = [true, true];
+      this._n = this._meta.visshape;
+      this._nheader = [1, 1];
+      this._slice = this._meta.vislabels;
+    }
   }
 
   /**
@@ -162,15 +168,12 @@ export class HdfDatasetModelBase extends DataModel {
     return this._ready.promise;
   }
 
-  refresh() {
+  async _refresh(meta: IDatasetMeta) {
     const oldRowCount = this.rowCount("body");
     const oldColCount = this.columnCount("body");
 
-    // changing the row/col slices will also change the result
-    // of the row/colCount methods
-    const slices = parseSlices(this._slice);
-    this._rowSlice = slices[0];
-    this._colSlice = slices[1];
+    // changing the meta will also change the result of the row/colCount methods
+    this.meta = meta;
 
     this._blocks = Object();
 
@@ -204,40 +207,48 @@ export class HdfDatasetModelBase extends DataModel {
       type: "model-reset"
     });
 
-    this._refreshed.emit();
+    this._refreshed.emit(this.ixstr);
   }
 
-  isRowSlice(): boolean {
-    return !(isNaN(this._rowSlice.start) && isNaN(this._rowSlice.start));
-  }
-
-  isColSlice(): boolean {
-    return !(isNaN(this._colSlice.start) && isNaN(this._colSlice.start));
-  }
-
-  get rowSlice() {
-    return {
-      start: this._rowSlice.start || 0,
-      stop: this._rowSlice.stop || this._rowCount
+  async refresh() {
+    const params = {
+      fpath: this._fpath,
+      uri: this._uri,
+      ixstr: this._ixstr
     };
-  }
-  get colSlice() {
-    return {
-      start: this._colSlice.start || 0,
-      stop: this._colSlice.stop || this._colCount
-    };
-  }
 
-  get slice(): string {
-    return this._slice;
-  }
-  set slice(s: string) {
-    this._slice = s;
-    this.refresh();
+    return hdfContentsRequest(params, this._serverSettings).then(
+      contents => {
+        return this._refresh((contents as HdfContents).content!);
+      },
+      err => {
+        if (err instanceof HdfResponseError) {
+          modalHdfError(err);
+        } else {
+          console.error(err);
+        }
+        return Promise.reject(err);
+      }
+    );
   }
 
   get refreshed() {
     return this._refreshed;
+  }
+
+  rowCount(region: DataModel.RowRegion): number {
+    if (region === "body") {
+      return this._n[0];
+    }
+
+    return this._nheader[0];
+  }
+  columnCount(region: DataModel.ColumnRegion): number {
+    if (region === "body") {
+      return this._n[1];
+    }
+
+    return this._nheader[1];
   }
 
   /**
@@ -247,60 +258,77 @@ export class HdfDatasetModelBase extends DataModel {
   private _fetchBlock = (rowBlock: number, colBlock: number) => {
     this._blocks[rowBlock][colBlock] = "busy";
 
-    const rowStart: number = rowBlock * this._blockSize;
+    const row = rowBlock * this._blockSize;
     const rowStop: number = Math.min(
-      rowStart + this._blockSize,
-      this._rowCount
+      row + this._blockSize,
+      this.rowCount("body")
     );
-    const colStart: number = colBlock * this._blockSize;
+
+    const column = colBlock * this._blockSize;
     const colStop: number = Math.min(
-      colStart + this._blockSize,
-      this._colCount
+      column + this._blockSize,
+      this.columnCount("body")
     );
+
+    const subixstr = [
+      this._hassubix[0] ? `${row}:${rowStop}` : "",
+      this._hassubix[1] ? `${column}:${colStop}` : ""
+    ]
+      .filter(x => x)
+      .join(", ");
 
     const params = {
       fpath: this._fpath,
       uri: this._uri,
-      row: [rowStart, rowStop],
-      col: [colStart, colStop]
+      atleast_2d: true,
+      ixstr: this._ixstr,
+      subixstr
+      // skip subixstr in the 0d case
+      // ...(subixstr ? {subixstr: subixstr} : {}),
     };
-    hdfDataRequest(params, this._serverSettings).then(data => {
-      this._blocks[rowBlock][colBlock] = data;
-      this.emitChanged({
-        type: "cells-changed",
-        region: "body",
-        row:
-          (rowBlock -
-            (this.isRowSlice() ? this._rowSlice.start / this._blockSize : 0)) *
-          this._blockSize, //rowBlock * this._blockSize,
-        column:
-          (colBlock -
-            (this.isColSlice() ? this._colSlice.start / this._blockSize : 0)) *
-          this._blockSize, //colBlock * this._blockSize,
-        rowSpan:
-          this._rowCount <= this._blockSize ? this._rowCount : this._blockSize,
-        columnSpan:
-          this._colCount <= this._blockSize ? this._colCount : this._blockSize
-      });
-    });
+    hdfDataRequest(params, this._serverSettings).then(
+      data => {
+        this._blocks[rowBlock][colBlock] = data;
+
+        const msg = {
+          type: "cells-changed",
+          region: "body",
+          row,
+          column,
+          rowSpan: rowStop - row,
+          columnSpan: colStop - column
+        };
+        this.emitChanged(msg as DataModel.ChangedArgs);
+      },
+      err => {
+        if (err instanceof HdfResponseError) {
+          modalHdfError(err);
+        } else {
+          console.error(err);
+        }
+        return Promise.reject(err);
+      }
+    );
   };
 
-  protected _serverSettings: ServerConnection.ISettings;
+  protected _serverSettings: ServerConnection.ISettings = ServerConnection.makeSettings();
 
-  private _fpath: string = "";
-  private _uri: string = "";
+  protected _fpath: string = "";
+  protected _uri: string = "";
+  protected _meta: IDatasetMeta;
 
-  private _slice: string = "";
-  private _colSlice: ISlice = { start: null, stop: null };
-  private _rowSlice: ISlice = { start: null, stop: null };
+  protected _ixstr: string = "";
+
+  protected _hassubix = [false, false];
+  protected _n = [0, 0];
+  protected _nheader = [0, 0];
+  protected _slice = [noneSlice(), noneSlice()];
 
   private _blocks: any = Object();
   private _blockSize: number = 100;
-  private _colCount: number = 0;
-  private _rowCount: number = 0;
 
   private _ready = new PromiseDelegate<void>();
-  private _refreshed = new Signal<this, void>(this);
+  private _refreshed = new Signal<this, string>(this);
 }
 
 /**
@@ -332,12 +360,12 @@ class HdfDatasetModelContext extends HdfDatasetModelBase {
     const { fpath, uri } = parseHdfQuery(this._context.contentsModel.path);
 
     // unpack the content
-    const content: IDatasetContent = this._context.model.toJSON() as any;
+    const content: IDatasetMeta = this._context.model.toJSON() as any;
 
     // // Wire signal connections.
     // contextModel.contentChanged.connect(this._onContentChanged, this);
 
-    this.init({ ...content, fpath, uri });
+    this.init({ fpath, uri, meta: content });
   }
 
   protected _context: DocumentRegistry.Context;
@@ -363,27 +391,38 @@ class HdfDatasetModelParams extends HdfDatasetModelBase {
     contents: HdfContents
   ): void {
     const { fpath, uri } = parameters;
-    this.init({ ...contents.content, fpath, uri });
+    this.init({ fpath, uri, meta: contents.content });
   }
 }
 
-export function createHdfGrid(params: {
-  fpath: string;
-  uri: string;
-}): DataGrid {
-  const model = new HdfDatasetModelParams(params);
-
+export function createHdfGrid(
+  dataModel: HdfDatasetModelBase
+): { grid: DataGrid; toolbar: Toolbar<ToolbarButton> } {
   const grid = new DataGrid();
-  grid.dataModel = model;
+  grid.dataModel = dataModel;
   grid.keyHandler = new BasicKeyHandler();
   grid.mouseHandler = new BasicMouseHandler();
-  grid.selectionModel = new BasicSelectionModel({ dataModel: model });
+  grid.selectionModel = new BasicSelectionModel({ dataModel });
 
   const repainter = grid as any;
   const boundRepaint = repainter.repaintContent.bind(repainter);
-  model.refreshed.connect(boundRepaint);
+  dataModel.refreshed.connect(boundRepaint);
 
-  return grid;
+  const toolbar = Private.createToolbar(grid);
+
+  return { grid, toolbar };
+}
+
+export function createHdfGridFromPath(params: {
+  fpath: string;
+  uri: string;
+}): { grid: DataGrid; reveal: Promise<void>; toolbar: Toolbar<ToolbarButton> } {
+  const model = new HdfDatasetModelParams(params);
+  const reveal = model.ready;
+
+  const { grid, toolbar } = createHdfGrid(model);
+
+  return { grid, reveal, toolbar };
 }
 
 /**
@@ -391,10 +430,8 @@ export function createHdfGrid(params: {
  */
 export class HdfDatasetMain extends MainAreaWidget<DataGrid> {
   constructor(params: { fpath: string; uri: string }) {
-    const content = createHdfGrid(params);
+    const { grid: content, reveal, toolbar } = createHdfGridFromPath(params);
 
-    const toolbar = Private.createToolbar(content);
-    const reveal = (content.dataModel as HdfDatasetModelParams).ready;
     super({ content, reveal, toolbar });
   }
 }
@@ -405,21 +442,10 @@ export class HdfDatasetMain extends MainAreaWidget<DataGrid> {
 export class HdfDatasetDoc extends DocumentWidget<DataGrid>
   implements IDocumentWidget<DataGrid> {
   constructor(context: DocumentRegistry.Context) {
-    const grid = new DataGrid();
     const model = new HdfDatasetModelContext(context);
-    grid.dataModel = model;
-    grid.keyHandler = new BasicKeyHandler();
-    grid.mouseHandler = new BasicMouseHandler();
-    grid.selectionModel = new BasicSelectionModel({ dataModel: model });
-
-    // model.refreshed.connect(() => (grid as any).repaintContent());
-    const repainter = grid as any;
-    const boundRepaint = repainter.repaintContent.bind(repainter);
-    model.refreshed.connect(boundRepaint);
-    const content = grid;
-
-    const toolbar = Private.createToolbar(grid);
+    const { grid: content, toolbar } = createHdfGrid(model);
     const reveal = context.ready;
+
     super({ content, context, reveal, toolbar });
   }
 }
@@ -497,9 +523,9 @@ namespace Private {
     const toolbar = new Toolbar();
 
     toolbar.addClass("jp-Toolbar");
-    toolbar.addClass("jp-Hdf-toolbar");
+    toolbar.addClass("jhdf-toolbar");
 
-    toolbar.addItem("slice input", new SliceInput(grid));
+    toolbar.addItem("slice input", new IxInput(grid));
 
     // toolbar.addItem(
     //   'previous',

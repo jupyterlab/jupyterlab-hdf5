@@ -47,4 +47,5 @@ def genNested(name, N=None, ext=None, fillRange=False, func=None, shape=None, su
 
 if __name__=='__main__':
     genNested('nested', shape=(10,10))
+#     genNested('nested_int_one_d', N=2, fillRange=True, shape=(1000,)*1)
 #     genNested('nested_int_high_d', N=2, fillRange=True, shape=(50,)*4)

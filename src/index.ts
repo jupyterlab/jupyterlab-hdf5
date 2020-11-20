@@ -36,29 +36,29 @@ import {
 } from "./hdf";
 
 /**
- * Hdf plugins state namespace.
+ * hdf plugins state namespace
  */
 const HDF_BROWSER_NAMESPACE = "hdf-file-browser";
 const HDF_FILE_BROWSER_NAMESPACE = "hdf-filebrowser";
 const HDF_DATASET_NAMESPACE = "hdf-dataset";
 
 /**
- * The IDs for the plugins.
+ * the IDs for the plugins
  */
 const hdf5BrowserPluginId = "jupyterlab-hdf:browser";
 const hdf5DatasetPluginId = "jupyterlab-hdf:dataset";
 // const hdf5DataRegistryPluginId = "jupyterlab-hdf:dataregistry";
 
 /**
- * Hdf icon classnames
+ * hdf icon classnames
  */
-const HDF_ICON = "jp-HdfIcon";
+const HDF_ICON = "jhdf-icon";
 const HDF_FILE_ICON = `jp-MaterialIcon ${HDF_ICON}`;
-const HDF_DATASET_ICON = "jp-MaterialIcon jp-SpreadsheetIcon"; // jp-HdfDatasetIcon;
+const HDF_DATASET_ICON = "jp-MaterialIcon jp-SpreadsheetIcon"; // jhdf-datasetIcon;
 
 namespace CommandIDs {
   /**
-   * Fetch metadata from an hdf5 file
+   * fetch metadata from an hdf5 file
    */
   export const fetchContents = "hdf:fetch-contents";
 
@@ -68,9 +68,9 @@ namespace CommandIDs {
 }
 
 /**
- * Initialization data for the jupyterlab-hdf5 extension.
+ * initialization data for the jupyterlab-hdf5 extension
  */
-const hdfBrowserExtension: JupyterFrontEndPlugin<void> = {
+const hdfBrowserPlugin: JupyterFrontEndPlugin<void> = {
   id: hdf5BrowserPluginId,
   requires: [
     IDocumentManager,
@@ -85,7 +85,7 @@ const hdfBrowserExtension: JupyterFrontEndPlugin<void> = {
 };
 
 /**
- * The HTML file handler extension.
+ * the HTML file handler extension
  */
 const hdfDatasetPlugin: JupyterFrontEndPlugin<IHdfDatasetDocTracker> = {
   id: hdf5DatasetPluginId,
@@ -109,7 +109,7 @@ const hdfDatasetPlugin: JupyterFrontEndPlugin<IHdfDatasetDocTracker> = {
 // };
 
 /**
- * Activate the file browser.
+ * activate the hdf file browser extension
  */
 function activateHdfBrowserPlugin(
   app: JupyterFrontEnd,
@@ -230,12 +230,6 @@ function addBrowserCommands(
         fpath: args["fpath"] as string,
         uri: args["uri"] as string
       };
-      if (args["col"]) {
-        params.col = args["col"] as number[];
-      }
-      if (args["row"]) {
-        params.row = args["row"] as number[];
-      }
 
       return hdfContentsRequest(params, serverSettings);
     },
@@ -305,7 +299,7 @@ function addBrowserCommands(
 }
 
 /**
- * Activate the HTMLViewer extension.
+ * activate the hdf dataset viewer extension
  */
 function activateHdfDatasetPlugin(
   app: JupyterFrontEnd,
@@ -362,7 +356,7 @@ function activateHdfDatasetPlugin(
 }
 
 // /**
-//  * Activate the HTMLViewer extension.
+//  * activate the hdf dataregistry extension
 //  */
 // function activateHdfDataRegistryPlugin(
 //   app: JupyterFrontEnd,
@@ -377,10 +371,10 @@ function activateHdfDatasetPlugin(
 // }
 
 /**
- * Export the plugins as default.
+ * export the plugins as default
  */
 const plugins: JupyterFrontEndPlugin<any>[] = [
-  hdfBrowserExtension,
+  hdfBrowserPlugin,
   hdfDatasetPlugin
   // hdfDataRegistryPlugin
 ];
