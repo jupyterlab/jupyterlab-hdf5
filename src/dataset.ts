@@ -130,35 +130,8 @@ export class HdfDatasetModelBase extends DataModel {
     this.refresh();
   }
 
-  set meta(meta: IDatasetMeta) {
-    this._meta = meta;
-
-    // all reasoning about 0d vs 1d vs nd goes here
-    if (this._meta.visshape.length < 1) {
-      // for 0d (scalar), use (1, 1)
-      this._hassubix = [false, false];
-      this._n = [1, 1];
-      this._nheader = [0, 0];
-      this._slice = [slice(0, 1), slice(0, 1)];
-    } else if (this._meta.vissize <= 0) {
-      // for 0d (empty), use (0, 0)
-      this._hassubix = [false, false];
-      this._n = [0, 0];
-      this._nheader = [0, 0];
-      this._slice = [noneSlice(), noneSlice()];
-    } else if (this._meta.visshape.length < 2) {
-      // for 1d, use (1, size)
-      this._hassubix = [false, true];
-      this._n = [1, this._meta.vissize];
-      this._nheader = [1, 0];
-      this._slice = [slice(0, 1), this._meta.vislabels[0]];
-    } else {
-      // for 2d up, use standard shape
-      this._hassubix = [true, true];
-      this._n = this._meta.visshape;
-      this._nheader = [1, 1];
-      this._slice = this._meta.vislabels;
-    }
+  get meta(): IDatasetMeta {
+    return this._meta;
   }
 
   /**
@@ -173,7 +146,7 @@ export class HdfDatasetModelBase extends DataModel {
     const oldColCount = this.columnCount("body");
 
     // changing the meta will also change the result of the row/colCount methods
-    this.meta = meta;
+    this._setMeta(meta);
 
     this._blocks = Object();
 
@@ -311,18 +284,49 @@ export class HdfDatasetModelBase extends DataModel {
     );
   };
 
-  protected _serverSettings: ServerConnection.ISettings = ServerConnection.makeSettings();
+  private _setMeta(meta: IDatasetMeta) {
+    this._meta = meta;
+
+    // all reasoning about 0d vs 1d vs nd goes here
+    if (this._meta.visshape.length < 1) {
+      // for 0d (scalar), use (1, 1)
+      this._hassubix = [false, false];
+      this._n = [1, 1];
+      this._nheader = [0, 0];
+      this._slice = [slice(0, 1), slice(0, 1)];
+    } else if (this._meta.vissize <= 0) {
+      // for 0d (empty), use (0, 0)
+      this._hassubix = [false, false];
+      this._n = [0, 0];
+      this._nheader = [0, 0];
+      this._slice = [noneSlice(), noneSlice()];
+    } else if (this._meta.visshape.length < 2) {
+      // for 1d, use (1, size)
+      this._hassubix = [false, true];
+      this._n = [1, this._meta.vissize];
+      this._nheader = [1, 0];
+      this._slice = [slice(0, 1), this._meta.vislabels[0]];
+    } else {
+      // for 2d up, use standard shape
+      this._hassubix = [true, true];
+      this._n = this._meta.visshape;
+      this._nheader = [1, 1];
+      this._slice = this._meta.vislabels;
+    }
+  }
 
   protected _fpath: string = "";
   protected _uri: string = "";
-  protected _meta: IDatasetMeta;
 
-  protected _ixstr: string = "";
+  protected _serverSettings: ServerConnection.ISettings = ServerConnection.makeSettings();
 
   protected _hassubix = [false, false];
   protected _n = [0, 0];
   protected _nheader = [0, 0];
   protected _slice = [noneSlice(), noneSlice()];
+
+  private _meta: IDatasetMeta;
+  private _ixstr: string = "";
 
   private _blocks: any = Object();
   private _blockSize: number = 100;
