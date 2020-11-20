@@ -30,7 +30,7 @@ setup_dict = dict(
     license         = 'BSD',
     platforms       = "Linux, Mac OS X, Windows",
     keywords        = ['Jupyter', 'JupyterLab', 'hdf5'],
-    python_requires = '>=3.5',
+    python_requires = '>=3.6',
     classifiers     = [
         'Intended Audience :: Developers',
         'Intended Audience :: System Administrators',
