@@ -7,12 +7,27 @@ export interface ISlice {
   step?: number | null;
 }
 
+/**
+ * analagous to the python `slice` constructor
+ */
+export function slice(
+  start: number | null,
+  stop?: number | null,
+  step: number | null = null
+): ISlice {
+  if (stop === undefined) {
+    return { start: 0, stop: start, step: 1 };
+  }
+
+  return { start, stop, step: step === null ? 1 : step };
+}
+
 export function allSlice(): ISlice {
-  return { start: null, stop: null, step: 1 };
+  return slice(null, null);
 }
 
 export function noneSlice(): ISlice {
-  return { start: 0, stop: 0, step: 1 };
+  return slice(0, 0);
 }
 
 const allSlices: ISlice[] = [allSlice(), allSlice()];
