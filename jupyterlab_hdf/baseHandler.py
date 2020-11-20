@@ -112,7 +112,7 @@ class HdfBaseHandler(APIHandler):
         """
         uri = '/' + self.get_query_argument('uri').lstrip('/')
 
-        _kws = ('ixstr', 'subixstr')
+        _kws = ('atleast_2d', 'ixstr', 'subixstr')
         _vals = (self.get_query_argument(kw, default=None) for kw in _kws)
         kwargs = {kw:(val if val else None) for kw,val in zip(_kws, _vals)}
 

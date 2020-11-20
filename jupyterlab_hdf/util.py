@@ -9,44 +9,45 @@ import numpy as np
 
 from .exception import JhdfError
 
-__all__ = ['dsetChunk', 'dsetContentDict', 'dsetDict', 'groupDict', 'parseIndex', 'parseSubindex', 'uriJoin', 'uriName']
+__all__ = ['dsetChunk', 'dsetContentDict', 'dsetDict', 'groupDict', 'jsonize', 'parseIndex', 'parseSubindex', 'uriJoin', 'uriName']
 
 ## chunk handling
-def dsetChunk(dset, ixstr, subixstr=None):
-    return dset[parseSubindex(ixstr, subixstr, dset.shape)].tolist()
+def dsetChunk(dset, ixstr=None, subixstr=None, atleast_2d=False):
+    if ixstr is None:
+        chunk = dset[...]
+    elif subixstr is None:
+        chunk = dset[parseIndex(ixstr)]
+    else:
+        validateSubindex(ixstr, subixstr, dset.shape)
+        chunk = dset[parseSubindex(ixstr, subixstr, dset.shape)]
 
-def jsonize(v):
-    """Turns a value into a JSON serializable version
-    """
-    if isinstance(v, (list, tuple)):
-        return [jsonize(i) for i in v]
-    if isinstance(v, slice):
-        return dict((
-            ('start', v.start),
-            ('stop', v.stop),
-            ('step', v.step),
-        ))
-    if isinstance(v, np.ndarray):
-        return jsonize(v.tolist())
-    if isinstance(v, bytes):
-        return v.decode()
-    return v
+    if atleast_2d:
+        chunk = np.atleast_2d(chunk)
+
+    return chunk.tolist()
 
 
-## create dicts to be converted to json
+## create dicts to be returned by the contents api
 def dsetContentDict(dset, ixstr=None):
     if ixstr is None:
-        ixstr = defaultIxstr(dset.ndim)
+        # create a default ixstr
+        if dset.ndim < 1:
+            raise ValueError('dataset has wrong number of dimensions. ndim: {}'.format(dset.ndim))
+        elif dset.ndim == 1:
+            ixstr = ':'
+        else:
+            ixstr = ', '.join([':', ':'] + (['0'] * (dset.ndim - 2)))
+
+    ixmeta = jsonize(metadataIndex(ixstr, dset.shape))
 
     return dict((
-        # metadata
         ('attrs', {k: jsonize(v) for k, v in dset.attrs.items()}),
         ('dtype', dset.dtype.str),
-        ('ndim', dset.ndim),
         ('shape', dset.shape),
         ('ixstr', ixstr),
-
-        *validateIxstr(ixstr, dset.shape).items(),
+        ('vislabels', ixmeta['vislabels']),
+        ('visshape', ixmeta['visshape']),
+        ('vissize', ixmeta['vissize']),
     ))
 
 def dsetDict(uri, name=None, content=None):
@@ -150,92 +151,72 @@ def parseIndex(node_or_string):
         return _convert_signed_num(node)
     return _convert(node_or_string)
 
-def defaultIxstr(ndim):
-    if ndim < 1:
-        raise ValueError('dataset has wrong number of dimensions. ndim: {}'.format(ndim))
-    elif ndim == 1:
-        return ':'
-
-    return ', '.join([':', ':'] + (['0'] * (ndim - 2)))
-
-def getVisdims(ix):
-    return [d for d,dix in enumerate(ix) if isinstance(dix, slice)]
-
-def getVislabels(ix, shape):
-    return [slice(*dix.indices(dshape)) for dix,dshape in zip(ix, shape) if isinstance(dix, slice)]
-
-def getVisshape(ix, shape):
-    return [sliceLen(dix, dshape) for dix,dshape in zip(ix, shape) if isinstance(dix, slice)]
-
 def sliceLen(slyce, seqlen):
     """Based on https://stackoverflow.com/a/36188683
     """
     start, stop, step = slyce.indices(seqlen)
     return max(0, (stop - start + (step - (1 if step > 0 else -1))) // step)
 
-def validateIxstr(ixstr, shape):
+def metadataIndex(ixstr, shape):
     ix = parseIndex(ixstr)
 
-    visdims = getVisdims(ix)
-    vislabels = getVislabels(ix, shape)
-    visshape = getVisshape(ix, shape)
+    meta = {
+        'visdims': [d for d,dix in enumerate(ix) if isinstance(dix, slice)],
+    }
 
-    visdict = dict((
-        ('vislabels', jsonize(vislabels)),
-        ('visdims', visdims),
-        ('visshape', visshape),
-    ))
+    meta['vislabels'] = [slice(*ix[d].indices(shape[d])) for d in meta['visdims']]
+    meta['visshape'] = [sliceLen(ix[d], shape[d]) for d in meta['visdims']]
 
-    if len(visdims) != len(vislabels):
-        msg = dict((
-            ('message', 'malformed ixstr: number of visible dimensions not equal to number of index labels.'),
-            ('debugVars', {**visdict}),
-        ))
-        raise JhdfError(msg)
+    meta['vissize'] = np.prod(meta['visshape']) if meta['visdims'] else 0
 
-    if len(visdims) < 1:
-        msg = dict((
-            ('message', 'malformed ixstr: number of visible dimensions less than 1.'),
-            ('debugVars', {**visdict}),
-        ))
-        raise JhdfError(msg)
-
-    if len(visdims) > 2:
-        msg = dict((
-            ('message', 'malformed ixstr: number of visible dimensions greater than 2.'),
-            ('debugVars', {**visdict}),
-        ))
-        raise JhdfError(msg)
-
-    return visdict
+    return meta
 
 def parseSubindex(ixstr, subixstr, shape):
     ix = parseIndex(ixstr)
-    if subixstr is None or shape is None:
-        return ix
-
+    meta = metadataIndex(ixstr, shape)
     subix = parseIndex(subixstr)
-    visdims = getVisdims(ix)
-    vislabels = getVislabels(ix, shape)
-
-    if len(visdims) != len(subix):
-        msg = dict((
-            ('message', 'malformed subixstr: number of visible dimensions in index not equal to number of dimensions in subindex.'),
-            ('debugVars', dict((
-                ('subix', jsonize(subix)),
-                ('visdims', visdims),
-                ('vislabels', jsonize(vislabels)),
-            ))),
-        ))
-        raise JhdfError(msg)
 
     ixcompound = list(ix)
-    for d, dlabel, subdix in zip(visdims, vislabels, subix):
+    for d, dlabel, subdix in zip(meta['visdims'], meta['vislabels'], subix):
         start = dlabel.start + (subdix.start*dlabel.step)
         stop = dlabel.start + (min(subdix.stop, dlabel.stop // dlabel.step)*dlabel.step) # dlabel.start + (subdix.stop*dlabel.step)
         ixcompound[d] = slice(start, stop)
 
     return tuple(ixcompound)
+
+def validateSubindex(ixstr, subixstr, shape):
+    meta = metadataIndex(ixstr, shape)
+    subix = parseIndex(subixstr)
+
+    if len(subix) != len(meta['visdims']):
+        msg = dict((
+            ('message', 'malformed subixstr: number of visible dimensions in index not equal to number of dimensions in subindex.'),
+            ('debugVars', {'ixstr': ixstr, 'subixstr': subixstr}),
+        ))
+        raise JhdfError(msg)
+
+
+## json handling
+def jsonize(v):
+    """Turns a value into a JSON serializable version
+    """
+    if isinstance(v, bytes):
+        return v.decode()
+    if isinstance(v, dict):
+        return {k:jsonize(v) for k,v in v.items()}
+    if isinstance(v, (list, tuple)):
+        return [jsonize(i) for i in v]
+    if isinstance(v, np.integer):
+        return int(v)
+    if isinstance(v, np.ndarray):
+        return jsonize(v.tolist())
+    if isinstance(v, slice):
+        return dict((
+            ('start', v.start),
+            ('stop', v.stop),
+            ('step', v.step),
+        ))
+    return v
 
 
 ## uri handling

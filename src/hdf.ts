@@ -87,11 +87,11 @@ export function hdfDataRequest(
   settings: ServerConnection.ISettings
 ): Promise<number[][]> {
   // require the uri, row, and col query parameters
-  const { fpath, uri, ixstr, subixstr } = parameters;
+  const { fpath, uri, ixstr, atleast_2d, subixstr } = parameters;
 
   const fullUrl =
     URLExt.join(settings.baseUrl, "hdf", "data", fpath).split("?")[0] +
-    objectToQueryString({ uri, ixstr, subixstr });
+    objectToQueryString({ uri, ixstr, atleast_2d, subixstr });
 
   return hdfApiRequest(fullUrl, {}, settings);
 }
@@ -195,6 +195,8 @@ export interface IContentsParameters {
 }
 
 export interface IDataParameters extends IContentsParameters {
+  atleast_2d?: boolean;
+
   subixstr?: string;
 }
 
@@ -224,9 +226,9 @@ export class HdfContents {
 }
 
 export interface IDatasetMeta {
-  dtype: string;
+  attrs: { [key: string]: any };
 
-  ndim: number;
+  dtype: string;
 
   shape: number[];
 
@@ -234,11 +236,9 @@ export interface IDatasetMeta {
 
   vislabels: ISlice[];
 
-  visdims: number[];
-
   visshape: number[];
 
-  attrs: { [key: string]: any };
+  vissize: number;
 }
 
 /**

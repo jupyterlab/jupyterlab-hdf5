@@ -55,7 +55,7 @@ export const HDF_CLASS = "jhdf-dataGrid";
 export const HDF_CONTAINER_CLASS = "jhdf-container";
 
 /**
- * Base implementation of a dataset model
+ * Base implementation of the hdf dataset model.
  */
 export class HdfDatasetModelBase extends DataModel {
   constructor() {
@@ -85,31 +85,6 @@ export class HdfDatasetModelBase extends DataModel {
     this._refresh(meta).then(() => {
       this._ready.resolve(undefined);
     });
-  }
-
-  columnCount(region: DataModel.ColumnRegion): number {
-    if (region === "body") {
-      // always nonzero for 1D support
-      return this._meta
-        ? this._meta.visshape[1]
-          ? this._meta.visshape[1]
-          : 1
-        : 0;
-    }
-
-    return 1;
-  }
-
-  rowCount(region: DataModel.RowRegion): number {
-    if (region === "body") {
-      return this._meta
-        ? this._meta.visshape[0]
-          ? this._meta.visshape[0]
-          : 1
-        : 0;
-    }
-
-    return 1;
   }
 
   data(region: DataModel.CellRegion, row: number, col: number): any {
@@ -147,6 +122,29 @@ export class HdfDatasetModelBase extends DataModel {
     return null;
   }
 
+  get ixstr(): string {
+    return this._ixstr;
+  }
+  set ixstr(ixstr: string) {
+    this._ixstr = ixstr;
+    this.refresh();
+  }
+
+  set meta(meta: IDatasetMeta) {
+    this._meta = meta;
+
+    if (this._meta.vissize <= 0) {
+      // if size <= 0, use empty shape
+      [this._nrow, this._ncol] = [0, 0];
+    } else if (this._meta.visshape.length >= 2) {
+      // for 2d, use standard shape
+      [this._nrow, this._ncol] = this._meta.visshape;
+    } else {
+      // for 0d or 1d, use (1, size)
+      [this._nrow, this._ncol] = [1, this._meta.vissize];
+    }
+  }
+
   /**
    * A promise that resolves when the file editor is ready.
    */
@@ -159,7 +157,7 @@ export class HdfDatasetModelBase extends DataModel {
     const oldColCount = this.columnCount("body");
 
     // changing the meta will also change the result of the row/colCount methods
-    this._meta = meta;
+    this.meta = meta;
 
     this._blocks = Object();
 
@@ -218,23 +216,28 @@ export class HdfDatasetModelBase extends DataModel {
     );
   }
 
+  get refreshed() {
+    return this._refreshed;
+  }
+
+  rowCount(region: DataModel.RowRegion): number {
+    if (region === "body") {
+      return this._nrow;
+    }
+    return 1;
+  }
+  columnCount(region: DataModel.ColumnRegion): number {
+    if (region === "body") {
+      return this._ncol;
+    }
+    return 1;
+  }
+
   get rowSlice(): ISlice {
     return this._meta?.vislabels[0] || noneSlice();
   }
   get colSlice(): ISlice {
     return this._meta?.vislabels[1] || noneSlice();
-  }
-
-  get ixstr(): string {
-    return this._ixstr;
-  }
-  set ixstr(ixstr: string) {
-    this._ixstr = ixstr;
-    this.refresh();
-  }
-
-  get refreshed() {
-    return this._refreshed;
   }
 
   /**
@@ -256,24 +259,22 @@ export class HdfDatasetModelBase extends DataModel {
       this.columnCount("body")
     );
 
-    const subixstrs = [
-      this.rowSlice.stop - this.rowSlice.start > 0 ? `${row}:${rowStop}` : "",
-      this.colSlice.stop - this.colSlice.start > 0 ? `${column}:${colStop}` : ""
-    ].filter(x => x);
+    const subixstr = [
+      this._meta.visshape.length >= 2 ? `${row}:${rowStop}` : "",
+      this._meta.visshape.length >= 1 ? `${column}:${colStop}` : ""
+    ]
+      .filter(x => x)
+      .join(", ");
 
     const params = {
       fpath: this._fpath,
       uri: this._uri,
+      atleast_2d: true,
       ixstr: this._ixstr,
-      subixstr: subixstrs.join(", ")
+      subixstr
     };
     hdfDataRequest(params, this._serverSettings).then(
       data => {
-        if (subixstrs.length < 1) {
-          data = [[data as any]];
-        } else if (subixstrs.length === 1) {
-          data = data.map(x => [x]) as any;
-        }
         this._blocks[rowBlock][colBlock] = data;
 
         const msg = {
@@ -297,13 +298,15 @@ export class HdfDatasetModelBase extends DataModel {
     );
   };
 
-  protected _serverSettings: ServerConnection.ISettings;
+  protected _serverSettings: ServerConnection.ISettings = ServerConnection.makeSettings();
 
-  private _fpath: string = "";
-  private _uri: string = "";
-  private _meta: IDatasetMeta;
+  protected _fpath: string = "";
+  protected _uri: string = "";
+  protected _meta: IDatasetMeta;
 
-  private _ixstr: string = "";
+  protected _ixstr: string = "";
+  protected _ncol = 0;
+  protected _nrow = 0;
 
   private _blocks: any = Object();
   private _blockSize: number = 100;

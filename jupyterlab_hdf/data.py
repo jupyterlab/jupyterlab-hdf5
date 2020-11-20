@@ -13,7 +13,7 @@ __all__ = ['HdfDataManager', 'HdfDataHandler']
 class HdfDataManager(HdfFileManager):
     """Implements HDF5 data handling
     """
-    def _getFromFile(self, f, uri, ixstr, subixstr, **kwargs):
+    def _getFromFile(self, f, uri, ixstr, subixstr=None, atleast_2d=False, **kwargs):
         # # DEBUG: uncomment for logging
         # from .util import dsetContentDict, parseSubindex
         # logd = dsetContentDict(f[uri], ixstr=ixstr)
@@ -22,7 +22,7 @@ class HdfDataManager(HdfFileManager):
         #     logd['ixcompound'] = parseSubindex(ixstr, subixstr, f[uri].shape)
         # self.log.info('{}'.format(logd))
 
-        return dsetChunk(f[uri], ixstr, subixstr)
+        return dsetChunk(f[uri], ixstr, subixstr=subixstr, atleast_2d=atleast_2d)
 
 
 ## handler
