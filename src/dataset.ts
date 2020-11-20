@@ -40,7 +40,7 @@ import {
   parseHdfQuery
 } from "./hdf";
 
-import { ISlice, noneSlice } from "./slice";
+import { noneSlice } from "./slice";
 
 import { IxInput } from "./toolbar";
 
@@ -89,10 +89,10 @@ export class HdfDatasetModelBase extends DataModel {
 
   data(region: DataModel.CellRegion, row: number, col: number): any {
     if (region === "row-header") {
-      return `${this.rowSlice.start + row * this.rowSlice.step}`;
+      return `${this._rowslice.start + row * this._rowslice.step}`;
     }
     if (region === "column-header") {
-      return `${this.colSlice.start + col * this.colSlice.step}`;
+      return `${this._colslice.start + col * this._colslice.step}`;
     }
     if (region === "corner-header") {
       return null;
@@ -136,12 +136,15 @@ export class HdfDatasetModelBase extends DataModel {
     if (this._meta.vissize <= 0) {
       // if size <= 0, use empty shape
       [this._nrow, this._ncol] = [0, 0];
+      [this._rowslice, this._colslice] = [noneSlice(), noneSlice()];
     } else if (this._meta.visshape.length >= 2) {
       // for 2d, use standard shape
       [this._nrow, this._ncol] = this._meta.visshape;
+      [this._rowslice, this._colslice] = this._meta.vislabels;
     } else {
       // for 0d or 1d, use (1, size)
       [this._nrow, this._ncol] = [1, this._meta.vissize];
+      [this._rowslice, this._colslice] = [noneSlice(), ...this._meta.vislabels];
     }
   }
 
@@ -233,13 +236,6 @@ export class HdfDatasetModelBase extends DataModel {
     return 1;
   }
 
-  get rowSlice(): ISlice {
-    return this._meta?.vislabels[0] || noneSlice();
-  }
-  get colSlice(): ISlice {
-    return this._meta?.vislabels[1] || noneSlice();
-  }
-
   /**
    * fetch a data block. When data is received,
    * the grid will be updated by emitChanged.
@@ -307,6 +303,8 @@ export class HdfDatasetModelBase extends DataModel {
   protected _ixstr: string = "";
   protected _ncol = 0;
   protected _nrow = 0;
+  protected _colslice = noneSlice();
+  protected _rowslice = noneSlice();
 
   private _blocks: any = Object();
   private _blockSize: number = 100;
