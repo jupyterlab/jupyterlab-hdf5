@@ -24,7 +24,7 @@ def dsetChunk(dset, ixstr=None, subixstr=None, atleast_2d=False):
     if atleast_2d:
         chunk = np.atleast_2d(chunk)
 
-    return chunk.tolist()
+    return chunk
 
 
 ## create dicts to be returned by the contents api
@@ -38,10 +38,10 @@ def dsetContentDict(dset, ixstr=None):
         else:
             ixstr = ', '.join([':', ':'] + (['0'] * (dset.ndim - 2)))
 
-    ixmeta = jsonize(metadataIndex(ixstr, dset.shape))
+    ixmeta = metadataIndex(ixstr, dset.shape)
 
     return dict((
-        ('attrs', {k: jsonize(v) for k, v in dset.attrs.items()}),
+        ('attrs', {**dset.attrs}),
         ('dtype', dset.dtype.str),
         ('shape', dset.shape),
         ('ixstr', ixstr),

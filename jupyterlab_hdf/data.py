@@ -22,7 +22,7 @@ class HdfDataManager(HdfFileManager):
         #     logd['ixcompound'] = parseSubindex(ixstr, subixstr, f[uri].shape)
         # self.log.info('{}'.format(logd))
 
-        return dsetChunk(f[uri], ixstr, subixstr=subixstr, atleast_2d=atleast_2d)
+        return dsetChunk(f[uri], ixstr, subixstr=subixstr, atleast_2d=atleast_2d).tolist()
 
 
 ## handler
