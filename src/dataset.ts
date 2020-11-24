@@ -64,27 +64,38 @@ export abstract class HdfDatasetModel extends DataModel {
   init({
     fpath,
     uri,
-    ixstr,
     meta
-  }: IContentsParameters & { meta: IDatasetMeta }): void {
+  }: {
+    fpath: string;
+    uri: string;
+    meta: IDatasetMeta;
+  }): void {
     this._fpath = fpath;
     this._uri = uri;
     this._meta = meta;
 
-    if (!ixstr && ixstr !== "") {
-      if (this._meta.ndim < 1) {
-        ixstr = "";
-      } else if (this._meta.ndim < 2) {
-        ixstr = ":";
-      } else {
-        ixstr = [...Array(this._meta.ndim - 2).fill("0"), ":", ":"].join(", ");
-      }
+    if (this._meta.ndim < 1) {
+      this._ixstr = "";
+    } else if (this._meta.ndim < 2) {
+      this._ixstr = ":";
+    } else {
+      this._ixstr = [...Array(this._meta.ndim - 2).fill("0"), ":", ":"].join(
+        ", "
+      );
     }
 
-    this._ixstr = ixstr;
+    const metaIx: IDatasetMeta = {
+      ...meta,
+      labels: meta.labels.slice(-2),
+      ndim: Math.max(meta.ndim, 2),
+      shape: meta.shape.slice(-2),
+      size: meta.shape.length
+        ? meta.shape.slice(-2).reduce((x, y) => x * y)
+        : meta.size
+    };
 
     // Refresh wrt the newly set ix and then resolve the ready promise.
-    this._refresh(meta).then(() => {
+    this._refresh(metaIx).then(() => {
       this._ready.resolve(undefined);
     });
   }
