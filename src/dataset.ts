@@ -57,29 +57,31 @@ export const HDF_CONTAINER_CLASS = "jhdf-container";
 /**
  * Base implementation of the hdf dataset model.
  */
-export class HdfDatasetModelBase extends DataModel {
-  constructor() {
-    super();
-
-    this._serverSettings = ServerConnection.makeSettings();
-  }
-
+export abstract class HdfDatasetModel extends DataModel {
   /**
    * Handle actions that should be taken when the context is ready.
    */
   init({
     fpath,
     uri,
+    ixstr,
     meta
-  }: {
-    fpath: string;
-    uri: string;
-    meta: IDatasetMeta;
-  }): void {
+  }: IContentsParameters & { meta: IDatasetMeta }): void {
     this._fpath = fpath;
     this._uri = uri;
+    this._meta = meta;
 
-    this._ixstr = meta.ixstr;
+    if (!ixstr && ixstr !== "") {
+      if (this._meta.ndim < 1) {
+        ixstr = "";
+      } else if (this._meta.ndim < 2) {
+        ixstr = ":";
+      } else {
+        ixstr = [...Array(this._meta.ndim - 2).fill("0"), ":", ":"].join(", ");
+      }
+    }
+
+    this._ixstr = ixstr;
 
     // Refresh wrt the newly set ix and then resolve the ready promise.
     this._refresh(meta).then(() => {
@@ -89,10 +91,10 @@ export class HdfDatasetModelBase extends DataModel {
 
   data(region: DataModel.CellRegion, row: number, col: number): any {
     if (region === "row-header") {
-      return `${this._slice[0].start + row * this._slice[0].step}`;
+      return `${this._labels[0].start + row * this._labels[0].step}`;
     }
     if (region === "column-header") {
-      return `${this._slice[1].start + col * this._slice[1].step}`;
+      return `${this._labels[1].start + col * this._labels[1].step}`;
     }
     if (region === "corner-header") {
       return null;
@@ -133,6 +135,9 @@ export class HdfDatasetModelBase extends DataModel {
   get meta(): IDatasetMeta {
     return this._meta;
   }
+  get metaIx(): IDatasetMeta {
+    return this._metaIx;
+  }
 
   /**
    * A promise that resolves when the file editor is ready.
@@ -145,8 +150,8 @@ export class HdfDatasetModelBase extends DataModel {
     const oldRowCount = this.rowCount("body");
     const oldColCount = this.columnCount("body");
 
-    // changing the meta will also change the result of the row/colCount methods
-    this._setMeta(meta);
+    // changing the index meta will also change the result of the row/colCount methods
+    this._setMetaIx(meta);
 
     this._blocks = Object();
 
@@ -284,34 +289,34 @@ export class HdfDatasetModelBase extends DataModel {
     );
   };
 
-  private _setMeta(meta: IDatasetMeta) {
-    this._meta = meta;
+  private _setMetaIx(meta: IDatasetMeta) {
+    this._metaIx = meta;
 
     // all reasoning about 0d vs 1d vs nd goes here
-    if (this._meta.visshape.length < 1) {
+    if (this._metaIx.shape.length < 1) {
       // for 0d (scalar), use (1, 1)
       this._hassubix = [false, false];
       this._n = [1, 1];
       this._nheader = [0, 0];
-      this._slice = [slice(0, 1), slice(0, 1)];
-    } else if (this._meta.vissize <= 0) {
+      this._labels = [slice(0, 1), slice(0, 1)];
+    } else if (this._metaIx.size <= 0) {
       // for 0d (empty), use (0, 0)
       this._hassubix = [false, false];
       this._n = [0, 0];
       this._nheader = [0, 0];
-      this._slice = [noneSlice(), noneSlice()];
-    } else if (this._meta.visshape.length < 2) {
+      this._labels = [noneSlice(), noneSlice()];
+    } else if (this._metaIx.shape.length < 2) {
       // for 1d, use (1, size)
       this._hassubix = [false, true];
-      this._n = [1, this._meta.vissize];
+      this._n = [1, this._metaIx.size];
       this._nheader = [1, 0];
-      this._slice = [slice(0, 1), this._meta.vislabels[0]];
+      this._labels = [slice(0, 1), this._metaIx.labels[0]];
     } else {
       // for 2d up, use standard shape
       this._hassubix = [true, true];
-      this._n = this._meta.visshape;
+      this._n = this._metaIx.shape;
       this._nheader = [1, 1];
-      this._slice = this._meta.vislabels;
+      this._labels = this._metaIx.labels;
     }
   }
 
@@ -323,9 +328,10 @@ export class HdfDatasetModelBase extends DataModel {
   protected _hassubix = [false, false];
   protected _n = [0, 0];
   protected _nheader = [0, 0];
-  protected _slice = [noneSlice(), noneSlice()];
+  protected _labels = [noneSlice(), noneSlice()];
 
   private _meta: IDatasetMeta;
+  private _metaIx: IDatasetMeta;
   private _ixstr: string = "";
 
   private _blocks: any = Object();
@@ -338,7 +344,7 @@ export class HdfDatasetModelBase extends DataModel {
 /**
  * Subclass that constructs a dataset model from a document context
  */
-class HdfDatasetModelContext extends HdfDatasetModelBase {
+class HdfDatasetModelFromContext extends HdfDatasetModel {
   constructor(context: DocumentRegistry.Context) {
     super();
 
@@ -378,7 +384,7 @@ class HdfDatasetModelContext extends HdfDatasetModelBase {
 /**
  * Subclass that constructs a dataset model from simple parameters
  */
-class HdfDatasetModelParams extends HdfDatasetModelBase {
+export class HdfDatasetModelFromPath extends HdfDatasetModel {
   constructor(parameters: IContentsParameters) {
     super();
 
@@ -399,8 +405,8 @@ class HdfDatasetModelParams extends HdfDatasetModelBase {
   }
 }
 
-export function createHdfGrid(
-  dataModel: HdfDatasetModelBase
+function createHdfGrid(
+  dataModel: HdfDatasetModel
 ): { grid: DataGrid; toolbar: Toolbar<ToolbarButton> } {
   const grid = new DataGrid();
   grid.dataModel = dataModel;
@@ -417,11 +423,22 @@ export function createHdfGrid(
   return { grid, toolbar };
 }
 
+export function createHdfGridFromContext(
+  context: DocumentRegistry.Context
+): { grid: DataGrid; reveal: Promise<void>; toolbar: Toolbar<ToolbarButton> } {
+  const model = new HdfDatasetModelFromContext(context);
+  const reveal = context.ready;
+
+  const { grid, toolbar } = createHdfGrid(model);
+
+  return { grid, reveal, toolbar };
+}
+
 export function createHdfGridFromPath(params: {
   fpath: string;
   uri: string;
 }): { grid: DataGrid; reveal: Promise<void>; toolbar: Toolbar<ToolbarButton> } {
-  const model = new HdfDatasetModelParams(params);
+  const model = new HdfDatasetModelFromPath(params);
   const reveal = model.ready;
 
   const { grid, toolbar } = createHdfGrid(model);
@@ -446,9 +463,9 @@ export class HdfDatasetMain extends MainAreaWidget<DataGrid> {
 export class HdfDatasetDoc extends DocumentWidget<DataGrid>
   implements IDocumentWidget<DataGrid> {
   constructor(context: DocumentRegistry.Context) {
-    const model = new HdfDatasetModelContext(context);
-    const { grid: content, toolbar } = createHdfGrid(model);
-    const reveal = context.ready;
+    const { grid: content, reveal, toolbar } = createHdfGridFromContext(
+      context
+    );
 
     super({ content, context, reveal, toolbar });
   }

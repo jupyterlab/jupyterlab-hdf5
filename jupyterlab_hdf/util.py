@@ -30,24 +30,15 @@ def dsetChunk(dset, ixstr=None, subixstr=None, atleast_2d=False):
 ## create dicts to be returned by the contents api
 def dsetContentDict(dset, ixstr=None):
     if ixstr is None:
-        # create a default ixstr
-        if dset.ndim < 1:
-            raise ValueError('dataset has wrong number of dimensions. ndim: {}'.format(dset.ndim))
-        elif dset.ndim == 1:
-            ixstr = ':'
-        else:
-            ixstr = ', '.join([':', ':'] + (['0'] * (dset.ndim - 2)))
-
-    ixmeta = metadataIndex(ixstr, dset.shape)
+        meta = metadataDset(dset)
+    else:
+        meta = metadataIndex(ixstr, dset.shape)
 
     return dict((
         ('attrs', {**dset.attrs}),
         ('dtype', dset.dtype.str),
-        ('shape', dset.shape),
-        ('ixstr', ixstr),
-        ('vislabels', ixmeta['vislabels']),
-        ('visshape', ixmeta['visshape']),
-        ('vissize', ixmeta['vissize']),
+
+        *((k, meta[k]) for k in ('labels', 'ndim', 'shape', 'size')),
     ))
 
 def dsetDict(uri, name=None, content=None):
@@ -157,27 +148,42 @@ def sliceLen(slyce, seqlen):
     start, stop, step = slyce.indices(seqlen)
     return max(0, (stop - start + (step - (1 if step > 0 else -1))) // step)
 
+def metadataDset(dset):
+    return dict((
+        ('labels', tuple(slice(0, n, 1) for n in dset.shape)),
+        ('ndim', dset.ndim),
+        ('shape', dset.shape),
+        ('size', dset.size),
+        ('visdims', tuple(range(dset.ndim))),
+    ))
+
 def metadataIndex(ixstr, shape):
     ix = parseIndex(ixstr)
 
-    meta = {
-        'visdims': [d for d,dix in enumerate(ix) if isinstance(dix, slice)],
-    }
+    visdimsIx = tuple(d for d,dix in enumerate(ix) if isinstance(dix, slice))
 
-    meta['vislabels'] = [slice(*ix[d].indices(shape[d])) for d in meta['visdims']]
-    meta['visshape'] = [sliceLen(ix[d], shape[d]) for d in meta['visdims']]
+    labelsIx = [slice(*ix[d].indices(shape[d])) for d in visdimsIx]
+    shapeIx = [sliceLen(ix[d], shape[d]) for d in visdimsIx]
 
-    meta['vissize'] = np.prod(meta['visshape']) if meta['visdims'] else 0
+    ndimIx = len(shapeIx)
 
-    return meta
+    sizeIx = np.prod(shapeIx) if ndimIx else 0
+
+    return dict((
+        ('labels', labelsIx),
+        ('ndim', ndimIx),
+        ('shape', shapeIx),
+        ('size', sizeIx),
+        ('visdims', visdimsIx),
+    ))
 
 def parseSubindex(ixstr, subixstr, shape):
     ix = parseIndex(ixstr)
-    meta = metadataIndex(ixstr, shape)
+    metaIx = metadataIndex(ixstr, shape)
     subix = parseIndex(subixstr)
 
     ixcompound = list(ix)
-    for d, dlabel, subdix in zip(meta['visdims'], meta['vislabels'], subix):
+    for d, dlabel, subdix in zip(metaIx['visdims'], metaIx['labels'], subix):
         start = dlabel.start + (subdix.start*dlabel.step)
         stop = dlabel.start + (min(subdix.stop, dlabel.stop // dlabel.step)*dlabel.step) # dlabel.start + (subdix.stop*dlabel.step)
         ixcompound[d] = slice(start, stop)
@@ -185,10 +191,10 @@ def parseSubindex(ixstr, subixstr, shape):
     return tuple(ixcompound)
 
 def validateSubindex(ixstr, subixstr, shape):
-    meta = metadataIndex(ixstr, shape)
+    metaIx = metadataIndex(ixstr, shape)
     subix = parseIndex(subixstr)
 
-    if len(subix) != len(meta['visdims']):
+    if len(subix) != len(metaIx['visdims']):
         msg = dict((
             ('message', 'malformed subixstr: number of visible dimensions in index not equal to number of dimensions in subindex.'),
             ('debugVars', {'ixstr': ixstr, 'subixstr': subixstr}),

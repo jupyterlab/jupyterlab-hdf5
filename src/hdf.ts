@@ -230,15 +230,13 @@ export interface IDatasetMeta {
 
   dtype: string;
 
+  labels: ISlice[];
+
+  ndim: number;
+
   shape: number[];
 
-  ixstr: string;
-
-  vislabels: ISlice[];
-
-  visshape: number[];
-
-  vissize: number;
+  size: number;
 }
 
 /**
