@@ -40,6 +40,7 @@ import {
   hdfContentsRequest,
   hdfDataRequest,
   IContentsParameters,
+  IDataParameters,
   IDatasetMeta,
   parseHdfQuery
 } from "./hdf";
@@ -193,6 +194,20 @@ export abstract class HdfDatasetModel extends DataModel {
     return this._nheader[1];
   }
 
+  protected async getData(params: IDataParameters): Promise<number[][]> {
+    try {
+      return await hdfDataRequest(params, this._serverSettings);
+    } catch (err) {
+      if (err instanceof HdfResponseError) {
+        modalHdfError(err);
+      } else if (err instanceof ServerConnection.ResponseError) {
+        modalResponseError(err);
+      } else {
+        throw err;
+      }
+    }
+  }
+
   protected async getMeta(params: IContentsParameters): Promise<IDatasetMeta> {
     try {
       return ((await hdfContentsRequest(
@@ -243,28 +258,19 @@ export abstract class HdfDatasetModel extends DataModel {
       // skip subixstr in the 0d case
       // ...(subixstr ? {subixstr: subixstr} : {}),
     };
-    hdfDataRequest(params, this._serverSettings).then(
-      data => {
-        this._blocks[rowBlock][colBlock] = data;
 
-        const msg = {
-          type: "cells-changed",
-          region: "body",
-          row,
-          column,
-          rowSpan: rowStop - row,
-          columnSpan: colStop - column
-        };
-        this.emitChanged(msg as DataModel.ChangedArgs);
-      },
-      err => {
-        if (err instanceof HdfResponseError) {
-          modalHdfError(err);
-        } else {
-          console.error(err);
-        }
-      }
-    );
+    const data = await this.getData(params);
+    this._blocks[rowBlock][colBlock] = data;
+
+    const msg = {
+      type: "cells-changed",
+      region: "body",
+      row,
+      column,
+      rowSpan: rowStop - row,
+      columnSpan: colStop - column
+    };
+    this.emitChanged(msg as DataModel.ChangedArgs);
   };
 
   private _refresh(meta: IDatasetMeta) {
