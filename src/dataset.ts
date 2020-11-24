@@ -29,7 +29,11 @@ import {
 
 import { ServerConnection } from "@jupyterlab/services";
 
-import { HdfResponseError, modalHdfError } from "./exception";
+import {
+  HdfResponseError,
+  modalHdfError,
+  modalResponseError
+} from "./exception";
 
 import {
   HdfContents,
@@ -74,6 +78,7 @@ export abstract class HdfDatasetModel extends DataModel {
     this._uri = uri;
     this._meta = meta;
 
+    // create a default index string
     if (this._meta.ndim < 1) {
       this._ixstr = "";
     } else if (this._meta.ndim < 2) {
@@ -84,6 +89,7 @@ export abstract class HdfDatasetModel extends DataModel {
       );
     }
 
+    // derive metadata for the default ixstr from the metadata for no ixstr
     const metaIx: IDatasetMeta = {
       ...meta,
       labels: meta.labels.slice(-2),
@@ -95,9 +101,8 @@ export abstract class HdfDatasetModel extends DataModel {
     };
 
     // Refresh wrt the newly set ix and then resolve the ready promise.
-    this._refresh(metaIx).then(() => {
-      this._ready.resolve(undefined);
-    });
+    this._refresh(metaIx);
+    this._ready.resolve(undefined);
   }
 
   data(region: DataModel.CellRegion, row: number, col: number): any {
@@ -123,12 +128,14 @@ export abstract class HdfDatasetModel extends DataModel {
           return this._blocks[rowBlock][colBlock][relRow][relCol];
         } else {
           // This data has not yet been loaded, load it.
+          this._blocks[rowBlock][colBlock] = "busy";
           this._fetchBlock(rowBlock, colBlock);
         }
       }
     } else {
       // This data has not yet been loaded, load it.
       this._blocks[rowBlock] = Object();
+      this._blocks[rowBlock][colBlock] = "busy";
       this._fetchBlock(rowBlock, colBlock);
     }
 
@@ -157,67 +164,13 @@ export abstract class HdfDatasetModel extends DataModel {
     return this._ready.promise;
   }
 
-  async _refresh(meta: IDatasetMeta) {
-    const oldRowCount = this.rowCount("body");
-    const oldColCount = this.columnCount("body");
-
-    // changing the index meta will also change the result of the row/colCount methods
-    this._setMetaIx(meta);
-
-    this._blocks = Object();
-
-    this.emitChanged({
-      type: "rows-removed",
-      region: "body",
-      index: 0,
-      span: oldRowCount
-    });
-    this.emitChanged({
-      type: "columns-removed",
-      region: "body",
-      index: 0,
-      span: oldColCount
-    });
-
-    this.emitChanged({
-      type: "rows-inserted",
-      region: "body",
-      index: 0,
-      span: this.rowCount("body")
-    });
-    this.emitChanged({
-      type: "columns-inserted",
-      region: "body",
-      index: 0,
-      span: this.columnCount("body")
-    });
-
-    this.emitChanged({
-      type: "model-reset"
-    });
-
-    this._refreshed.emit(this.ixstr);
-  }
-
   async refresh() {
-    const params = {
-      fpath: this._fpath,
-      uri: this._uri,
-      ixstr: this._ixstr
-    };
-
-    return hdfContentsRequest(params, this._serverSettings).then(
-      contents => {
-        return this._refresh((contents as HdfContents).content!);
-      },
-      err => {
-        if (err instanceof HdfResponseError) {
-          modalHdfError(err);
-        } else {
-          console.error(err);
-        }
-        return Promise.reject(err);
-      }
+    this._refresh(
+      await this.getMeta({
+        fpath: this._fpath,
+        uri: this._uri,
+        ixstr: this._ixstr
+      })
     );
   }
 
@@ -240,13 +193,28 @@ export abstract class HdfDatasetModel extends DataModel {
     return this._nheader[1];
   }
 
+  protected async getMeta(params: IContentsParameters): Promise<IDatasetMeta> {
+    try {
+      return ((await hdfContentsRequest(
+        params,
+        this._serverSettings
+      )) as HdfContents).content;
+    } catch (err) {
+      if (err instanceof HdfResponseError) {
+        modalHdfError(err);
+      } else if (err instanceof ServerConnection.ResponseError) {
+        modalResponseError(err);
+      } else {
+        throw err;
+      }
+    }
+  }
+
   /**
    * fetch a data block. When data is received,
    * the grid will be updated by emitChanged.
    */
-  private _fetchBlock = (rowBlock: number, colBlock: number) => {
-    this._blocks[rowBlock][colBlock] = "busy";
-
+  private _fetchBlock = async (rowBlock: number, colBlock: number) => {
     const row = rowBlock * this._blockSize;
     const rowStop: number = Math.min(
       row + this._blockSize,
@@ -295,10 +263,51 @@ export abstract class HdfDatasetModel extends DataModel {
         } else {
           console.error(err);
         }
-        return Promise.reject(err);
       }
     );
   };
+
+  private _refresh(meta: IDatasetMeta) {
+    const oldRowCount = this.rowCount("body");
+    const oldColCount = this.columnCount("body");
+
+    // changing the index meta will also change the result of the row/colCount methods
+    this._setMetaIx(meta);
+
+    this._blocks = Object();
+
+    this.emitChanged({
+      type: "rows-removed",
+      region: "body",
+      index: 0,
+      span: oldRowCount
+    });
+    this.emitChanged({
+      type: "columns-removed",
+      region: "body",
+      index: 0,
+      span: oldColCount
+    });
+
+    this.emitChanged({
+      type: "rows-inserted",
+      region: "body",
+      index: 0,
+      span: this.rowCount("body")
+    });
+    this.emitChanged({
+      type: "columns-inserted",
+      region: "body",
+      index: 0,
+      span: this.columnCount("body")
+    });
+
+    this.emitChanged({
+      type: "model-reset"
+    });
+
+    this._refreshed.emit(this.ixstr);
+  }
 
   private _setMetaIx(meta: IDatasetMeta) {
     this._metaIx = meta;
@@ -396,11 +405,11 @@ class HdfDatasetModelFromContext extends HdfDatasetModel {
  * Subclass that constructs a dataset model from simple parameters
  */
 export class HdfDatasetModelFromPath extends HdfDatasetModel {
-  constructor(parameters: IContentsParameters) {
+  constructor(params: IContentsParameters) {
     super();
 
-    hdfContentsRequest(parameters, this._serverSettings).then(hdfContents => {
-      this._onMetaReady(parameters, hdfContents as HdfContents);
+    this.getMeta(params).then(meta => {
+      this._onMetaReady(params, meta);
     });
   }
 
@@ -408,11 +417,10 @@ export class HdfDatasetModelFromPath extends HdfDatasetModel {
    * Handle actions that should be taken when the model is ready.
    */
   private _onMetaReady(
-    parameters: IContentsParameters,
-    contents: HdfContents
+    { fpath, uri }: IContentsParameters,
+    meta: IDatasetMeta
   ): void {
-    const { fpath, uri } = parameters;
-    this.init({ fpath, uri, meta: contents.content });
+    this.init({ fpath, uri, meta });
   }
 }
 
