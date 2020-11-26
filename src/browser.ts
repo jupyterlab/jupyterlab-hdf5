@@ -238,15 +238,11 @@ export class hdfFpathInput extends Widget {
   handleEvent(event: KeyboardEvent): void {
     switch (event.type) {
       case "keydown":
-        switch (event.keyCode) {
-          case 13: // Enter
-            event.stopPropagation();
-            event.preventDefault();
-            this.path = this._input.value;
-            this._input.blur();
-            break;
-          default:
-            break;
+        if (event.key === "Enter") {
+          event.stopPropagation();
+          event.preventDefault();
+          this.path = this._input.value;
+          this._input.blur();
         }
         break;
       case "blur":
