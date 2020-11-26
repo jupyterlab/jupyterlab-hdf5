@@ -9,7 +9,26 @@ import numpy as np
 
 from .exception import JhdfError
 
-__all__ = ['dsetChunk', 'dsetContentDict', 'dsetDict', 'groupDict', 'jsonize', 'parseIndex', 'parseSubindex', 'uriJoin', 'uriName']
+__all__ = [
+    'createDefaultIxstr',
+    'dsetChunk',
+    'dsetContentDict',
+    'dsetDict',
+    'groupDict',
+    'jsonize',
+    'parseIndex',
+    'parseSubindex',
+    'uriJoin',
+    'uriName',
+]
+
+
+def createDefaultIxstr(ndim):
+    if ndim == 1:
+        return ':'
+
+    return ', '.join([':', ':'] + (['0'] * (ndim - 2)))
+
 
 ## chunk handling
 def dsetChunk(dset, ixstr=None, subixstr=None, atleast_2d=False):
@@ -29,15 +48,19 @@ def dsetChunk(dset, ixstr=None, subixstr=None, atleast_2d=False):
 
 ## create dicts to be returned by the contents api
 def dsetContentDict(dset, ixstr=None):
-    if ixstr is None:
-        # create a default ixstr
-        if dset.ndim < 1:
-            raise ValueError('dataset has wrong number of dimensions. ndim: {}'.format(dset.ndim))
-        elif dset.ndim == 1:
-            ixstr = ':'
-        else:
-            ixstr = ', '.join([':', ':'] + (['0'] * (dset.ndim - 2)))
 
+    if dset.ndim == 0:
+        return {
+            'attrs': {**dset.attrs},
+            'dtype': dset.dtype.str,
+            'shape': dset.shape,
+            'ixstr': '',
+            'vislabels': [slice(0, 1, 1), slice(0, 1, 1)],
+            'visshape': [1, 1],
+            'vissize': 1,
+        }
+
+    ixstr = createDefaultIxstr(dset.ndim) if ixstr is None else ixstr
     ixmeta = metadataIndex(ixstr, dset.shape)
 
     return dict((
