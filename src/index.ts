@@ -264,7 +264,7 @@ function addBrowserCommands(
 
   commands.addCommand(CommandIDs.openSnippet, {
     label: "Snippet",
-    execute: args => {
+    execute: async () => {
       const widget = tracker.currentWidget;
       if (!widget) {
         return;
@@ -277,9 +277,19 @@ function addBrowserCommands(
       );
       const params = parseHdfQuery(items[0].path);
 
-      hdfSnippetRequest(params, serverSettings).then(snipStr => {
-        notebookTracker.activeCell.model.value.insert(0, snipStr);
-      });
+      if (!notebookTracker.activeCell) {
+        console.error("No cell available to paste the snippet");
+        return;
+      }
+
+      try {
+        notebookTracker.activeCell.model.value.insert(
+          0,
+          await hdfSnippetRequest(params, serverSettings)
+        );
+      } catch (error) {
+        console.error(error);
+      }
     }
   });
 
