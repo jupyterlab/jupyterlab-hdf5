@@ -118,7 +118,7 @@ export class IxInputBox extends React.Component<
   private _handleKeyDown = (
     event: React.KeyboardEvent<HTMLInputElement>
   ): void => {
-    if (event.keyCode === 13) {
+    if (event.key === "Enter") {
       this.props.handleEnter(event.currentTarget.value);
     }
   };
