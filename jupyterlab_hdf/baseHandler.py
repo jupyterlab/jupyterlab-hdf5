@@ -112,9 +112,15 @@ class HdfBaseHandler(APIHandler):
         """
         uri = '/' + self.get_query_argument('uri').lstrip('/')
 
-        _kws = ('atleast_2d', 'ixstr', 'subixstr')
+        # get any query parameter vals
+        _kws = ('min_ndim', 'ixstr', 'subixstr')
         _vals = (self.get_query_argument(kw, default=None) for kw in _kws)
-        kwargs = {kw:(val if val else None) for kw,val in zip(_kws, _vals)}
+        kwargs = {k:v if v else None for k,v in zip(_kws, _vals)}
+
+        # do any needed type conversions of param vals
+        _num_kws = ('min_ndim', )
+        for k in (k for k in _num_kws if kwargs[k] is not None):
+            kwargs[k] = int(kwargs[k])
 
         try:
             self.finish(simplejson.dumps(self.manager.get(path, uri, **kwargs), ignore_nan=True))

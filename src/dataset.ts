@@ -90,7 +90,7 @@ export abstract class HdfDatasetModel extends DataModel {
       );
     }
 
-    // derive metadata for the default ixstr from the metadata for no ixstr
+    // derive metadata for the default ixstr (eg ':, :, ...') from the metadata for no ixstr (eg '...')
     const metaIx: IDatasetMeta = {
       ...meta,
       labels: meta.labels.slice(-2),
@@ -213,7 +213,7 @@ export abstract class HdfDatasetModel extends DataModel {
       return ((await hdfContentsRequest(
         params,
         this._serverSettings
-      )) as HdfContents).content;
+      )) as HdfContents).content as IDatasetMeta;
     } catch (err) {
       if (err instanceof HdfResponseError) {
         modalHdfError(err);
@@ -252,8 +252,8 @@ export abstract class HdfDatasetModel extends DataModel {
     const params = {
       fpath: this._fpath,
       uri: this._uri,
-      atleast_2d: true,
       ixstr: this._ixstr,
+      min_ndim: 2,
       subixstr
       // skip subixstr in the 0d case
       // ...(subixstr ? {subixstr: subixstr} : {}),

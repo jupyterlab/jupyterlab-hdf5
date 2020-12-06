@@ -69,11 +69,11 @@ export function hdfContentsRequest(
   settings: ServerConnection.ISettings
 ): Promise<HdfDirectoryListing | HdfContents> {
   // allow the query parameters to be optional
-  const { fpath, uri, ixstr } = parameters;
+  const { fpath, uri, ixstr, min_ndim } = parameters;
 
   const fullUrl =
     URLExt.join(settings.baseUrl, "hdf", "contents", fpath).split("?")[0] +
-    objectToQueryString({ uri, ixstr });
+    objectToQueryString({ uri, ixstr, min_ndim });
 
   return hdfApiRequest(fullUrl, {}, settings);
 }
@@ -87,11 +87,11 @@ export function hdfDataRequest(
   settings: ServerConnection.ISettings
 ): Promise<number[][]> {
   // require the uri, row, and col query parameters
-  const { fpath, uri, ixstr, atleast_2d, subixstr } = parameters;
+  const { fpath, uri, ixstr, min_ndim, subixstr } = parameters;
 
   const fullUrl =
     URLExt.join(settings.baseUrl, "hdf", "data", fpath).split("?")[0] +
-    objectToQueryString({ uri, ixstr, atleast_2d, subixstr });
+    objectToQueryString({ uri, ixstr, min_ndim, subixstr });
 
   return hdfApiRequest(fullUrl, {}, settings);
 }
@@ -153,17 +153,17 @@ export interface IContentsParameters {
    */
   fpath: string;
 
+  ixstr?: string;
+
+  min_ndim?: number;
+
   /**
    * Path within an HDF5 file to a specific group or dataset.
    */
   uri: string;
-
-  ixstr?: string;
 }
 
 export interface IDataParameters extends IContentsParameters {
-  atleast_2d?: boolean;
-
   subixstr?: string;
 }
 
@@ -189,7 +189,13 @@ export class HdfContents {
   /**
    * If object is a dataset, all of its metadata encoded as a JSON string.
    */
-  content?: IDatasetMeta;
+  content?: IDatasetMeta | IGroupMeta;
+}
+
+export interface IGroupMeta {
+  attrs: { [key: string]: any };
+
+  name: string;
 }
 
 export interface IDatasetMeta {
@@ -197,6 +203,20 @@ export interface IDatasetMeta {
 
   dtype: string;
 
+  name: string;
+
+  // shapemeta: IDatasetShapeMeta;
+
+  labels: ISlice[];
+
+  ndim: number;
+
+  shape: number[];
+
+  size: number;
+}
+
+export interface IDatasetShapeMeta {
   labels: ISlice[];
 
   ndim: number;

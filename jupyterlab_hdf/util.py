@@ -9,10 +9,44 @@ import numpy as np
 
 from .exception import JhdfError
 
-__all__ = ['dsetChunk', 'dsetContentDict', 'dsetDict', 'groupDict', 'jsonize', 'parseIndex', 'parseSubindex', 'uriJoin', 'uriName']
+__all__ = ['atleast_nd', 'dsetChunk', 'dsetContentDict', 'groupContentDict', 'jsonize', 'parseIndex', 'parseSubindex', 'slicelen', 'shapemeta', 'uriJoin', 'uriName']
+
+## array handling
+def atleast_nd(ary, ndim, pos=0):
+    """
+    ref: https://github.com/numpy/numpy/blob/8720da5f14b7a3bf8f565ad6c9f996d58d7c3fe6/numpy/core/shape_base.py#L175
+
+    pos : int, optional
+        The index to insert the new dimensions. May range from
+        ``-ary.ndim - 1`` to ``+ary.ndim`` (inclusive). Non-negative
+        indices indicate locations before the corresponding axis:
+        ``pos=0`` means to insert at the very beginning. Negative
+        indices indicate locations after the corresponding axis:
+        ``pos=-1`` means to insert at the very end. 0 and -1 are always
+        guaranteed to work. Any other number will depend on the
+        dimensions of the existing array. Default is 0.
+    Returns
+    -------
+    res : ndarray
+        An array with ``res.ndim >= ndim``. A view is returned for array
+        inputs. Dimensions are prepended if `pos` is 0, so for example,
+        a 1-D array of shape ``(N,)`` with ``ndim=4`` becomes a view of
+        shape ``(1, 1, 1, N)``. Dimensions are appended if `pos` is -1,
+        so for example a 2-D array of shape ``(M, N)`` becomes a view of
+        shape ``(M, N, 1, 1)`` when ``ndim=4``.
+    """
+    ary = np.array(ary, copy=False, subok=True)
+    if ary.ndim:
+        pos = np.core.multiarray.normalize_axis_index(pos, ary.ndim + 1)
+    extra = ndim - ary.ndim
+    if extra > 0:
+        ind = pos * (slice(None),) + extra * (None,) + (Ellipsis,)
+        ary = ary[ind]
+    return ary
+
 
 ## chunk handling
-def dsetChunk(dset, ixstr=None, subixstr=None, atleast_2d=False):
+def dsetChunk(dset, ixstr=None, subixstr=None, min_ndim=None):
     if ixstr is None:
         chunk = dset[...]
     elif subixstr is None:
@@ -21,40 +55,28 @@ def dsetChunk(dset, ixstr=None, subixstr=None, atleast_2d=False):
         validateSubindex(ixstr, subixstr, dset.shape)
         chunk = dset[parseSubindex(ixstr, subixstr, dset.shape)]
 
-    if atleast_2d:
-        chunk = np.atleast_2d(chunk)
+    if min_ndim is not None:
+        chunk = atleast_nd(chunk, min_ndim)
 
     return chunk
 
 
 ## create dicts to be returned by the contents api
-def dsetContentDict(dset, ixstr=None):
-    if ixstr is None:
-        meta = metadataDset(dset)
-    else:
-        meta = metadataIndex(ixstr, dset.shape)
+def dsetContentDict(dset, ixstr=None, min_ndim=None):
+    meta = shapemeta(dset.shape, ixstr=ixstr, min_ndim=min_ndim)
 
     return dict((
         ('attrs', {**dset.attrs}),
         ('dtype', dset.dtype.str),
+        ('name', dset.name),
 
         *((k, meta[k]) for k in ('labels', 'ndim', 'shape', 'size')),
     ))
 
-def dsetDict(uri, name=None, content=None):
+def groupContentDict(group):
     return dict((
-        ('type', 'dataset'),
-        ('name', uriName(name) if name is None else name),
-        ('uri', uri),
-        ('content', content),
-    ))
-
-def groupDict(name, uri):
-    return dict((
-        ('type', 'group'),
-        ('name', name),
-        ('uri', uri),
-        ('content', None),
+        ('attrs', {**group.attrs}),
+        ('name', group.name),
     ))
 
 
@@ -142,30 +164,37 @@ def parseIndex(node_or_string):
         return _convert_signed_num(node)
     return _convert(node_or_string)
 
-def sliceLen(slyce, seqlen):
-    """Based on https://stackoverflow.com/a/36188683
-    """
-    start, stop, step = slyce.indices(seqlen)
-    return max(0, (stop - start + (step - (1 if step > 0 else -1))) // step)
-
-def metadataDset(dset):
-    return dict((
-        ('labels', tuple(slice(0, n, 1) for n in dset.shape)),
-        ('ndim', dset.ndim),
-        ('shape', dset.shape),
-        ('size', dset.size),
-        ('visdims', tuple(range(dset.ndim))),
-    ))
-
-def metadataIndex(ixstr, shape):
+def parseSubindex(ixstr, subixstr, shape):
     ix = parseIndex(ixstr)
+    meta = shapemeta(shape, ixstr)
+    subix = parseIndex(subixstr)
+
+    ixcompound = list(ix)
+    for d, dlabel, subdix in zip(meta['visdims'], meta['labels'], subix):
+        start = dlabel.start + (subdix.start*dlabel.step)
+        stop = dlabel.start + (min(subdix.stop, dlabel.stop // dlabel.step)*dlabel.step) # dlabel.start + (subdix.stop*dlabel.step)
+        ixcompound[d] = slice(start, stop)
+
+    return tuple(ixcompound)
+
+def shapemeta(shape, ixstr=None, min_ndim=None):
+    if ixstr is None:
+        ix = (slice(None), )*len(shape)
+    else:
+        ix = parseIndex(ixstr)
+
+    ndimIx = len([dix for dix in ix if isinstance(dix, slice)])
+
+    promote = 0 if min_ndim is None else max(0, min_ndim - ndimIx)
+    if promote:
+        ix = (slice(None), )*promote + ix
+        ndimIx += promote
+        shape = (1, )*promote + shape
 
     visdimsIx = tuple(d for d,dix in enumerate(ix) if isinstance(dix, slice))
 
     labelsIx = [slice(*ix[d].indices(shape[d])) for d in visdimsIx]
-    shapeIx = [sliceLen(ix[d], shape[d]) for d in visdimsIx]
-
-    ndimIx = len(shapeIx)
+    shapeIx = [slicelen(ix[d], shape[d]) for d in visdimsIx]
 
     sizeIx = np.prod(shapeIx) if ndimIx else 0
 
@@ -177,24 +206,17 @@ def metadataIndex(ixstr, shape):
         ('visdims', visdimsIx),
     ))
 
-def parseSubindex(ixstr, subixstr, shape):
-    ix = parseIndex(ixstr)
-    metaIx = metadataIndex(ixstr, shape)
-    subix = parseIndex(subixstr)
-
-    ixcompound = list(ix)
-    for d, dlabel, subdix in zip(metaIx['visdims'], metaIx['labels'], subix):
-        start = dlabel.start + (subdix.start*dlabel.step)
-        stop = dlabel.start + (min(subdix.stop, dlabel.stop // dlabel.step)*dlabel.step) # dlabel.start + (subdix.stop*dlabel.step)
-        ixcompound[d] = slice(start, stop)
-
-    return tuple(ixcompound)
+def slicelen(slyce, seqlen):
+    """Based on https://stackoverflow.com/a/36188683
+    """
+    start, stop, step = slyce.indices(seqlen)
+    return max(0, (stop - start + (step - (1 if step > 0 else -1))) // step)
 
 def validateSubindex(ixstr, subixstr, shape):
-    metaIx = metadataIndex(ixstr, shape)
+    meta = shapemeta(shape, ixstr)
     subix = parseIndex(subixstr)
 
-    if len(subix) != len(metaIx['visdims']):
+    if len(subix) != len(meta['visdims']):
         msg = dict((
             ('message', 'malformed subixstr: number of visible dimensions in index not equal to number of dimensions in subindex.'),
             ('debugVars', {'ixstr': ixstr, 'subixstr': subixstr}),
