@@ -4,7 +4,7 @@
 # Distributed under the terms of the Modified BSD License.
 
 from .baseHandler import HdfFileManager, HdfBaseHandler
-from .util import dsetChunk
+from .util import dsetChunk, jsonize
 
 __all__ = ['HdfDataManager', 'HdfDataHandler']
 
@@ -22,7 +22,7 @@ class HdfDataManager(HdfFileManager):
         #     logd['ixcompound'] = parseSubindex(ixstr, subixstr, f[uri].shape)
         # self.log.info('{}'.format(logd))
 
-        return dsetChunk(f[uri], ixstr, subixstr=subixstr, min_ndim=min_ndim).tolist()
+        return jsonize(dsetChunk(f[uri], ixstr, subixstr=subixstr, min_ndim=min_ndim))
 
 
 ## handler
