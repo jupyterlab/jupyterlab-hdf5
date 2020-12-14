@@ -71,20 +71,21 @@ def hobjAttrsDict(hobj):
         *_hobjDict(hobj).items(),
     ))
 
-def hobjContentsDict(hobj, uri):
+def hobjContentsDict(hobj, content=False, ixstr=None, min_ndim=None):
     return dict((
+        ('content', hobjMetaDict(hobj, ixstr=ixstr, min_ndim=min_ndim) if content else None),
         *_hobjDict(hobj).items(),
-        ('uri', uri),
+        ('uri', hobj.name),
     ))
 
 def hobjMetaDict(hobj, ixstr=None, min_ndim=None):
     d = _hobjDict(hobj)
 
     if d['type'] == 'dataset':
-        return dict(sorted(
+        return dict(sorted((
             *d.items(),
             *_dsetMetaDict(hobj, ixstr=ixstr, min_ndim=min_ndim).items(),
-        ))
+        )))
     else:
         return d
 
@@ -98,14 +99,14 @@ def _dsetMetaDict(dset, ixstr=None, min_ndim=None):
     ))
 
 def _hobjDict(hobj):
-    if isinstance(hobj, h5py.dataset):
+    if isinstance(hobj, h5py.Dataset):
         tipe = 'dataset'
     else:
         # for now, treat links and such as groups
         tipe = 'group'
 
     return dict((
-        ('name', hobj.name),
+        ('name', uriName(hobj.name)),
         ('type', tipe),
     ))
 

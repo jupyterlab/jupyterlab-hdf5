@@ -14,16 +14,27 @@ __all__ = ['HdfContentsManager', 'HdfContentsHandler']
 class HdfContentsManager(HdfFileManager):
     """Implements HDF5 contents handling
     """
-    def _getFromFile(self, f, uri, **kwargs):
+    def _getFromFile(self, f, uri, ixstr=None, min_ndim=None, **kwargs):
         hobj = f[uri]
 
         if isinstance(hobj, h5py.Group):
             # recurse one level
             return [
-                jsonize(hobjContentsDict(subhobj, uri=uriJoin(uri, subhobj.name))) for subhobj in hobj.values()
+                jsonize(hobjContentsDict(
+                    subhobj,
+                    content=False,
+                    ixstr=ixstr,
+                    min_ndim=min_ndim,
+                ))
+                for subhobj in hobj.values()
             ]
         else:
-            return hobjContentsDict(hobj, uri=uri)
+            return jsonize(hobjContentsDict(
+                hobj,
+                content=True,
+                ixstr=ixstr,
+                min_ndim=min_ndim,
+            ))
 
 ## handler
 class HdfContentsHandler(HdfBaseHandler):
