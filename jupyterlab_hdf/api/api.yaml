@@ -19,7 +19,7 @@ paths:
       summary: "get the attributes of an hdf object"
       responses:
         '200':
-          $ref: '#/components/responses/hobjs'
+          $ref: '#/components/responses/attrs'
         '400':
           description: The request was malformed; url should be of the format "fpath?uri=uri"
         '401':
@@ -40,7 +40,7 @@ paths:
       summary: "get the contents of an hdf object"
       responses:
         '200':
-          $ref: '#/components/responses/hobjs'
+          $ref: '#/components/responses/contents'
         '400':
           description: The request was malformed; url should be of the format "fpath?uri=uri"
         '401':
@@ -83,7 +83,7 @@ paths:
       summary: "get the metadata of an hdf object. If dataset, all shape-related metadata will be for the slab specified by ixstr, if provided"
       responses:
         '200':
-          $ref: '#/components/responses/hobjs'
+          $ref: '#/components/responses/dataset_meta'
         '400':
           description: The request was malformed; url should be of the format "fpath?uri=uri"
         '401':
@@ -152,6 +152,12 @@ components:
         type: string
 
   responses:
+    attrs:
+      description: ""
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/attrs'
     hobjs:
       description: "list of hdf5 objects"
       content:
@@ -159,7 +165,13 @@ components:
           schema:
             type: array
             items:
-              $ref: '#/components/schemas/hobj'
+              $ref: '#/components/schemas/contents'
+    contents:
+      description: ""
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/contents'
     data:
       description: "slab of hdf5 dataset represented as list-of-list-of-number (always 2D)"
       content:
@@ -170,6 +182,12 @@ components:
               type: array
               items:
                 type: number
+    dataset_meta:
+      description: ""
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/dataset_meta'
     py_snippet:
       description: "Python snippet"
       content:
@@ -178,23 +196,46 @@ components:
             type: string
 
   schemas:
-    hobj:
-      description: "data representing an arbitrary hdf5 object"
+    attrs:
+      description: "attributes of an arbitrary hdf object, as a dictionary"
+      type: object
+      additionalProperties: true
+    contents:
+      description: "data representing an arbitrary hdf object, in the format required by the jupyterlab `Contents` stack"
       type: object
       properties:
+        name:
+          description: "object name (ie last part of uri)"
+          type: string
         type:
           description: "only `group` or `dataset` (for now)"
-          type: string
-        name:
-          description: "object name"
           type: string
         uri:
           description: "full uri pointing to the object"
           type: string
-    slice:
-      description: "a slice. Up to 3 integers, same syntax as for Python `slice` built-in"
-      type: array
-      items:
-        type: integer
-      nullable: true
-      maxItems: 3
+    dataset_meta:
+      type: object
+      properties:
+        dtype:
+          description: ""
+          type: string
+        labels:
+          description: ""
+          #type: #ISlice[];
+        name:
+          description: "object name"
+          type: string
+        ndim:
+          description: ""
+          type: number
+        shape:
+          description: ""
+          type: array
+          items:
+            type: number
+        size:
+          description: ""
+          type: number
+        type:
+          description: ""
+          type: string
