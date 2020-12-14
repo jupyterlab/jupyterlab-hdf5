@@ -9,7 +9,7 @@ import { ReactWidget } from "@jupyterlab/apputils";
 
 import * as React from "react";
 
-import { HdfDatasetModelBase } from "./dataset";
+import { HdfDatasetModel } from "./dataset";
 
 const TOOLBAR_IX_INPUT_CLASS = ".jp-IxInputToolbar";
 const TOOLBAR_IX_INPUT_BOX_CLASS = ".jp-IxInputToolbar-box";
@@ -65,7 +65,7 @@ export class IxInput extends ReactWidget {
     this.addClass(TOOLBAR_IX_INPUT_CLASS);
 
     this._grid = widget;
-    this._model = this._grid.dataModel as HdfDatasetModelBase;
+    this._model = this._grid.dataModel as HdfDatasetModel;
   }
 
   render() {
@@ -79,7 +79,7 @@ export class IxInput extends ReactWidget {
   }
 
   private _grid: DataGrid;
-  private _model: HdfDatasetModelBase;
+  private _model: HdfDatasetModel;
 }
 
 export class IxInputBox extends React.Component<

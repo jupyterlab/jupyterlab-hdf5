@@ -11,8 +11,9 @@ import { Contents, ServerConnection } from "@jupyterlab/services";
 
 import {
   hdfContentsRequest,
-  HdfContents,
+  HdfDatasetContents,
   HdfDirectoryListing,
+  HdfGroupContents,
   parseHdfQuery
 } from "./hdf";
 
@@ -291,7 +292,7 @@ namespace Private {
    */
   export function hdfContentsToJupyterContents(
     path: string,
-    contents: HdfContents | HdfDirectoryListing
+    contents: (HdfDatasetContents | HdfGroupContents) | HdfDirectoryListing
   ): Contents.IModel {
     if (Array.isArray(contents)) {
       // If we have an array, it is a directory of HdfContents.
@@ -338,7 +339,9 @@ namespace Private {
     } else {
       throw makeError(
         500,
-        `"${contents.name}" has and unexpected type: ${contents.type}`
+        `"${(contents as any).name}" has and unexpected type: ${
+          (contents as any).type
+        }`
       );
     }
   }

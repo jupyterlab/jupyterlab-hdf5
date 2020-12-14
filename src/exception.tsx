@@ -52,3 +52,26 @@ export function modalHdfError(
     buttons: buttons
   });
 }
+
+export function modalResponseError(
+  error: ServerConnection.ResponseError,
+  buttons: ReadonlyArray<Dialog.IButton> = [
+    Dialog.okButton({ label: "Dismiss" })
+  ]
+) {
+  const { message, traceback } = error;
+  console.warn({ message, traceback });
+
+  return showDialog({
+    title: "jupyterlab-hdf error",
+    body: (
+      <div className={HDF_MODAL_TEXT_CLASS}>
+        <div>message</div>
+        <div>{message}</div>
+        <div>traceback</div>
+        <div>{traceback}</div>
+      </div>
+    ),
+    buttons: buttons
+  });
+}

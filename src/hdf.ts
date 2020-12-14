@@ -20,7 +20,7 @@ export const HDF_DATASET_MIME_TYPE = `${HDF_MIME_TYPE}.dataset`;
  */
 function filterNull<T>(obj: T): Partial<T> {
   return (Object.entries(obj) as [keyof T, any]).reduce(
-    (a, [k, v]) => (v ? ((a[k] = v), a) : a),
+    (a, [k, v]) => (v != null ? ((a[k] = v), a) : a),
     {}
   );
 }
@@ -61,37 +61,69 @@ export function parseHdfQuery(path: string): IContentsParameters {
 }
 
 /**
- * Send a parameterized request to the `hdf/contents` api, and
- * return the result.
+ * make a parameterized request to the `hdf/attrs` api
  */
-export function hdfContentsRequest(
-  parameters: IContentsParameters,
+export function hdfAttrsRequest(
+  parameters: IAttrsParameters,
   settings: ServerConnection.ISettings
-): Promise<HdfDirectoryListing | HdfContents> {
+): Promise<IDatasetAttrs | IGroupAttrs> {
   // allow the query parameters to be optional
-  const { fpath, uri, ixstr } = parameters;
+  const { fpath, uri } = parameters;
 
   const fullUrl =
-    URLExt.join(settings.baseUrl, "hdf", "contents", fpath).split("?")[0] +
-    objectToQueryString({ uri, ixstr });
+    URLExt.join(settings.baseUrl, "hdf", "attrs", fpath).split("?")[0] +
+    objectToQueryString({ uri });
 
   return hdfApiRequest(fullUrl, {}, settings);
 }
 
 /**
- * Send a parameterized request to the `hdf/data` api, and
- * return the result.
+ * make a parameterized request to the `hdf/contents` api
+ */
+export function hdfContentsRequest(
+  parameters: IContentsParameters,
+  settings: ServerConnection.ISettings
+): Promise<(HdfDatasetContents | HdfGroupContents) | HdfDirectoryListing> {
+  // allow the query parameters to be optional
+  const { fpath, uri } = parameters;
+
+  const fullUrl =
+    URLExt.join(settings.baseUrl, "hdf", "contents", fpath).split("?")[0] +
+    objectToQueryString({ uri });
+
+  return hdfApiRequest(fullUrl, {}, settings);
+}
+
+/**
+ * make a parameterized request to the `hdf/data` api
  */
 export function hdfDataRequest(
   parameters: IDataParameters,
   settings: ServerConnection.ISettings
 ): Promise<number[][]> {
   // require the uri, row, and col query parameters
-  const { fpath, uri, ixstr, atleast_2d, subixstr } = parameters;
+  const { fpath, uri, ixstr, min_ndim, subixstr } = parameters;
 
   const fullUrl =
     URLExt.join(settings.baseUrl, "hdf", "data", fpath).split("?")[0] +
-    objectToQueryString({ uri, ixstr, atleast_2d, subixstr });
+    objectToQueryString({ uri, ixstr, min_ndim, subixstr });
+
+  return hdfApiRequest(fullUrl, {}, settings);
+}
+
+/**
+ * make a parameterized request to the `hdf/meta` api
+ */
+export function hdfMetaRequest(
+  parameters: IMetaParameters,
+  settings: ServerConnection.ISettings
+): Promise<IDatasetMeta | IGroupMeta> {
+  // allow the query parameters to be optional
+  const { fpath, uri, ixstr, min_ndim } = parameters;
+
+  const fullUrl =
+    URLExt.join(settings.baseUrl, "hdf", "meta", fpath).split("?")[0] +
+    objectToQueryString({ uri, ixstr, min_ndim });
 
   return hdfApiRequest(fullUrl, {}, settings);
 }
@@ -118,133 +150,158 @@ export function hdfSnippetRequest(
  * Send a parameterized request to one of the hdf api endpoints,
  * and return the result.
  */
-export function hdfApiRequest(
+export async function hdfApiRequest(
   url: string,
   body: JSONObject,
   settings: ServerConnection.ISettings
 ): Promise<any> {
-  return ServerConnection.makeRequest(url, body, settings).then(response => {
-    if (response.status !== 200) {
-      return response.text().then(data => {
-        let json;
-        if (data.length > 0) {
-          try {
-            // HTTPError on the python side adds some leading cruft, strip it
-            json = JSON.parse(data.substring(data.indexOf("{")));
-          } catch (error) {}
-        }
-
-        if (json?.type === "JhdfError") {
-          const { message, debugVars, traceback } = json;
-          throw new HdfResponseError({
-            response,
-            message,
-            debugVars,
-            traceback
-          });
-        } else {
-          throw new ServerConnection.ResponseError(response, data);
-        }
-      });
+  const response = await ServerConnection.makeRequest(url, body, settings);
+  if (response.status !== 200) {
+    const data = await response.text();
+    let json;
+    if (data.length > 0) {
+      try {
+        // HTTPError on the python side adds some leading cruft, strip it
+        json = JSON.parse(data.substring(data.indexOf("{")));
+      } catch (error) {}
     }
-    return response.json();
-  });
+
+    if (json?.type === "JhdfError") {
+      const { message, debugVars, traceback } = json;
+      throw new HdfResponseError({ response, message, debugVars, traceback });
+    } else {
+      throw new ServerConnection.ResponseError(response, data);
+    }
+  }
+  return response.json();
 }
 
-// export async function hdfApiRequest(
-//   url: string,
-//   body: JSONObject,
-//   settings: ServerConnection.ISettings
-// ): Promise<any> {
-//   const response = await ServerConnection.makeRequest(url, body, settings)
-//   if (response.status !== 200) {
-//     const data = await response.text()
-//     let json;
-//     if (data.length > 0) {
-//       try {
-//         // HTTPError on the python side adds some leading cruft, strip it
-//         json = JSON.parse(data.substring(data.indexOf("{")))
-//       } catch (error) {}
-//     }
-
-//     if (json?.type === 'JhdfError') {
-//       const {message, debugVars, traceback} = json;
-//       throw new HdfResponseError({response, message, debugVars, traceback});
-//     } else {
-//       throw new ServerConnection.ResponseError(response, data);
-//     }
-//   }
-//   return response.json();
-// }
-
 /**
- * The parameters that make up the input of an hdf contents request.
+ * common parameters for all hdf api requests
  */
-export interface IContentsParameters {
+interface IParameters {
   /**
-   * Path on disk to an HDF5 file.
+   * path on disk to an hdf5 file
    */
   fpath: string;
 
   /**
-   * Path within an HDF5 file to a specific group or dataset.
+   * path within an hdf5 file to a specific group or dataset
    */
   uri: string;
-
-  ixstr?: string;
 }
 
-export interface IDataParameters extends IContentsParameters {
-  atleast_2d?: boolean;
+/**
+ * parameters for an hdf attributes request
+ */
+export interface IAttrsParameters extends IParameters {}
 
+/**
+ * parameters for an hdf contents request
+ */
+export interface IContentsParameters extends IParameters {}
+
+/**
+ * parameters for an hdf array data (ie from a dataset) request
+ */
+export interface IDataParameters extends IMetaParameters {
+  /**
+   * string specifying slice of dataset slab to be fetched as array data, using numpy-style index syntax
+   */
   subixstr?: string;
 }
 
 /**
- * Typings representing contents from an object in an hdf5 file.
+ * parameters for an hdf metadata request
  */
-export class HdfContents {
+export interface IMetaParameters extends IParameters {
   /**
-   * The type of the object.
+   * string specifying dataset slab, using numpy-style index (or "slice") syntax
    */
-  type: "dataset" | "group";
+  ixstr?: string;
 
+  /**
+   * promote any shape metadata or array data that is fetched to have at least this many dimensions
+   */
+  min_ndim?: number;
+}
+
+/**
+ * typings representing contents from an object in an hdf5 file
+ */
+class HdfContents {
   /**
    * The name of the object.
    */
   name: string;
 
   /**
+   * The type of the object.
+   */
+  type: "dataset" | "group";
+
+  /**
    * The path to the object in the hdf5 file.
    */
   uri: string;
-
-  /**
-   * If object is a dataset, all of its metadata encoded as a JSON string.
-   */
-  content?: IDatasetMeta;
 }
 
-export interface IDatasetMeta {
-  attrs: { [key: string]: any };
+export class HdfDatasetContents extends HdfContents {
+  content: IDatasetMeta;
 
-  dtype: string;
+  type: "dataset";
+}
 
-  shape: number[];
+export class HdfGroupContents extends HdfContents {
+  content: IGroupMeta;
 
-  ixstr: string;
-
-  vislabels: ISlice[];
-
-  visshape: number[];
-
-  vissize: number;
+  type: "group";
 }
 
 /**
  * Typings representing directory contents
  */
-export type HdfDirectoryListing = HdfContents[];
+export type HdfDirectoryListing = (HdfDatasetContents | HdfGroupContents)[];
+
+interface IAttrs {
+  attrs: { [key: string]: any };
+
+  name: string;
+
+  type: "dataset" | "group";
+}
+
+export interface IDatasetAttrs extends IAttrs {
+  type: "dataset";
+}
+
+export interface IGroupAttrs extends IAttrs {
+  type: "group";
+}
+
+interface IMeta {
+  name: string;
+
+  type: "dataset" | "group";
+}
+
+export interface IDatasetMeta extends IMeta {
+  dtype: string;
+
+  labels: ISlice[];
+
+  ndim: number;
+
+  shape: number[];
+
+  size: number;
+
+  type: "dataset";
+}
+
+export interface IGroupMeta extends IMeta {
+  type: "group";
+}
 
 // /**
 //  * Typings representing a directory from the Hdf
