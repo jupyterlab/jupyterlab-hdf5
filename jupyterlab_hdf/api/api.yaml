@@ -7,15 +7,16 @@ openapi: 3.0.0
 info:
   title: JupyterLab HDF5 proxy
   description: "Proxies HDF5 API requests from JupyterLab to HDF5."
-  version: 0.3.0
+  version: 0.4.1
 
 paths:
-  /hdf/contents/{fpath}{?uri}:
+  /hdf/attrs/{fpath}{?uri}{?ixstr}{?min_ndim}:
     parameters:
       - $ref: '#/components/parameters/fpath'
       - $ref: '#/components/parameters/uri'
+
     get:
-      summary: "Get the contents of the hdf object pointed to by the uri in the file at fpath."
+      summary: "get the attributes of an hdf object"
       responses:
         '200':
           $ref: '#/components/responses/hobjs'
@@ -28,13 +29,18 @@ paths:
         '500':
           description: Found and opened file, error getting contents from object specified by the uri.
 
-    post:
-      summary: "Get slices of data from the hdf dataset pointed to by the uri in the file at fpath."
-      requestBody:
-        $ref: '#/components/requestBodies/slices'
+  /hdf/contents/{fpath}{?uri}{?ixstr}{?min_ndim}:
+    parameters:
+      - $ref: '#/components/parameters/fpath'
+      - $ref: '#/components/parameters/uri'
+      - $ref: '#/components/parameters/ixstr'
+      - $ref: '#/components/parameters/min_ndim'
+
+    get:
+      summary: "get the contents of an hdf object"
       responses:
         '200':
-          $ref: '#/components/responses/dataslab'
+          $ref: '#/components/responses/hobjs'
         '400':
           description: The request was malformed; url should be of the format "fpath?uri=uri"
         '401':
@@ -42,7 +48,50 @@ paths:
         '403':
           description: The request specified a file that does not exist.
         '500':
-          description: Found and opened file, error getting data from dataset specified by the uri.
+          description: Found and opened file, error getting contents from object specified by the uri.
+
+  /hdf/data/{fpath}{?uri}{?ixstr}{?subixstr}{?min_ndim}:
+    parameters:
+      - $ref: '#/components/parameters/fpath'
+      - $ref: '#/components/parameters/uri'
+      - $ref: '#/components/parameters/ixstr'
+      - $ref: '#/components/parameters/subixstr'
+      - $ref: '#/components/parameters/min_ndim'
+
+    get:
+      summary: "get raw array data from one dataset, as a json blob"
+      responses:
+        '200':
+          $ref: '#/components/responses/data'
+        '400':
+          description: The request was malformed; url should be of the format "fpath?uri=uri"
+        '401':
+          description: The request did not specify a file that `h5py` could understand.
+        '403':
+          description: The request specified a file that does not exist.
+        '500':
+          description: Found and opened file, error getting contents from object specified by the uri.
+
+  /hdf/meta/{fpath}{?uri}{?ixstr}{?min_ndim}:
+    parameters:
+      - $ref: '#/components/parameters/fpath'
+      - $ref: '#/components/parameters/uri'
+      - $ref: '#/components/parameters/ixstr'
+      - $ref: '#/components/parameters/min_ndim'
+
+    get:
+      summary: "get the metadata of an hdf object. If dataset, all shape-related metadata will be for the slab specified by ixstr, if provided"
+      responses:
+        '200':
+          $ref: '#/components/responses/hobjs'
+        '400':
+          description: The request was malformed; url should be of the format "fpath?uri=uri"
+        '401':
+          description: The request did not specify a file that `h5py` could understand.
+        '403':
+          description: The request specified a file that does not exist.
+        '500':
+          description: Found and opened file, error getting contents from object specified by the uri.
 
   /hdf/snippet/{fpath}{?uri}:
     parameters:
@@ -69,27 +118,38 @@ components:
       name: fpath
       in: path
       required: true
-      description: "Path on disk to an HDF5 file."
+      description: "path on disk to an HDF5 file"
       schema:
         type: string
         format: uri
+    ixstr:
+      name: ixstr
+      in: query
+      required: false
+      description: "index specifying which ND slab of a dataset to consider when fetching data. Uses numpy-style index syntax"
+      schema:
+        type: string
+    subixstr:
+      name: subixstr
+      in: query
+      required: false
+      description: "index specifying which chunk (of the ND slab specified by ixstr) of a dataset to fetch. Uses numpy-style index syntax. The count of slices in ixstr and subixstr should match"
+      schema:
+        type: string
+    min_ndim:
+      name: min_ndim
+      in: query
+      required: false
+      description: "if set, all shape-related metadata and array data fetched from a dataset will be promoted to have at least this many dimensions"
+      schema:
+        type: number
     uri:
       name: uri
       in: query
       required: true
-      description: "Path within an HDF5 file to a specific group or dataset."
+      description: "path within an HDF5 file to a specific group or dataset"
       schema:
         type: string
-
-  requestBodies:
-    slices:
-      description: "list of slices"
-      content:
-        application/json:
-          schema:
-            type: array
-            items:
-              $ref: '#/components/schemas/slice'
 
   responses:
     hobjs:
@@ -100,7 +160,7 @@ components:
             type: array
             items:
               $ref: '#/components/schemas/hobj'
-    dataslab:
+    data:
       description: "slab of hdf5 dataset represented as list-of-list-of-number (always 2D)"
       content:
         application/json:
