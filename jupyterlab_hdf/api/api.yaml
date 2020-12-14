@@ -7,18 +7,19 @@ openapi: 3.0.0
 info:
   title: JupyterLab HDF5 proxy
   description: "Proxies HDF5 API requests from JupyterLab to HDF5."
-  version: 0.3.0
+  version: 0.4.1
 
 paths:
-  /hdf/contents/{fpath}{?uri}:
+  /hdf/attrs/{fpath}{?uri}:
     parameters:
       - $ref: '#/components/parameters/fpath'
       - $ref: '#/components/parameters/uri'
+
     get:
-      summary: "Get the contents of the hdf object pointed to by the uri in the file at fpath."
+      summary: "get the attributes of an hdf object"
       responses:
         '200':
-          $ref: '#/components/responses/hobjs'
+          $ref: '#/components/responses/attrs'
         '400':
           description: The request was malformed; url should be of the format "fpath?uri=uri"
         '401':
@@ -28,13 +29,18 @@ paths:
         '500':
           description: Found and opened file, error getting contents from object specified by the uri.
 
-    post:
-      summary: "Get slices of data from the hdf dataset pointed to by the uri in the file at fpath."
-      requestBody:
-        $ref: '#/components/requestBodies/slices'
+  /hdf/contents/{fpath}{?uri}{?ixstr}{?min_ndim}:
+    parameters:
+      - $ref: '#/components/parameters/fpath'
+      - $ref: '#/components/parameters/uri'
+      - $ref: '#/components/parameters/ixstr'
+      - $ref: '#/components/parameters/min_ndim'
+
+    get:
+      summary: "get the contents of an hdf object"
       responses:
         '200':
-          $ref: '#/components/responses/dataslab'
+          $ref: '#/components/responses/contents'
         '400':
           description: The request was malformed; url should be of the format "fpath?uri=uri"
         '401':
@@ -42,7 +48,50 @@ paths:
         '403':
           description: The request specified a file that does not exist.
         '500':
-          description: Found and opened file, error getting data from dataset specified by the uri.
+          description: Found and opened file, error getting contents from object specified by the uri.
+
+  /hdf/data/{fpath}{?uri}{?ixstr}{?subixstr}{?min_ndim}:
+    parameters:
+      - $ref: '#/components/parameters/fpath'
+      - $ref: '#/components/parameters/uri'
+      - $ref: '#/components/parameters/ixstr'
+      - $ref: '#/components/parameters/subixstr'
+      - $ref: '#/components/parameters/min_ndim'
+
+    get:
+      summary: "get raw array data from one dataset, as a json blob"
+      responses:
+        '200':
+          $ref: '#/components/responses/data'
+        '400':
+          description: The request was malformed; url should be of the format "fpath?uri=uri"
+        '401':
+          description: The request did not specify a file that `h5py` could understand.
+        '403':
+          description: The request specified a file that does not exist.
+        '500':
+          description: Found and opened file, error getting contents from object specified by the uri.
+
+  /hdf/meta/{fpath}{?uri}{?ixstr}{?min_ndim}:
+    parameters:
+      - $ref: '#/components/parameters/fpath'
+      - $ref: '#/components/parameters/uri'
+      - $ref: '#/components/parameters/ixstr'
+      - $ref: '#/components/parameters/min_ndim'
+
+    get:
+      summary: "get the metadata of an hdf object. If dataset, all shape-related metadata will be for the slab specified by ixstr, if provided"
+      responses:
+        '200':
+          $ref: '#/components/responses/meta'
+        '400':
+          description: The request was malformed; url should be of the format "fpath?uri=uri"
+        '401':
+          description: The request did not specify a file that `h5py` could understand.
+        '403':
+          description: The request specified a file that does not exist.
+        '500':
+          description: Found and opened file, error getting contents from object specified by the uri.
 
   /hdf/snippet/{fpath}{?uri}:
     parameters:
@@ -69,72 +118,161 @@ components:
       name: fpath
       in: path
       required: true
-      description: "Path on disk to an HDF5 file."
+      description: "path on disk to an HDF5 file"
       schema:
         type: string
         format: uri
+    ixstr:
+      name: ixstr
+      in: query
+      required: false
+      description: "index specifying which ND slab of a dataset to consider when fetching data. Uses numpy-style index syntax"
+      schema:
+        type: string
+    subixstr:
+      name: subixstr
+      in: query
+      required: false
+      description: "index specifying which chunk (of the ND slab specified by ixstr) of a dataset to fetch. Uses numpy-style index syntax. The count of slices in ixstr and subixstr should match"
+      schema:
+        type: string
+    min_ndim:
+      name: min_ndim
+      in: query
+      required: false
+      description: "if set, all shape-related metadata and array data fetched from a dataset will be promoted to have at least this many dimensions"
+      schema:
+        type: number
     uri:
       name: uri
       in: query
       required: true
-      description: "Path within an HDF5 file to a specific group or dataset."
+      description: "path within an HDF5 file to a specific group or dataset"
       schema:
         type: string
 
-  requestBodies:
-    slices:
-      description: "list of slices"
-      content:
-        application/json:
-          schema:
-            type: array
-            items:
-              $ref: '#/components/schemas/slice'
-
   responses:
-    hobjs:
-      description: "list of hdf5 objects"
+    attrs:
+      description: "attributes of an arbitrary hdf object, as a dictionary"
       content:
         application/json:
           schema:
-            type: array
-            items:
-              $ref: '#/components/schemas/hobj'
-    dataslab:
+            $ref: '#/components/schemas/attrs'
+    contents:
+      description: "data representing an arbitrary hdf object, in the format required by the jupyterlab `Contents` stack. May be either a single object or an array"
+      content:
+        application/json:
+          schema:
+            oneOf:
+            - $ref: '#/components/schemas/contents'
+            - type: array
+              items:
+                $ref: '#/components/schemas/contents'
+    data:
       description: "slab of hdf5 dataset represented as list-of-list-of-number (always 2D)"
       content:
         application/json:
           schema:
-            type: array
-            items:
-              type: array
-              items:
-                type: number
-    py_snippet:
-      description: "Python snippet"
+            $ref: '#/components/schemas/data'
+    meta:
+      description: "metadata of an arbitrary hdf object, as a dictionary"
       content:
         application/json:
           schema:
-            type: string
+            oneOf:
+            - $ref: '#/components/schemas/dataset_meta'
+            - $ref: '#/components/schemas/group_meta'
+    py_snippet:
+      description: "python code snippet"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/py_snippet'
 
   schemas:
-    hobj:
-      description: "data representing an arbitrary hdf5 object"
+    attrs:
+      description: "attributes of an arbitrary hdf object, as a dictionary"
+      type: object
+      additionalProperties: true
+    contents:
+      description: "data representing an arbitrary hdf object, in the format required by the jupyterlab `Contents` stack"
       type: object
       properties:
+        content:
+          description: "the metadata of the hdf object described in this contents instance"
+          oneOf:
+          - $ref: '#/components/schemas/dataset_meta'
+          - $ref: '#/components/schemas/group_meta'
+        name:
+          description: "object name (ie last part of uri)"
+          type: string
         type:
           description: "only `group` or `dataset` (for now)"
-          type: string
-        name:
-          description: "object name"
           type: string
         uri:
           description: "full uri pointing to the object"
           type: string
-    slice:
-      description: "a slice. Up to 3 integers, same syntax as for Python `slice` built-in"
+    data:
+      description: "a chunk of raw array from an hdf dataset. May be of any dimensionality"
       type: array
       items:
-        type: integer
-      nullable: true
-      maxItems: 3
+        type: array
+        items:
+          type: number
+    dataset_meta:
+      description: "metadata of an hdf dataset, as a dictionary"
+      type: object
+      properties:
+        dtype:
+          description: "datatype of an hdf dataset"
+          type: string
+        labels:
+          description: "ranges that label the indices of an hdf dataset, given as an array of slices"
+          type: array
+          items:
+            $ref: '#/components/schemas/slice'
+        name:
+          description: "name of hdf dataset"
+          type: string
+        ndim:
+          description: "count of dimensions of an hdf dataset"
+          type: number
+        shape:
+          description: "shape of an hdf dataset"
+          type: array
+          items:
+            type: number
+        size:
+          description: "count of entries of an hdf dataset"
+          type: number
+        type:
+          description: "the string literal 'dataset'"
+          enum: ['group']
+          type: string
+    group_meta:
+      description: "metadata of an hdf group, as a dictionary"
+      type: object
+      properties:
+        name:
+          description: "name of hdf group"
+          type: string
+        type:
+          description: "the string literal 'group'"
+          enum: ['group']
+          type: string
+    py_snippet:
+      description: "python code snippet"
+      type: string
+    slice:
+      description: "python-style slice"
+      type: object
+      properties:
+        start:
+          description: "first index of the slice"
+          type: number
+        stop:
+          description: "one past the last index of the slice"
+          type: number
+        step:
+          description: "step of the slice"
+          type: number
