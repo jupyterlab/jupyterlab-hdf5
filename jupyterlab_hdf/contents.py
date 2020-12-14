@@ -6,7 +6,7 @@
 import h5py
 
 from .baseHandler import HdfFileManager, HdfBaseHandler
-from .util import dsetContentDict, groupContentDict, jsonize, uriJoin, uriName
+from .util import hobjContentsDict, jsonize, uriJoin, uriName
 
 __all__ = ['HdfContentsManager', 'HdfContentsHandler']
 
@@ -14,29 +14,16 @@ __all__ = ['HdfContentsManager', 'HdfContentsHandler']
 class HdfContentsManager(HdfFileManager):
     """Implements HDF5 contents handling
     """
-    def _getFromFile(self, f, uri, ixstr=None, min_ndim=None, **kwargs):
-        obj = f[uri]
+    def _getFromFile(self, f, uri, **kwargs):
+        hobj = f[uri]
 
-        if isinstance(obj, h5py.Group):
+        if isinstance(hobj, h5py.Group):
+            # recurse one level
             return [
-                dict((
-                    ('content', jsonize(groupContentDict(subobj)) if isinstance(subobj, h5py.Group) else None),
-                    ('name', name),
-                    ('type', 'group' if isinstance(subobj, h5py.Group) else 'dataset'),
-                    ('uri', uriJoin(uri, name)),
-                ))
-                for name,subobj in obj.items()
+                jsonize(hobjContentsDict(subhobj, uri=uriJoin(uri, subhobj.name))) for subhobj in hobj.values()
             ]
-        elif isinstance(obj, h5py.Dataset):
-            return dict((
-                ('content', jsonize(dsetContentDict(obj, ixstr=ixstr, min_ndim=min_ndim))),
-                ('name', uriName(uri)),
-                ('type', 'dataset'),
-                ('uri', uri),
-            ))
         else:
-            raise ValueError("unknown h5py obj: %s" % obj)
-
+            return hobjContentsDict(hobj, uri=uri)
 
 ## handler
 class HdfContentsHandler(HdfBaseHandler):

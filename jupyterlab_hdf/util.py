@@ -4,12 +4,13 @@
 # Distributed under the terms of the Modified BSD License.
 
 import ast
+import h5py
 import re
 import numpy as np
 
 from .exception import JhdfError
 
-__all__ = ['atleast_nd', 'dsetChunk', 'dsetContentDict', 'groupContentDict', 'jsonize', 'parseIndex', 'parseSubindex', 'slicelen', 'shapemeta', 'uriJoin', 'uriName']
+__all__ = ['atleast_nd', 'dsetChunk', 'hobjAttrsDict', 'hobjContentsDict', 'hobjMetaDict', 'jsonize', 'parseIndex', 'parseSubindex', 'slicelen', 'shapemeta', 'uriJoin', 'uriName']
 
 ## array handling
 def atleast_nd(ary, ndim, pos=0):
@@ -61,24 +62,52 @@ def dsetChunk(dset, ixstr=None, subixstr=None, min_ndim=None):
     return chunk
 
 
-## create dicts to be returned by the contents api
-def dsetContentDict(dset, ixstr=None, min_ndim=None):
-    meta = shapemeta(dset.shape, ixstr=ixstr, min_ndim=min_ndim)
+## create dicts to be returned by the various api
+def hobjAttrsDict(hobj):
+    return dict((
+        ('attrs', dict((
+            *hobj.attrs.items(),
+        ))),
+        *_hobjDict(hobj).items(),
+    ))
+
+def hobjContentsDict(hobj, uri):
+    return dict((
+        *_hobjDict(hobj).items(),
+        ('uri', uri),
+    ))
+
+def hobjMetaDict(hobj, ixstr=None, min_ndim=None):
+    d = _hobjDict(hobj)
+
+    if d['type'] == 'dataset':
+        return dict(sorted(
+            *d.items(),
+            *_dsetMetaDict(hobj, ixstr=ixstr, min_ndim=min_ndim).items(),
+        ))
+    else:
+        return d
+
+def _dsetMetaDict(dset, ixstr=None, min_ndim=None):
+    shapekeys = ('labels', 'ndim', 'shape', 'size')
+    smeta = {k:v for k,v in shapemeta(dset.shape, ixstr=ixstr, min_ndim=min_ndim).items() if k in shapekeys}
 
     return dict((
-        ('attrs', {**dset.attrs}),
         ('dtype', dset.dtype.str),
-        ('name', dset.name),
-
-        *((k, meta[k]) for k in ('labels', 'ndim', 'shape', 'size')),
+        *smeta.items(),
     ))
 
-def groupContentDict(group):
+def _hobjDict(hobj):
+    if isinstance(hobj, h5py.dataset):
+        tipe = 'dataset'
+    else:
+        # for now, treat links and such as groups
+        tipe = 'group'
+
     return dict((
-        ('attrs', {**group.attrs}),
-        ('name', group.name),
+        ('name', hobj.name),
+        ('type', tipe),
     ))
-
 
 ## index parsing and handling
 class _Guard:

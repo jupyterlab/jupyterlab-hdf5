@@ -61,26 +61,41 @@ export function parseHdfQuery(path: string): IContentsParameters {
 }
 
 /**
- * Send a parameterized request to the `hdf/contents` api, and
- * return the result.
+ * make a parameterized request to the `hdf/attrs` api
+ */
+export function hdfAttrsRequest(
+  parameters: IAttrsParameters,
+  settings: ServerConnection.ISettings
+): Promise<IDatasetAttrs | IGroupAttrs> {
+  // allow the query parameters to be optional
+  const { fpath, uri } = parameters;
+
+  const fullUrl =
+    URLExt.join(settings.baseUrl, "hdf", "attrs", fpath).split("?")[0] +
+    objectToQueryString({ uri });
+
+  return hdfApiRequest(fullUrl, {}, settings);
+}
+
+/**
+ * make a parameterized request to the `hdf/contents` api
  */
 export function hdfContentsRequest(
   parameters: IContentsParameters,
   settings: ServerConnection.ISettings
 ): Promise<HdfDirectoryListing | HdfContents> {
   // allow the query parameters to be optional
-  const { fpath, uri, ixstr, min_ndim } = parameters;
+  const { fpath, uri } = parameters;
 
   const fullUrl =
     URLExt.join(settings.baseUrl, "hdf", "contents", fpath).split("?")[0] +
-    objectToQueryString({ uri, ixstr, min_ndim });
+    objectToQueryString({ uri });
 
   return hdfApiRequest(fullUrl, {}, settings);
 }
 
 /**
- * Send a parameterized request to the `hdf/data` api, and
- * return the result.
+ * make a parameterized request to the `hdf/data` api
  */
 export function hdfDataRequest(
   parameters: IDataParameters,
@@ -92,6 +107,23 @@ export function hdfDataRequest(
   const fullUrl =
     URLExt.join(settings.baseUrl, "hdf", "data", fpath).split("?")[0] +
     objectToQueryString({ uri, ixstr, min_ndim, subixstr });
+
+  return hdfApiRequest(fullUrl, {}, settings);
+}
+
+/**
+ * make a parameterized request to the `hdf/meta` api
+ */
+export function hdfMetaRequest(
+  parameters: IMetaParameters,
+  settings: ServerConnection.ISettings
+): Promise<IDatasetMeta | IGroupMeta> {
+  // allow the query parameters to be optional
+  const { fpath, uri, ixstr, min_ndim } = parameters;
+
+  const fullUrl =
+    URLExt.join(settings.baseUrl, "hdf", "meta", fpath).split("?")[0] +
+    objectToQueryString({ uri, ixstr, min_ndim });
 
   return hdfApiRequest(fullUrl, {}, settings);
 }
@@ -145,68 +177,100 @@ export async function hdfApiRequest(
 }
 
 /**
- * The parameters that make up the input of an hdf contents request.
+ * common parameters for all hdf api requests
  */
-export interface IContentsParameters {
+interface IParameters {
   /**
-   * Path on disk to an HDF5 file.
+   * path on disk to an hdf5 file
    */
   fpath: string;
 
-  ixstr?: string;
-
-  min_ndim?: number;
-
   /**
-   * Path within an HDF5 file to a specific group or dataset.
+   * path within an hdf5 file to a specific group or dataset
    */
   uri: string;
 }
 
-export interface IDataParameters extends IContentsParameters {
+/**
+ * parameters for an hdf attributes request
+ */
+export interface IAttrsParameters extends IParameters {}
+
+/**
+ * parameters for an hdf contents request
+ */
+export interface IContentsParameters extends IParameters {}
+
+/**
+ * parameters for an hdf array data (ie from a dataset) request
+ */
+export interface IDataParameters extends IMetaParameters {
+  /**
+   * string specifying slice of dataset slab to be fetched as array data, using numpy-style index syntax
+   */
   subixstr?: string;
 }
 
 /**
- * Typings representing contents from an object in an hdf5 file.
+ * parameters for an hdf metadata request
+ */
+export interface IMetaParameters extends IParameters {
+  /**
+   * string specifying dataset slab, using numpy-style index (or "slice") syntax
+   */
+  ixstr?: string;
+
+  /**
+   * promote any shape metadata or array data that is fetched to have at least this many dimensions
+   */
+  min_ndim?: number;
+}
+
+/**
+ * typings representing contents from an object in an hdf5 file
  */
 export class HdfContents {
-  /**
-   * The type of the object.
-   */
-  type: "dataset" | "group";
-
   /**
    * The name of the object.
    */
   name: string;
 
   /**
+   * The type of the object.
+   */
+  type: "dataset" | "group";
+
+  /**
    * The path to the object in the hdf5 file.
    */
   uri: string;
-
-  /**
-   * If object is a dataset, all of its metadata encoded as a JSON string.
-   */
-  content?: IDatasetMeta | IGroupMeta;
 }
 
-export interface IGroupMeta {
+interface IAttrs {
   attrs: { [key: string]: any };
 
   name: string;
+
+  type: "dataset" | "group";
 }
 
-export interface IDatasetMeta {
-  attrs: { [key: string]: any };
+export interface IDatasetAttrs extends IAttrs {
+  type: "dataset";
+}
 
+export interface IGroupAttrs extends IAttrs {
+  type: "group";
+}
+
+interface IMeta {
+  name: string;
+
+  type: "dataset" | "group";
+}
+
+export interface IDatasetMeta extends IMeta {
   dtype: string;
 
-  name: string;
-
-  // shapemeta: IDatasetShapeMeta;
-
   labels: ISlice[];
 
   ndim: number;
@@ -214,16 +278,12 @@ export interface IDatasetMeta {
   shape: number[];
 
   size: number;
+
+  type: "dataset";
 }
 
-export interface IDatasetShapeMeta {
-  labels: ISlice[];
-
-  ndim: number;
-
-  shape: number[];
-
-  size: number;
+export interface IGroupMeta extends IMeta {
+  type: "group";
 }
 
 /**
