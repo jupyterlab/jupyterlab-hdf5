@@ -153,13 +153,13 @@ components:
 
   responses:
     attrs:
-      description: ""
+      description: "attributes of an arbitrary hdf object, as a dictionary"
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/attrs'
     contents:
-      description: ""
+      description: "data representing an arbitrary hdf object, in the format required by the jupyterlab `Contents` stack. May be either a single object or an array"
       content:
         application/json:
           schema:
@@ -175,7 +175,7 @@ components:
           schema:
             $ref: '#/components/schemas/data'
     meta:
-      description: ""
+      description: "metadata of an arbitrary hdf object, as a dictionary"
       content:
         application/json:
           schema:
@@ -183,7 +183,7 @@ components:
             - $ref: '#/components/schemas/dataset_meta'
             - $ref: '#/components/schemas/group_meta'
     py_snippet:
-      description: "Python snippet"
+      description: "python code snippet"
       content:
         application/json:
           schema:
@@ -199,7 +199,7 @@ components:
       type: object
       properties:
         content:
-          description: ""
+          description: "the metadata of the hdf object described in this contents instance"
           oneOf:
           - $ref: '#/components/schemas/dataset_meta'
           - $ref: '#/components/schemas/group_meta'
@@ -213,21 +213,21 @@ components:
           description: "full uri pointing to the object"
           type: string
     data:
-      description: ""
+      description: "a chunk of raw array from an hdf dataset. May be of any dimensionality"
       type: array
       items:
         type: array
         items:
           type: number
     dataset_meta:
-      description: ""
+      description: "metadata of an hdf dataset, as a dictionary"
       type: object
       properties:
         dtype:
-          description: ""
+          description: "datatype of an hdf dataset"
           type: string
         labels:
-          description: ""
+          description: "ranges that label the indices of an hdf dataset, given as an array of slices"
           type: array
           items:
             $ref: '#/components/schemas/slice'
@@ -235,33 +235,33 @@ components:
           description: "name of hdf dataset"
           type: string
         ndim:
-          description: ""
+          description: "count of dimensions of an hdf dataset"
           type: number
         shape:
-          description: ""
+          description: "shape of an hdf dataset"
           type: array
           items:
             type: number
         size:
-          description: ""
+          description: "count of entries of an hdf dataset"
           type: number
         type:
-          description: "the string 'dataset'"
+          description: "the string literal 'dataset'"
           enum: ['group']
           type: string
     group_meta:
-      description: ""
+      description: "metadata of an hdf group, as a dictionary"
       type: object
       properties:
         name:
           description: "name of hdf group"
           type: string
         type:
-          description: "the string 'group'"
+          description: "the string literal 'group'"
           enum: ['group']
           type: string
     py_snippet:
-      description: "snippet of python code"
+      description: "python code snippet"
       type: string
     slice:
       description: "python-style slice"
