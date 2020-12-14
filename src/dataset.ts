@@ -36,13 +36,12 @@ import {
 } from "./exception";
 
 import {
-  HdfContents,
-  hdfContentsRequest,
   hdfDataRequest,
-  IContentsParameters,
   IDataParameters,
+  IMetaParameters,
   IDatasetMeta,
-  parseHdfQuery
+  parseHdfQuery,
+  hdfMetaRequest
 } from "./hdf";
 
 import { noneSlice, slice } from "./slice";
@@ -208,12 +207,12 @@ export abstract class HdfDatasetModel extends DataModel {
     }
   }
 
-  protected async getMeta(params: IContentsParameters): Promise<IDatasetMeta> {
+  protected async getMeta(params: IMetaParameters): Promise<IDatasetMeta> {
     try {
-      return ((await hdfContentsRequest(
+      return (await hdfMetaRequest(
         params,
         this._serverSettings
-      )) as HdfContents).content as IDatasetMeta;
+      )) as IDatasetMeta;
     } catch (err) {
       if (err instanceof HdfResponseError) {
         modalHdfError(err);
@@ -255,8 +254,6 @@ export abstract class HdfDatasetModel extends DataModel {
       ixstr: this._ixstr,
       min_ndim: 2,
       subixstr
-      // skip subixstr in the 0d case
-      // ...(subixstr ? {subixstr: subixstr} : {}),
     };
 
     const data = await this.getData(params);
@@ -411,7 +408,7 @@ class HdfDatasetModelFromContext extends HdfDatasetModel {
  * Subclass that constructs a dataset model from simple parameters
  */
 export class HdfDatasetModelFromPath extends HdfDatasetModel {
-  constructor(params: IContentsParameters) {
+  constructor(params: IMetaParameters) {
     super();
 
     this.getMeta(params).then(meta => {
@@ -423,7 +420,7 @@ export class HdfDatasetModelFromPath extends HdfDatasetModel {
    * Handle actions that should be taken when the model is ready.
    */
   private _onMetaReady(
-    { fpath, uri }: IContentsParameters,
+    { fpath, uri }: IMetaParameters,
     meta: IDatasetMeta
   ): void {
     this.init({ fpath, uri, meta });

@@ -20,7 +20,7 @@ export const HDF_DATASET_MIME_TYPE = `${HDF_MIME_TYPE}.dataset`;
  */
 function filterNull<T>(obj: T): Partial<T> {
   return (Object.entries(obj) as [keyof T, any]).reduce(
-    (a, [k, v]) => (v ? ((a[k] = v), a) : a),
+    (a, [k, v]) => (v != null ? ((a[k] = v), a) : a),
     {}
   );
 }
@@ -83,7 +83,7 @@ export function hdfAttrsRequest(
 export function hdfContentsRequest(
   parameters: IContentsParameters,
   settings: ServerConnection.ISettings
-): Promise<HdfDirectoryListing | HdfContents> {
+): Promise<(HdfDatasetContents | HdfGroupContents) | HdfDirectoryListing> {
   // allow the query parameters to be optional
   const { fpath, uri } = parameters;
 
@@ -229,7 +229,7 @@ export interface IMetaParameters extends IParameters {
 /**
  * typings representing contents from an object in an hdf5 file
  */
-export class HdfContents {
+class HdfContents {
   /**
    * The name of the object.
    */
@@ -245,6 +245,23 @@ export class HdfContents {
    */
   uri: string;
 }
+
+export class HdfDatasetContents extends HdfContents {
+  content: IDatasetMeta;
+
+  type: "dataset";
+}
+
+export class HdfGroupContents extends HdfContents {
+  content: IGroupMeta;
+
+  type: "group";
+}
+
+/**
+ * Typings representing directory contents
+ */
+export type HdfDirectoryListing = (HdfDatasetContents | HdfGroupContents)[];
 
 interface IAttrs {
   attrs: { [key: string]: any };
@@ -285,11 +302,6 @@ export interface IDatasetMeta extends IMeta {
 export interface IGroupMeta extends IMeta {
   type: "group";
 }
-
-/**
- * Typings representing directory contents
- */
-export type HdfDirectoryListing = HdfContents[];
 
 // /**
 //  * Typings representing a directory from the Hdf
