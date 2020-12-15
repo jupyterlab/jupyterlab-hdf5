@@ -7,7 +7,7 @@ openapi: 3.0.0
 info:
   title: JupyterLab HDF5 proxy
   description: "Proxies HDF5 API requests from JupyterLab to HDF5."
-  version: 0.5.0
+  version: 0.6.0
 
 paths:
   /hdf/attrs/{fpath}{?uri}:
