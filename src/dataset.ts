@@ -32,7 +32,8 @@ import { ServerConnection } from "@jupyterlab/services";
 import {
   HdfResponseError,
   modalHdfError,
-  modalResponseError
+  modalResponseError,
+  modalValidationFail
 } from "./exception";
 
 import {
@@ -146,8 +147,7 @@ export abstract class HdfDatasetModel extends DataModel {
     return this._ixstr;
   }
   set ixstr(ixstr: string) {
-    this._ixstr = ixstr;
-    this.refresh();
+    this.refresh(ixstr);
   }
 
   get meta(): IDatasetMeta {
@@ -164,14 +164,19 @@ export abstract class HdfDatasetModel extends DataModel {
     return this._ready.promise;
   }
 
-  async refresh() {
-    this._refresh(
-      await this.getMeta({
-        fpath: this._fpath,
-        uri: this._uri,
-        ixstr: this._ixstr
-      })
-    );
+  async refresh(ixstr: string) {
+    const meta = await this.getMeta({
+      fpath: this._fpath,
+      uri: this._uri,
+      ixstr
+    });
+    if (!this.validateMeta(ixstr, meta)) {
+      this._refreshed.emit(this._ixstr);
+      return;
+    }
+
+    this._ixstr = ixstr;
+    this._refresh(meta);
   }
 
   get refreshed() {
@@ -222,6 +227,17 @@ export abstract class HdfDatasetModel extends DataModel {
         throw err;
       }
     }
+  }
+
+  protected validateMeta(ixstr: string, meta: IDatasetMeta): boolean {
+    if (meta.ndim > 2) {
+      modalValidationFail(
+        `index has too many dimensions. Please specify an index with 2 or fewer slices. ixstr: ${ixstr}, ndim: ${meta.ndim}`
+      );
+      return false;
+    }
+
+    return true;
   }
 
   /**
