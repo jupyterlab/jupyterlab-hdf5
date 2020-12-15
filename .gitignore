@@ -19,6 +19,7 @@ MANIFEST
 /scratch/*.cutie
 /scratch/*.h5
 /scratch/*.hdf5
+/scratch/tutorial
 /scratch/Untitled*
 
 # temp/system files
