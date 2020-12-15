@@ -75,3 +75,20 @@ export function modalResponseError(
     buttons: buttons
   });
 }
+
+export function modalValidationFail(
+  message: string,
+  buttons: ReadonlyArray<Dialog.IButton> = [
+    Dialog.okButton({ label: "Dismiss" })
+  ]
+) {
+  return showDialog({
+    title: "jupyterlab-hdf error",
+    body: (
+      <div className={HDF_MODAL_TEXT_CLASS}>
+        <div>{message}</div>
+      </div>
+    ),
+    buttons: buttons
+  });
+}
