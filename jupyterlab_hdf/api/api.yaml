@@ -21,13 +21,13 @@ paths:
         '200':
           $ref: '#/components/responses/attrs'
         '400':
-          description: The request was malformed; url should be of the format "fpath?uri=uri"
+          $ref: '#/components/responses/400'
         '401':
-          description: The request did not specify a file that `h5py` could understand.
+          $ref: '#/components/responses/401'
         '403':
-          description: The request specified a file that does not exist.
+          $ref: '#/components/responses/403'
         '500':
-          description: Found and opened file, error getting contents from object specified by the uri.
+          $ref: '#/components/responses/500'
 
   /hdf/contents/{fpath}{?uri}{?ixstr}{?min_ndim}:
     parameters:
@@ -42,13 +42,13 @@ paths:
         '200':
           $ref: '#/components/responses/contents'
         '400':
-          description: The request was malformed; url should be of the format "fpath?uri=uri"
+          $ref: '#/components/responses/400'
         '401':
-          description: The request did not specify a file that `h5py` could understand.
+          $ref: '#/components/responses/401'
         '403':
-          description: The request specified a file that does not exist.
+          $ref: '#/components/responses/403'
         '500':
-          description: Found and opened file, error getting contents from object specified by the uri.
+          $ref: '#/components/responses/500'
 
   /hdf/data/{fpath}{?uri}{?ixstr}{?subixstr}{?min_ndim}:
     parameters:
@@ -64,13 +64,13 @@ paths:
         '200':
           $ref: '#/components/responses/data'
         '400':
-          description: The request was malformed; url should be of the format "fpath?uri=uri"
+          $ref: '#/components/responses/400'
         '401':
-          description: The request did not specify a file that `h5py` could understand.
+          $ref: '#/components/responses/401'
         '403':
-          description: The request specified a file that does not exist.
+          $ref: '#/components/responses/403'
         '500':
-          description: Found and opened file, error getting contents from object specified by the uri.
+          $ref: '#/components/responses/500'
 
   /hdf/meta/{fpath}{?uri}{?ixstr}{?min_ndim}:
     parameters:
@@ -85,13 +85,13 @@ paths:
         '200':
           $ref: '#/components/responses/meta'
         '400':
-          description: The request was malformed; url should be of the format "fpath?uri=uri"
+          $ref: '#/components/responses/400'
         '401':
-          description: The request did not specify a file that `h5py` could understand.
+          $ref: '#/components/responses/401'
         '403':
-          description: The request specified a file that does not exist.
+          $ref: '#/components/responses/403'
         '500':
-          description: Found and opened file, error getting contents from object specified by the uri.
+          $ref: '#/components/responses/500'
 
   /hdf/snippet/{fpath}{?uri}:
     parameters:
@@ -103,13 +103,13 @@ paths:
         '200':
           $ref: '#/components/responses/py_snippet'
         '400':
-          description: The request was malformed; url should be of the format "fpath?uri=uri"
+          $ref: '#/components/responses/400'
         '401':
-          description: The request did not specify a file that `h5py` could understand.
+          $ref: '#/components/responses/401'
         '403':
-          description: The request specified a file that does not exist.
+          $ref: '#/components/responses/403'
         '500':
-          description: Found and opened file, error getting contents from object specified by the uri.
+          $ref: '#/components/responses/500'
 
 
 components:
@@ -152,6 +152,14 @@ components:
         type: string
 
   responses:
+    '400':
+      description: The request was malformed; url should be of the format "fpath?uri=uri"
+    '401':
+      description: The request did not specify a file that `h5py` could understand.
+    '403':
+      description: The request specified a file that does not exist.
+    '500':
+      description: Found and opened file, error getting contents from object specified by the uri.
     attrs:
       description: "attributes of an arbitrary hdf object, as a dictionary"
       content:
@@ -179,9 +187,7 @@ components:
       content:
         application/json:
           schema:
-            oneOf:
-            - $ref: '#/components/schemas/dataset_meta'
-            - $ref: '#/components/schemas/group_meta'
+            $ref: '#/components/schemas/meta'
     py_snippet:
       description: "python code snippet"
       content:
@@ -199,10 +205,7 @@ components:
       type: object
       properties:
         content:
-          description: "the metadata of the hdf object described in this contents instance"
-          oneOf:
-          - $ref: '#/components/schemas/dataset_meta'
-          - $ref: '#/components/schemas/group_meta'
+          $ref: '#/components/schemas/meta'
         name:
           description: "object name (ie last part of uri)"
           type: string
@@ -247,7 +250,7 @@ components:
           type: number
         type:
           description: "the string literal 'dataset'"
-          enum: ['group']
+          enum: ['dataset']
           type: string
     group_meta:
       description: "metadata of an hdf group, as a dictionary"
@@ -260,6 +263,16 @@ components:
           description: "the string literal 'group'"
           enum: ['group']
           type: string
+    meta:
+      description: "the metadata of an hdf object"
+      oneOf:
+      - $ref: '#/components/schemas/dataset_meta'
+      - $ref: '#/components/schemas/group_meta'
+      discriminator:
+        propertyName: type
+        mapping:
+          dataset_meta: '#/components/schemas/dataset_meta'
+          group_meta: '#/components/schemas/group_meta'
     py_snippet:
       description: "python code snippet"
       type: string
