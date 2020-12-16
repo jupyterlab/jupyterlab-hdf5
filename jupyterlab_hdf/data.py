@@ -8,7 +8,6 @@ from .util import dsetChunk, jsonize
 
 __all__ = ['HdfDataManager', 'HdfDataHandler']
 
-
 ## manager
 class HdfDataManager(HdfFileManager):
     """Implements HDF5 data handling
@@ -23,7 +22,6 @@ class HdfDataManager(HdfFileManager):
         # self.log.info('{}'.format(logd))
 
         return jsonize(dsetChunk(f[uri], ixstr=ixstr, subixstr=subixstr, min_ndim=min_ndim))
-
 
 ## handler
 class HdfDataHandler(HdfBaseHandler):

@@ -10,7 +10,7 @@ import numpy as np
 
 from .exception import JhdfError
 
-__all__ = ['atleast_nd', 'dsetChunk', 'hobjAttrsDict', 'hobjContentsDict', 'hobjMetaDict', 'jsonize', 'parseIndex', 'parseSubindex', 'slicelen', 'shapemeta', 'uriJoin', 'uriName']
+__all__ = ['atleast_nd', 'dsetChunk', 'hobjAttrsDict', 'hobjContentsDict', 'hobjMetaDict', 'hobjType', 'jsonize', 'parseIndex', 'parseSubindex', 'slicelen', 'shapemeta', 'uriJoin', 'uriName']
 
 ## array handling
 def atleast_nd(ary, ndim, pos=0):
@@ -87,6 +87,14 @@ def hobjMetaDict(hobj, ixstr=None, min_ndim=None):
     else:
         return d
 
+def hobjType(hobj):
+    if isinstance(hobj, h5py.Dataset):
+        return 'dataset'
+    elif isinstance(hobj, h5py.Group):
+        return 'group'
+    else:
+        return 'other'
+
 def _dsetMetaDict(dset, ixstr=None, min_ndim=None):
     shapekeys = ('labels', 'ndim', 'shape', 'size')
     smeta = {k:v for k,v in shapemeta(dset.shape, ixstr=ixstr, min_ndim=min_ndim).items() if k in shapekeys}
@@ -97,15 +105,9 @@ def _dsetMetaDict(dset, ixstr=None, min_ndim=None):
     ))
 
 def _hobjDict(hobj):
-    if isinstance(hobj, h5py.Dataset):
-        tipe = 'dataset'
-    else:
-        # for now, treat links and such as groups
-        tipe = 'group'
-
     return dict((
         ('name', uriName(hobj.name)),
-        ('type', tipe),
+        ('type', hobjType(hobj)),
     ))
 
 ## index parsing and handling
