@@ -1,13 +1,13 @@
-[![PyPI version][pypi]][pypi-url]
-[![npm_version][npm]][npm-url]
+[![PyPI version][pypi-badge]][pypi]
+[![npm_version][npm-badge]][npm]
 
-[interactive api docs][swagger-url]
+[interactive api docs][redoc]
 
 # jupyterlab-hdf5
 
 Open and explore HDF5 files in JupyterLab. Can handle very large (TB) sized files. New in release v0.5.0, jlab-hdf5 can now open datasets of any dimensionality, from 0 to 32. Any 0D, 1D, or 2D slab of any dataset can easily be selected and displayed using numpy-style index syntax.
 
-![hdf_preview](https://raw.githubusercontent.com/jupyterlab/jupyterlab-hdf5/master/example/tutorial_animation.gif)
+![hdf_preview][tutorial_animation]
 
 Double clicking on an `.hdf5` file in the file browser will open it in a special HDF browser. You can then browse through the groups and open the datasets in the `.hdf5` file. All datasets will open read only.
 
@@ -53,8 +53,10 @@ Allows you to navigate an `.hdf5` file's groups as though they were directories 
 
 When you open a dataset using the hdf5 filebrowser, a document will open that displays the contents of the dataset via a grid.
 
-[pypi]: https://badge.fury.io/py/jupyterlab-hdf.svg
-[pypi-url]: https://badge.fury.io/py/jupyterlab-hdf
-[npm]: https://badge.fury.io/js/%40jupyterlab%2Fhdf5.svg
-[npm-url]: https://badge.fury.io/js/%40jupyterlab%2Fhdf5
-[swagger-url]: https://petstore.swagger.io/?url=https://raw.githubusercontent.com/jupyterlab/jupyterlab-hdf5/master/jupyterlab_hdf/api/api.yaml
+[pypi-badge]: https://badge.fury.io/py/jupyterlab-hdf.svg
+[pypi]: https://badge.fury.io/py/jupyterlab-hdf
+[npm-badge]: https://badge.fury.io/js/%40jupyterlab%2Fhdf5.svg
+[npm]: https://badge.fury.io/js/%40jupyterlab%2Fhdf5
+[redoc]: https://jupyterlab.github.io/jupyterlab-hdf5/
+[swagger]: https://petstore.swagger.io/?url=https://raw.githubusercontent.com/jupyterlab/jupyterlab-hdf5/master/jupyterlab_hdf/api/api.yaml
+[tutorial_animation]: https://raw.githubusercontent.com/jupyterlab/jupyterlab-hdf5/master/example/tutorial_animation.gif
