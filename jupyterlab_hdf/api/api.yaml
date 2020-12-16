@@ -16,6 +16,7 @@ paths:
       - $ref: '#/components/parameters/uri'
 
     get:
+      description: "get the attributes of an hdf object"
       summary: "get the attributes of an hdf object"
       responses:
         '200':
@@ -37,6 +38,7 @@ paths:
       - $ref: '#/components/parameters/min_ndim'
 
     get:
+      description: "get the contents of an hdf object"
       summary: "get the contents of an hdf object"
       responses:
         '200':
@@ -59,7 +61,8 @@ paths:
       - $ref: '#/components/parameters/min_ndim'
 
     get:
-      summary: "get raw array data from one dataset, as a json blob"
+      description: "get raw array data from one hdf dataset, as a json blob"
+      summary: "get data from an hdf dataset"
       responses:
         '200':
           $ref: '#/components/responses/data'
@@ -80,7 +83,8 @@ paths:
       - $ref: '#/components/parameters/min_ndim'
 
     get:
-      summary: "get the metadata of an hdf object. If dataset, all shape-related metadata will be for the slab specified by ixstr, if provided"
+      description: "get the metadata of an hdf object. If the object is a dataset and the ixstr parameter is provided, all shape-related metadata will be for the slab specified by ixstr"
+      summary: "get the metadata of an hdf object"
       responses:
         '200':
           $ref: '#/components/responses/meta'
@@ -98,7 +102,8 @@ paths:
       - $ref: '#/components/parameters/fpath'
       - $ref: '#/components/parameters/uri'
     get:
-      summary: "Get a Python snippet that fetches the indicated dataset/group"
+      description: "get a Python snippet that fetches the hdf dataset or group pointed to by the path and uri"
+      summary: "get a Python snippet that fetches an hdf dataset or group"
       responses:
         '200':
           $ref: '#/components/responses/py_snippet'
@@ -200,13 +205,13 @@ components:
       description: "attributes of an arbitrary hdf object, as a dictionary"
       type: object
       additionalProperties: true
-    contents:
-      description: "data representing an arbitrary hdf object, in the format required by the jupyterlab `Contents` stack"
+    dataset_contents:
+      description: "a basic description of an hdf dataset, in the format required by the jupyterlab `Contents` stack"
       required: [name, type, uri]
       type: object
       properties:
         content:
-          $ref: '#/components/schemas/meta'
+          $ref: '#/components/schemas/dataset_meta'
         name:
           description: "object name (ie last part of uri)"
           type: string
@@ -216,8 +221,34 @@ components:
         uri:
           description: "full uri pointing to the object"
           type: string
+    group_contents:
+      description: "a basic description of an hdf group, in the format required by the jupyterlab `Contents` stack"
+      required: [name, type, uri]
+      type: object
+      properties:
+        content:
+          $ref: '#/components/schemas/group_meta'
+        name:
+          description: "object name (ie last part of uri)"
+          type: string
+        type:
+          description: "only `group` or `dataset` (for now)"
+          type: string
+        uri:
+          description: "full uri pointing to the object"
+          type: string
+    contents:
+      description: "data representing an arbitrary hdf object, in the format required by the jupyterlab `Contents` stack"
+      discriminator:
+        propertyName: type
+        mapping:
+          dataset: '#/components/schemas/dataset_contents'
+          group: '#/components/schemas/group_contents'
+      oneOf:
+        - $ref: "#/components/schemas/dataset_contents"
+        - $ref: "#/components/schemas/group_contents"
     data:
-      description: "a chunk of raw array from an hdf dataset. May be of any dimensionality"
+      description: "a chunk of raw array data from an hdf dataset. May be of any dimensionality"
       type: array
       items:
         type: array
@@ -268,14 +299,14 @@ components:
           type: string
     meta:
       description: "the metadata of an hdf object"
-      oneOf:
-      - $ref: '#/components/schemas/dataset_meta'
-      - $ref: '#/components/schemas/group_meta'
       discriminator:
         propertyName: type
         mapping:
           dataset: '#/components/schemas/dataset_meta'
           group: '#/components/schemas/group_meta'
+      oneOf:
+        - $ref: '#/components/schemas/dataset_meta'
+        - $ref: '#/components/schemas/group_meta'
     py_snippet:
       description: "python code snippet"
       type: string
