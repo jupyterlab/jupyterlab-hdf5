@@ -9,9 +9,19 @@ info:
   description: "Proxies HDF5 API requests from JupyterLab to HDF5."
   version: 0.6.0
 
+servers:
+- url: http://{host}:{port}/
+  description: 'a jupyter server running the jupyterlab_hdf serverextension. Defaults to "localhost:8888"'
+  variables:
+    host:
+      default: "localhost"
+      description: 'the address of the host on which your jupyter server is running. Defaults to "localhost"'
+    port:
+      default: "8888"
+      description: 'the port on which your jupyter server is running. Defaults to "8888"'
 
 paths:
-  /hdf/attrs/{fpath}{?uri}:
+  /hdf/attrs/{fpath}:
     parameters:
       - $ref: "#/components/parameters/fpath"
       - $ref: "#/components/parameters/uri"
@@ -30,7 +40,7 @@ paths:
         "500":
           $ref: "#/components/responses/500"
 
-  /hdf/contents/{fpath}{?uri}{?ixstr}{?min_ndim}:
+  /hdf/contents/{fpath}:
     parameters:
       - $ref: "#/components/parameters/fpath"
       - $ref: "#/components/parameters/uri"
@@ -51,7 +61,7 @@ paths:
         "500":
           $ref: "#/components/responses/500"
 
-  /hdf/data/{fpath}{?uri}{?ixstr}{?subixstr}{?min_ndim}:
+  /hdf/data/{fpath}:
     parameters:
       - $ref: "#/components/parameters/fpath"
       - $ref: "#/components/parameters/uri"
@@ -73,7 +83,7 @@ paths:
         "500":
           $ref: "#/components/responses/500"
 
-  /hdf/meta/{fpath}{?uri}{?ixstr}{?min_ndim}:
+  /hdf/meta/{fpath}:
     parameters:
       - $ref: "#/components/parameters/fpath"
       - $ref: "#/components/parameters/uri"
@@ -94,7 +104,7 @@ paths:
         "500":
           $ref: "#/components/responses/500"
 
-  /hdf/snippet/{fpath}{?uri}{?ixstr}{?subixstr}:
+  /hdf/snippet/{fpath}:
     parameters:
       - $ref: "#/components/parameters/fpath"
       - $ref: "#/components/parameters/uri"
@@ -193,7 +203,7 @@ components:
     dataset_py_snippet:
       description: "python snippet for dataset"
       value:
-        "with h5py.File('/Users/alice/git/jupyterlab-hdf/example/nested_int.hdf5', 'r') as f:\n    data = f['/leaf01/data01']"
+        "with h5py.File('/Users/alice/git/jupyterlab-hdf/example/nested_int.hdf5', 'r') as f:\n    dataset = f['/leaf01/data01']"
     group_py_snippet:
       description: "python snippet for group"
       value:
