@@ -15,7 +15,6 @@ paths:
     parameters:
       - $ref: "#/components/parameters/fpath"
       - $ref: "#/components/parameters/uri"
-
     get:
       description: "get the attributes of an hdf object"
       summary: "get the attributes of an hdf object"
@@ -37,7 +36,6 @@ paths:
       - $ref: "#/components/parameters/uri"
       - $ref: "#/components/parameters/ixstr"
       - $ref: "#/components/parameters/min_ndim"
-
     get:
       description: "get the contents of an hdf object"
       summary: "get the contents of an hdf object"
@@ -60,7 +58,6 @@ paths:
       - $ref: "#/components/parameters/ixstr"
       - $ref: "#/components/parameters/subixstr"
       - $ref: "#/components/parameters/min_ndim"
-
     get:
       description: "get raw array data from one hdf dataset, as a json blob"
       summary: "get data from an hdf dataset"
@@ -82,7 +79,6 @@ paths:
       - $ref: "#/components/parameters/uri"
       - $ref: "#/components/parameters/ixstr"
       - $ref: "#/components/parameters/min_ndim"
-
     get:
       description: "get the metadata of an hdf object. If the object is a dataset and the ixstr parameter is provided, all shape-related metadata will be for the slab specified by ixstr"
       summary: "get the metadata of an hdf object"
@@ -98,10 +94,12 @@ paths:
         "500":
           $ref: "#/components/responses/500"
 
-  /hdf/snippet/{fpath}{?uri}:
+  /hdf/snippet/{fpath}{?uri}{?ixstr}{?subixstr}:
     parameters:
       - $ref: "#/components/parameters/fpath"
       - $ref: "#/components/parameters/uri"
+      - $ref: "#/components/parameters/ixstr"
+      - $ref: "#/components/parameters/subixstr"
     get:
       description: "get a Python snippet that fetches the hdf dataset or group pointed to by the path and uri"
       summary: "get a Python snippet that fetches an hdf dataset or group"
@@ -192,6 +190,14 @@ components:
         "name": "beta",
         "type": "group"
       }
+    dataset_py_snippet:
+      description: "python snippet for dataset"
+      value:
+        "with h5py.File('/Users/alice/git/jupyterlab-hdf/example/nested_int.hdf5', 'r') as f:\n    data = f['/leaf01/data01']"
+    group_py_snippet:
+      description: "python snippet for group"
+      value:
+        "with h5py.File('/Users/alice/git/jupyterlab-hdf/example/nested_int.hdf5', 'r') as f:\n    group = f['/leaf01']"
 
   parameters:
     fpath:
@@ -293,6 +299,11 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/py_snippet"
+          examples:
+            "python snippet for dataset":
+              $ref: "#/components/examples/dataset_py_snippet"
+            "python snippet for group":
+              $ref: "#/components/examples/group_py_snippet"
 
   schemas:
     attrs:
