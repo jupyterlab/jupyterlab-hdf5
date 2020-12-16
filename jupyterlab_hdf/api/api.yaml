@@ -202,6 +202,7 @@ components:
       additionalProperties: true
     contents:
       description: "data representing an arbitrary hdf object, in the format required by the jupyterlab `Contents` stack"
+      required: [name, type, uri]
       type: object
       properties:
         content:
@@ -224,6 +225,7 @@ components:
           type: number
     dataset_meta:
       description: "metadata of an hdf dataset, as a dictionary"
+      required: [dtype, labels, name, ndim, shape, size, type]
       type: object
       properties:
         dtype:
@@ -254,6 +256,7 @@ components:
           type: string
     group_meta:
       description: "metadata of an hdf group, as a dictionary"
+      required: [name, type]
       type: object
       properties:
         name:
@@ -278,6 +281,7 @@ components:
       type: string
     slice:
       description: "python-style slice"
+      required: [start, stop, step]
       type: object
       properties:
         start:
