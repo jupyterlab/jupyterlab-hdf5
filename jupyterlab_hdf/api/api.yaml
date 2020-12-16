@@ -258,7 +258,7 @@ components:
         application/json:
           schema:
             oneOf:
-            - $ref: "#/components/schemas/contents"
+            - $ref: "#/components/schemas/dataset_contents"
             - type: array
               items:
                 $ref: "#/components/schemas/contents"
