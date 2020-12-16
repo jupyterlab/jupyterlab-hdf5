@@ -217,7 +217,8 @@ components:
           description: "object name (ie last part of uri)"
           type: string
         type:
-          description: "only `group` or `dataset` (for now)"
+          description: "the string literal 'dataset'"
+          enum: ["dataset"]
           type: string
         uri:
           description: "full uri pointing to the object"
@@ -233,7 +234,8 @@ components:
           description: "object name (ie last part of uri)"
           type: string
         type:
-          description: "only `group` or `dataset` (for now)"
+          description: "the string literal 'group'"
+          enum: ["group"]
           type: string
         uri:
           description: "full uri pointing to the object"
