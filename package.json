@@ -28,6 +28,7 @@
   "style": "style/index.css",
   "scripts": {
     "build": "tsc",
+    "build:apidocs": "redoc-cli bundle jupyterlab_hdf/api/api.yaml",
     "build:dev": "jlpm build:integrity && jlpm run lab:install",
     "build:integrity": "jlpm install && jlpm build",
     "build:watch": "jlpm run build --watch",
@@ -71,6 +72,7 @@
     "husky": "^3.0.1",
     "lint-staged": "^9.2.0",
     "prettier": "^1.13.7",
+    "redoc-cli": "^0.10.2",
     "rimraf": "~2.6.2",
     "tslint": "^5.10.0",
     "tslint-config-prettier": "^1.13.0",
