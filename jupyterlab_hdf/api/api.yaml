@@ -9,112 +9,113 @@ info:
   description: "Proxies HDF5 API requests from JupyterLab to HDF5."
   version: 0.6.0
 
+
 paths:
   /hdf/attrs/{fpath}{?uri}:
     parameters:
-      - $ref: '#/components/parameters/fpath'
-      - $ref: '#/components/parameters/uri'
+      - $ref: "#/components/parameters/fpath"
+      - $ref: "#/components/parameters/uri"
 
     get:
       description: "get the attributes of an hdf object"
       summary: "get the attributes of an hdf object"
       responses:
-        '200':
-          $ref: '#/components/responses/attrs'
-        '400':
-          $ref: '#/components/responses/400'
-        '401':
-          $ref: '#/components/responses/401'
-        '403':
-          $ref: '#/components/responses/403'
-        '500':
-          $ref: '#/components/responses/500'
+        "200":
+          $ref: "#/components/responses/attrs"
+        "400":
+          $ref: "#/components/responses/400"
+        "401":
+          $ref: "#/components/responses/401"
+        "403":
+          $ref: "#/components/responses/403"
+        "500":
+          $ref: "#/components/responses/500"
 
   /hdf/contents/{fpath}{?uri}{?ixstr}{?min_ndim}:
     parameters:
-      - $ref: '#/components/parameters/fpath'
-      - $ref: '#/components/parameters/uri'
-      - $ref: '#/components/parameters/ixstr'
-      - $ref: '#/components/parameters/min_ndim'
+      - $ref: "#/components/parameters/fpath"
+      - $ref: "#/components/parameters/uri"
+      - $ref: "#/components/parameters/ixstr"
+      - $ref: "#/components/parameters/min_ndim"
 
     get:
       description: "get the contents of an hdf object"
       summary: "get the contents of an hdf object"
       responses:
-        '200':
-          $ref: '#/components/responses/contents'
-        '400':
-          $ref: '#/components/responses/400'
-        '401':
-          $ref: '#/components/responses/401'
-        '403':
-          $ref: '#/components/responses/403'
-        '500':
-          $ref: '#/components/responses/500'
+        "200":
+          $ref: "#/components/responses/contents"
+        "400":
+          $ref: "#/components/responses/400"
+        "401":
+          $ref: "#/components/responses/401"
+        "403":
+          $ref: "#/components/responses/403"
+        "500":
+          $ref: "#/components/responses/500"
 
   /hdf/data/{fpath}{?uri}{?ixstr}{?subixstr}{?min_ndim}:
     parameters:
-      - $ref: '#/components/parameters/fpath'
-      - $ref: '#/components/parameters/uri'
-      - $ref: '#/components/parameters/ixstr'
-      - $ref: '#/components/parameters/subixstr'
-      - $ref: '#/components/parameters/min_ndim'
+      - $ref: "#/components/parameters/fpath"
+      - $ref: "#/components/parameters/uri"
+      - $ref: "#/components/parameters/ixstr"
+      - $ref: "#/components/parameters/subixstr"
+      - $ref: "#/components/parameters/min_ndim"
 
     get:
       description: "get raw array data from one hdf dataset, as a json blob"
       summary: "get data from an hdf dataset"
       responses:
-        '200':
-          $ref: '#/components/responses/data'
-        '400':
-          $ref: '#/components/responses/400'
-        '401':
-          $ref: '#/components/responses/401'
-        '403':
-          $ref: '#/components/responses/403'
-        '500':
-          $ref: '#/components/responses/500'
+        "200":
+          $ref: "#/components/responses/data"
+        "400":
+          $ref: "#/components/responses/400"
+        "401":
+          $ref: "#/components/responses/401"
+        "403":
+          $ref: "#/components/responses/403"
+        "500":
+          $ref: "#/components/responses/500"
 
   /hdf/meta/{fpath}{?uri}{?ixstr}{?min_ndim}:
     parameters:
-      - $ref: '#/components/parameters/fpath'
-      - $ref: '#/components/parameters/uri'
-      - $ref: '#/components/parameters/ixstr'
-      - $ref: '#/components/parameters/min_ndim'
+      - $ref: "#/components/parameters/fpath"
+      - $ref: "#/components/parameters/uri"
+      - $ref: "#/components/parameters/ixstr"
+      - $ref: "#/components/parameters/min_ndim"
 
     get:
       description: "get the metadata of an hdf object. If the object is a dataset and the ixstr parameter is provided, all shape-related metadata will be for the slab specified by ixstr"
       summary: "get the metadata of an hdf object"
       responses:
-        '200':
-          $ref: '#/components/responses/meta'
-        '400':
-          $ref: '#/components/responses/400'
-        '401':
-          $ref: '#/components/responses/401'
-        '403':
-          $ref: '#/components/responses/403'
-        '500':
-          $ref: '#/components/responses/500'
+        "200":
+          $ref: "#/components/responses/meta"
+        "400":
+          $ref: "#/components/responses/400"
+        "401":
+          $ref: "#/components/responses/401"
+        "403":
+          $ref: "#/components/responses/403"
+        "500":
+          $ref: "#/components/responses/500"
 
   /hdf/snippet/{fpath}{?uri}:
     parameters:
-      - $ref: '#/components/parameters/fpath'
-      - $ref: '#/components/parameters/uri'
+      - $ref: "#/components/parameters/fpath"
+      - $ref: "#/components/parameters/uri"
     get:
       description: "get a Python snippet that fetches the hdf dataset or group pointed to by the path and uri"
       summary: "get a Python snippet that fetches an hdf dataset or group"
       responses:
-        '200':
-          $ref: '#/components/responses/py_snippet'
-        '400':
-          $ref: '#/components/responses/400'
-        '401':
-          $ref: '#/components/responses/401'
-        '403':
-          $ref: '#/components/responses/403'
-        '500':
-          $ref: '#/components/responses/500'
+        "200":
+          $ref: "#/components/responses/py_snippet"
+        "400":
+          $ref: "#/components/responses/400"
+        "401":
+          $ref: "#/components/responses/401"
+        "403":
+          $ref: "#/components/responses/403"
+        "500":
+          $ref: "#/components/responses/500"
 
 
 components:
@@ -157,48 +158,48 @@ components:
         type: string
 
   responses:
-    '400':
-      description: The request was malformed; url should be of the format "fpath?uri=uri"
-    '401':
-      description: The request did not specify a file that `h5py` could understand.
-    '403':
-      description: The request specified a file that does not exist.
-    '500':
-      description: Found and opened file, error getting contents from object specified by the uri.
+    "400":
+      description: "the request was malformed; url should be of the format 'fpath?uri=uri'"
+    "401":
+      description: "the request did not specify a file that `h5py` could understand"
+    "403":
+      description: "the request specified a file that does not exist"
+    "500":
+      description: "found and opened file, error getting contents from object specified by the uri"
     attrs:
       description: "attributes of an arbitrary hdf object, as a dictionary"
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/attrs'
+            $ref: "#/components/schemas/attrs"
     contents:
       description: "data representing an arbitrary hdf object, in the format required by the jupyterlab `Contents` stack. May be either a single object or an array"
       content:
         application/json:
           schema:
             oneOf:
-            - $ref: '#/components/schemas/contents'
+            - $ref: "#/components/schemas/contents"
             - type: array
               items:
-                $ref: '#/components/schemas/contents'
+                $ref: "#/components/schemas/contents"
     data:
       description: "a chunk of raw array data from an hdf dataset. May be of any dimensionality"
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/data'
+            $ref: "#/components/schemas/data"
     meta:
       description: "metadata of an arbitrary hdf object, as a dictionary"
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/meta'
+            $ref: "#/components/schemas/meta"
     py_snippet:
       description: "python code snippet"
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/py_snippet'
+            $ref: "#/components/schemas/py_snippet"
 
   schemas:
     attrs:
@@ -211,7 +212,7 @@ components:
       type: object
       properties:
         content:
-          $ref: '#/components/schemas/dataset_meta'
+          $ref: "#/components/schemas/dataset_meta"
         name:
           description: "object name (ie last part of uri)"
           type: string
@@ -227,7 +228,7 @@ components:
       type: object
       properties:
         content:
-          $ref: '#/components/schemas/group_meta'
+          $ref: "#/components/schemas/group_meta"
         name:
           description: "object name (ie last part of uri)"
           type: string
@@ -242,8 +243,8 @@ components:
       discriminator:
         propertyName: type
         mapping:
-          dataset: '#/components/schemas/dataset_contents'
-          group: '#/components/schemas/group_contents'
+          dataset: "#/components/schemas/dataset_contents"
+          group: "#/components/schemas/group_contents"
       oneOf:
         - $ref: "#/components/schemas/dataset_contents"
         - $ref: "#/components/schemas/group_contents"
@@ -266,7 +267,7 @@ components:
           description: "ranges that label the indices of an hdf dataset, given as an array of slices"
           type: array
           items:
-            $ref: '#/components/schemas/slice'
+            $ref: "#/components/schemas/slice"
         name:
           description: "name of hdf dataset"
           type: string
@@ -283,7 +284,7 @@ components:
           type: number
         type:
           description: "the string literal 'dataset'"
-          enum: ['dataset']
+          enum: ["dataset"]
           type: string
     group_meta:
       description: "metadata of an hdf group, as a dictionary"
@@ -295,18 +296,18 @@ components:
           type: string
         type:
           description: "the string literal 'group'"
-          enum: ['group']
+          enum: ["group"]
           type: string
     meta:
       description: "the metadata of an hdf object"
       discriminator:
         propertyName: type
         mapping:
-          dataset: '#/components/schemas/dataset_meta'
-          group: '#/components/schemas/group_meta'
+          dataset: "#/components/schemas/dataset_meta"
+          group: "#/components/schemas/group_meta"
       oneOf:
-        - $ref: '#/components/schemas/dataset_meta'
-        - $ref: '#/components/schemas/group_meta'
+        - $ref: "#/components/schemas/dataset_meta"
+        - $ref: "#/components/schemas/group_meta"
     py_snippet:
       description: "python code snippet"
       type: string
