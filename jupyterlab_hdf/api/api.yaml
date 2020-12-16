@@ -119,6 +119,85 @@ paths:
 
 
 components:
+  examples:
+    dataset_contents:
+      description: "example contents of a dataset object"
+      value: {
+        "content": {
+          "dtype": "int64",
+          "labels": [
+            {"start": 2, "stop": 11, "step": 1},
+            {"start": 3, "stop": 4, "step": 1},
+            {"start": 1, "stop": 16, "step": 1},
+          ],
+          "name": "foo",
+          "ndim": 2,
+          "shape": [9, 15],
+          "size": 135,
+          "type": "dataset"
+        },
+        "name": "foo",
+        "type": "dataset",
+        "uri": "able/foo"
+      }
+    group_contents:
+      description: "example contents of a group object"
+      value: [
+        {"name": "baker", "type": "group", "uri": "able/baker"},
+        {"name": "foo", "type": "dataset", "uri": "able/foo"},
+        {"name": "bar", "type": "dataset", "uri": "able/bar"}
+      ]
+    data_1d:
+      description: "a 1D chunk of raw array data"
+      value: [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26]
+    data_2d:
+      description: "a 2D chunk of raw array data"
+      value: [[11, 12, 13, 14], [15, 16, 17, 18], [19, 20, 21, 22], [23, 24, 25, 26]]
+    data_4d:
+      description: "a 4D chunk of raw array data"
+      value: [[[[11, 12], [13, 14]], [[15, 16], [17, 18]]], [[[19, 20], [21, 22]], [[23, 24], [25, 26]]]]
+    dataset_meta:
+      description: "metadata for dataset of shape `[13, 5, 17]`"
+      value: {
+        "content": {
+          "dtype": "int64",
+          "labels": [
+            {"start": 2, "stop": 11, "step": 1},
+            {"start": 3, "stop": 4, "step": 1},
+            {"start": 1, "stop": 16, "step": 1},
+          ],
+          "name": "foo",
+          "ndim": 2,
+          "shape": [9, 15],
+          "size": 135,
+          "type": "dataset"
+        },
+        "name": "foo",
+        "type": "dataset",
+        "uri": "able/foo"
+      }
+    dataset_meta_w_ixstr:
+      description: 'metadata for dataset of shape `[13, 5, 17]`, given an ixstr of `"2:11, 3, 1:16"`'
+      value: {
+        "dtype": "int64",
+        "labels": [
+          {"start": 2, "stop": 11, "step": 1},
+          {"start": 3, "stop": 4, "step": 1},
+          {"start": 1, "stop": 16, "step": 1},
+        ],
+        "name": "foo",
+        "ndim": 2,
+        "shape": [9, 15],
+        "size": 135,
+        "type": "dataset"
+      }
+    group_meta:
+      description: "metadata for group"
+      value: {
+        "name": "beta",
+        "type": "group"
+      }
+
   parameters:
     fpath:
       name: fpath
@@ -159,7 +238,7 @@ components:
 
   responses:
     "400":
-      description: "the request was malformed; url should be of the format 'fpath?uri=uri'"
+      description: 'the request was malformed; url should be of the format `"fpath?uri=uri"`'
     "401":
       description: "the request did not specify a file that `h5py` could understand"
     "403":
@@ -173,7 +252,7 @@ components:
           schema:
             $ref: "#/components/schemas/attrs"
     contents:
-      description: "data representing an arbitrary hdf object, in the format required by the jupyterlab `Contents` stack. May be either a single object or an array"
+      description: "data representing an arbitrary hdf object, in the format required by the jupyterlab `Contents` stack. If object is a dataset, basic information (including metadata) about that dataset will be reutrned as a dict. If object is a group, then basic information (but not metadata) about that group's children will be returned as an array of dicts"
       content:
         application/json:
           schema:
@@ -182,18 +261,37 @@ components:
             - type: array
               items:
                 $ref: "#/components/schemas/contents"
+          examples:
+            "contents of a dataset":
+              $ref: "#/components/examples/dataset_contents"
+            "contents of a group":
+              $ref: "#/components/examples/group_contents"
     data:
       description: "a chunk of raw array data from an hdf dataset. May be of any dimensionality"
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/data"
+          examples:
+            "1D data":
+              $ref: "#/components/examples/data_1d"
+            "2D data":
+              $ref: "#/components/examples/data_2d"
+            "4D data":
+              $ref: "#/components/examples/data_4d"
     meta:
       description: "metadata of an arbitrary hdf object, as a dictionary"
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/meta"
+          examples:
+            "metadata for dataset":
+              $ref: "#/components/examples/dataset_meta"
+            "metadata for dataset, given an ixstr":
+              $ref: "#/components/examples/dataset_meta_w_ixstr"
+            "metadata for group":
+              $ref: "#/components/examples/group_meta"
     py_snippet:
       description: "python code snippet"
       content:
@@ -217,7 +315,7 @@ components:
           description: "object name (ie last part of uri)"
           type: string
         type:
-          description: "the string literal 'dataset'"
+          description: 'the string literal `"dataset"`'
           enum: ["dataset"]
           type: string
         uri:
@@ -228,13 +326,11 @@ components:
       required: [name, type, uri]
       type: object
       properties:
-        content:
-          $ref: "#/components/schemas/group_meta"
         name:
           description: "object name (ie last part of uri)"
           type: string
         type:
-          description: "the string literal 'group'"
+          description: 'the string literal `"group"`'
           enum: ["group"]
           type: string
         uri:
@@ -285,7 +381,7 @@ components:
           description: "count of entries of an hdf dataset"
           type: number
         type:
-          description: "the string literal 'dataset'"
+          description: 'the string literal `"dataset"`'
           enum: ["dataset"]
           type: string
     group_meta:
@@ -297,7 +393,7 @@ components:
           description: "name of hdf group"
           type: string
         type:
-          description: "the string literal 'group'"
+          description: 'the string literal `"group"`'
           enum: ["group"]
           type: string
     meta:
