@@ -3,8 +3,6 @@
 # Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-import h5py
-
 from .baseHandler import HdfFileManager, HdfBaseHandler
 from .util import hobjMetaDict, jsonize
 
