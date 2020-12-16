@@ -126,26 +126,26 @@ components:
         "content": {
           "dtype": "int64",
           "labels": [
-            {"start": 2, "stop": 11, "step": 1},
-            {"start": 3, "stop": 4, "step": 1},
-            {"start": 1, "stop": 16, "step": 1},
+            {"start": 0, "stop": 13, "step": 1},
+            {"start": 0, "stop": 5, "step": 1},
+            {"start": 0, "stop": 17, "step": 1},
           ],
           "name": "foo",
-          "ndim": 2,
-          "shape": [9, 15],
-          "size": 135,
+          "ndim": 3,
+          "shape": [13, 5, 17],
+          "size": 1105,
           "type": "dataset"
         },
         "name": "foo",
         "type": "dataset",
-        "uri": "able/foo"
+        "uri": "/able/foo"
       }
     group_contents:
       description: "example contents of a group object"
       value: [
-        {"name": "baker", "type": "group", "uri": "able/baker"},
-        {"name": "foo", "type": "dataset", "uri": "able/foo"},
-        {"name": "bar", "type": "dataset", "uri": "able/bar"}
+        {"name": "baker", "type": "group", "uri": "/able/baker"},
+        {"name": "foo", "type": "dataset", "uri": "/able/foo"},
+        {"name": "bar", "type": "dataset", "uri": "/able/bar"}
       ]
     data_1d:
       description: "a 1D chunk of raw array data"
@@ -159,22 +159,17 @@ components:
     dataset_meta:
       description: "metadata for dataset of shape `[13, 5, 17]`"
       value: {
-        "content": {
-          "dtype": "int64",
-          "labels": [
-            {"start": 2, "stop": 11, "step": 1},
-            {"start": 3, "stop": 4, "step": 1},
-            {"start": 1, "stop": 16, "step": 1},
-          ],
-          "name": "foo",
-          "ndim": 2,
-          "shape": [9, 15],
-          "size": 135,
-          "type": "dataset"
-        },
+        "dtype": "int64",
+        "labels": [
+          {"start": 0, "stop": 13, "step": 1},
+          {"start": 0, "stop": 5, "step": 1},
+          {"start": 0, "stop": 17, "step": 1},
+        ],
         "name": "foo",
-        "type": "dataset",
-        "uri": "able/foo"
+        "ndim": 3,
+        "shape": [13, 5, 17],
+        "size": 1105,
+        "type": "dataset"
       }
     dataset_meta_w_ixstr:
       description: 'metadata for dataset of shape `[13, 5, 17]`, given an ixstr of `"2:11, 3, 1:16"`'
