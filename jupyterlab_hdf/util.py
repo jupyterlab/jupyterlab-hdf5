@@ -70,7 +70,8 @@ def hobjAttrsDict(hobj):
 
 def hobjContentsDict(hobj, content=False, ixstr=None, min_ndim=None):
     return dict((
-        ('content', hobjMetaDict(hobj, ixstr=ixstr, min_ndim=min_ndim) if content else None),
+        # ensure that 'content' is undefined if not explicitly requested
+        *((('content', hobjMetaDict(hobj, ixstr=ixstr, min_ndim=min_ndim)),) if content else ()),
         *_hobjDict(hobj).items(),
         ('uri', hobj.name),
     ))
