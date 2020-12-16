@@ -182,7 +182,7 @@ components:
               items:
                 $ref: '#/components/schemas/contents'
     data:
-      description: "slab of hdf5 dataset represented as list-of-list-of-number (always 2D)"
+      description: "a chunk of raw array data from an hdf dataset. May be of any dimensionality"
       content:
         application/json:
           schema:
@@ -251,9 +251,9 @@ components:
       description: "a chunk of raw array data from an hdf dataset. May be of any dimensionality"
       type: array
       items:
-        type: array
-        items:
-          type: number
+        oneOf:
+          - type: number
+          - $ref: "#/components/schemas/data"
     dataset_meta:
       description: "metadata of an hdf dataset, as a dictionary"
       required: [dtype, labels, name, ndim, shape, size, type]
