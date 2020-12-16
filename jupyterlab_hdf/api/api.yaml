@@ -274,8 +274,8 @@ components:
       discriminator:
         propertyName: type
         mapping:
-          dataset_meta: '#/components/schemas/dataset_meta'
-          group_meta: '#/components/schemas/group_meta'
+          dataset: '#/components/schemas/dataset_meta'
+          group: '#/components/schemas/group_meta'
     py_snippet:
       description: "python code snippet"
       type: string
