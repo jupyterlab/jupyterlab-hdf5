@@ -378,10 +378,11 @@ components:
           - $ref: "#/components/schemas/data"
     dataset_meta:
       description: "metadata of an hdf dataset, as a dictionary"
-      required: [dtype, labels, name, ndim, shape, size, type]
+      required: [attributeCount, dtype, id, labels, name, ndim, shape, size, type]
       type: object
       properties:
-        attributeCount: "number of attributes of the dataset"
+        attributeCount: 
+          description: "number of attributes of the dataset"
           type: number
         dtype:
           description: "datatype of an hdf dataset"
@@ -414,12 +415,14 @@ components:
           type: string
     group_meta:
       description: "metadata of an hdf group, as a dictionary"
-      required: [name, type]
+      required: [attributeCount, childrenCount, id, name, type]
       type: object
       properties:
-        attributeCount: "number of attributes of the group"
+        attributeCount: 
+          description: "number of attributes of the group"
           type: number
-        childrenCount: "number of child entities of the group"
+        childrenCount: 
+          description: "number of child entities of the group"
           type: number
         id:
           description: "internal HDF5 id"
