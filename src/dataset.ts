@@ -37,12 +37,13 @@ import {
 } from "./exception";
 
 import {
+  datasetMetaEmpty,
   hdfDataRequest,
+  hdfMetaRequest,
   IDataParameters,
   IMetaParameters,
   IDatasetMeta,
-  parseHdfQuery,
-  hdfMetaRequest
+  parseHdfQuery
 } from "./hdf";
 
 import { noneSlice, slice } from "./slice";
@@ -202,6 +203,9 @@ export abstract class HdfDatasetModel extends DataModel {
     try {
       return await hdfDataRequest(params, this._serverSettings);
     } catch (err) {
+      // on any error, reduce displayed shape to [] in order to prevent unending failed data requests
+      this._refresh(datasetMetaEmpty());
+
       if (err instanceof HdfResponseError) {
         modalHdfError(err);
       } else if (err instanceof ServerConnection.ResponseError) {
@@ -219,6 +223,9 @@ export abstract class HdfDatasetModel extends DataModel {
         this._serverSettings
       )) as IDatasetMeta;
     } catch (err) {
+      // on any error, reduce displayed shape to [] in order to prevent unending failed data requests
+      this._refresh(datasetMetaEmpty());
+
       if (err instanceof HdfResponseError) {
         modalHdfError(err);
       } else if (err instanceof ServerConnection.ResponseError) {
@@ -332,18 +339,18 @@ export abstract class HdfDatasetModel extends DataModel {
     this._metaIx = meta;
 
     // all reasoning about 0d vs 1d vs nd goes here
-    if (this._metaIx.shape.length < 1) {
-      // for 0d (scalar), use (1, 1)
-      this._hassubix = [false, false];
-      this._n = [1, 1];
-      this._nheader = [0, 0];
-      this._labels = [slice(0, 1), slice(0, 1)];
-    } else if (this._metaIx.size <= 0) {
+    if (this._metaIx.size <= 0) {
       // for 0d (empty), use (0, 0)
       this._hassubix = [false, false];
       this._n = [0, 0];
       this._nheader = [0, 0];
       this._labels = [noneSlice(), noneSlice()];
+    } else if (this._metaIx.shape.length < 1) {
+      // for 0d (scalar), use (1, 1)
+      this._hassubix = [false, false];
+      this._n = [1, 1];
+      this._nheader = [0, 0];
+      this._labels = [slice(0, 1), slice(0, 1)];
     } else if (this._metaIx.shape.length < 2) {
       // for 1d, use (1, size)
       this._hassubix = [false, true];

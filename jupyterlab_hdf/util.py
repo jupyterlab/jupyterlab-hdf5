@@ -53,8 +53,8 @@ def dsetChunk(dset, ixstr=None, subixstr=None, min_ndim=None):
     elif subixstr is None:
         chunk = dset[parseIndex(ixstr)]
     else:
-        validateSubindex(ixstr, subixstr, dset.shape)
-        chunk = dset[parseSubindex(ixstr, subixstr, dset.shape)]
+        validateSubindex(dset.shape, dset.size, ixstr, subixstr)
+        chunk = dset[parseSubindex(dset.shape, dset.size, ixstr, subixstr)]
 
     if min_ndim is not None:
         chunk = atleast_nd(chunk, min_ndim)
@@ -97,7 +97,7 @@ def hobjType(hobj):
 
 def _dsetMetaDict(dset, ixstr=None, min_ndim=None):
     shapekeys = ('labels', 'ndim', 'shape', 'size')
-    smeta = {k:v for k,v in shapemeta(dset.shape, ixstr=ixstr, min_ndim=min_ndim).items() if k in shapekeys}
+    smeta = {k:v for k,v in shapemeta(dset.shape, dset.size, ixstr=ixstr, min_ndim=min_ndim).items() if k in shapekeys}
 
     return dict((
         ('dtype', dset.dtype.str),
@@ -194,9 +194,9 @@ def parseIndex(node_or_string):
         return _convert_signed_num(node)
     return _convert(node_or_string)
 
-def parseSubindex(ixstr, subixstr, shape):
+def parseSubindex(shape, size, ixstr, subixstr):
     ix = parseIndex(ixstr)
-    meta = shapemeta(shape, ixstr)
+    meta = shapemeta(shape, size, ixstr)
     subix = parseIndex(subixstr)
 
     ixcompound = list(ix)
@@ -207,7 +207,7 @@ def parseSubindex(ixstr, subixstr, shape):
 
     return tuple(ixcompound)
 
-def shapemeta(shape, ixstr=None, min_ndim=None):
+def shapemeta(shape, size, ixstr=None, min_ndim=None):
     if ixstr is None:
         ix = (slice(None), )*len(shape)
     else:
@@ -226,7 +226,7 @@ def shapemeta(shape, ixstr=None, min_ndim=None):
     labelsIx = [slice(*ix[d].indices(shape[d])) for d in visdimsIx]
     shapeIx = [slicelen(ix[d], shape[d]) for d in visdimsIx]
 
-    sizeIx = np.prod(shapeIx) if ndimIx else 0
+    sizeIx = np.prod(shapeIx) if ndimIx else size
 
     return dict((
         ('labels', labelsIx),
@@ -242,14 +242,14 @@ def slicelen(slyce, seqlen):
     start, stop, step = slyce.indices(seqlen)
     return max(0, (stop - start + (step - (1 if step > 0 else -1))) // step)
 
-def validateSubindex(ixstr, subixstr, shape):
-    meta = shapemeta(shape, ixstr)
+def validateSubindex(shape, size, ixstr, subixstr):
+    meta = shapemeta(shape, size, ixstr)
     subix = parseIndex(subixstr)
 
     if len(subix) != len(meta['visdims']):
         msg = dict((
             ('message', 'malformed subixstr: number of visible dimensions in index not equal to number of dimensions in subindex.'),
-            ('debugVars', {'ixstr': ixstr, 'subixstr': subixstr}),
+            ('debugVars', {'ixstr': ixstr, 'subix': subix, 'subixstr': subixstr, 'visdims': meta['visdims']}),
         ))
         raise JhdfError(msg)
 
