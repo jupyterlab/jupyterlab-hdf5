@@ -77,12 +77,21 @@ def hobjContentsDict(hobj, content=False, ixstr=None, min_ndim=None):
     ))
 
 def hobjMetaDict(hobj, ixstr=None, min_ndim=None):
-    d = _hobjDict(hobj)
+    d = dict((
+        *_hobjDict(hobj).items(),
+        ('id', hobj.id.id),
+        ('attributeCount', len(hobj.attrs))
+    ))
 
     if d['type'] == 'dataset':
         return dict(sorted((
             *d.items(),
             *_dsetMetaDict(hobj, ixstr=ixstr, min_ndim=min_ndim).items(),
+        )))
+    elif d['type'] == 'group':
+        return dict(sorted((
+            *d.items(),
+            ('childrenCount', len(hobj))
         )))
     else:
         return d
