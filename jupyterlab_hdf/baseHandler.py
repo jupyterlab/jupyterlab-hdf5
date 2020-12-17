@@ -7,7 +7,7 @@ import h5py
 import os
 import simplejson
 import traceback
-from tornado import gen
+from tornado import web
 from tornado.httpclient import HTTPError
 
 from notebook.base.handlers import APIHandler
@@ -105,8 +105,8 @@ class HdfBaseHandler(APIHandler):
         self.notebook_dir = notebook_dir
         self.manager = self.managerClass(log=self.log, notebook_dir=notebook_dir)
 
-    @gen.coroutine
-    def get(self, path):
+    @web.authenticated
+    async def get(self, path):
         """Based on an api request, get either the contents of a group or a
         slice of a dataset and return it as serialized JSON.
         """
