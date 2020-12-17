@@ -1,7 +1,0 @@
-**/*.d.ts
-**/lib
-**/node_modules
-**/package.json
-coverage
-dist
-node_modules
