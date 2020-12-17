@@ -4,4 +4,4 @@ repos:
     hooks:
       - id: black
         entry: bash -c 'black "$@"; git add -u' --
-        # language_version: python3 # Should be a command that runs python3.6+
+        language_version: python # Should be a command that runs python3.6+
