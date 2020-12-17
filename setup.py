@@ -46,7 +46,9 @@ setup_dict = dict(
     ],
     extras_require={
         'test': [
+            'black',
             'numpy',
+            'pre-commit',
             'pytest',
             'requests',
         ]

@@ -1,0 +1,7 @@
+repos:
+  - repo: https://github.com/psf/black
+    rev: 20.8b1
+    hooks:
+      - id: black
+        entry: bash -c 'black "$@"; git add -u' --
+        # language_version: python3 # Should be a command that runs python3.6+
