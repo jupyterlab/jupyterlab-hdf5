@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 description = """if run with no args, this script will:
-1. deterime the true project version from jupyterfs/_version.py
+1. determine the true project version from jupyterlab_hdf/_version.py
 2. "version"
     - force the version in package.json to agree
 3. "tag"
@@ -79,7 +79,7 @@ def npmjs(dry_run=False):
 def labExtensionVersion(dry_run=False, version=None):
     if version:
         if 'rc' in version:
-            version,rc = version.split('rc')
+            version, rc = version.split('rc')
             version = version + '-rc.{}'.format(rc)
 
         force_ver_cmd = ['npm', '--no-git-tag-version', 'version', version, '--force', '--allow-same-version']
@@ -148,5 +148,6 @@ def main():
 
     doRelease(actions, dry_run=dry_run)
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     main()
