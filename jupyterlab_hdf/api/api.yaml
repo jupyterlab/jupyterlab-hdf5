@@ -381,7 +381,8 @@ components:
       required: [dtype, labels, name, ndim, shape, size, type]
       type: object
       properties:
-        attributeCount: "number of attributes of the dataset"
+        attributeCount: 
+          description: "number of attributes of the dataset"
           type: number
         dtype:
           description: "datatype of an hdf dataset"
@@ -417,9 +418,11 @@ components:
       required: [name, type]
       type: object
       properties:
-        attributeCount: "number of attributes of the group"
+        attributeCount: 
+          description: "number of attributes of the group"
           type: number
-        childrenCount: "number of child entities of the group"
+        childrenCount: 
+          description: "number of child entities of the group"
           type: number
         id:
           description: "internal HDF5 id"
