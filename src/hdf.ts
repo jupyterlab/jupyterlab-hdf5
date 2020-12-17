@@ -303,6 +303,18 @@ export interface IGroupMeta extends IMeta {
   type: "group";
 }
 
+export function datasetMetaEmpty(): IDatasetMeta {
+  return {
+    dtype: "int64",
+    labels: [],
+    name: "",
+    ndim: 0,
+    shape: [],
+    size: 0,
+    type: "dataset"
+  };
+}
+
 // /**
 //  * Typings representing a directory from the Hdf
 //  */
