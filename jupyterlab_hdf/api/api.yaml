@@ -167,7 +167,9 @@ components:
     dataset_meta:
       description: "metadata for dataset of shape `[13, 5, 17]`"
       value: {
+        "attributeCount": 1,
         "dtype": "int64",
+        "id": 360287970189639680,
         "labels": [
           {"start": 0, "stop": 13, "step": 1},
           {"start": 0, "stop": 5, "step": 1},
@@ -182,7 +184,9 @@ components:
     dataset_meta_w_ixstr:
       description: 'metadata for dataset of shape `[13, 5, 17]`, given an ixstr of `"2:11, 3, 1:16"`'
       value: {
+        "attributeCount": 1,
         "dtype": "int64",
+        "id": 360287970189639680,
         "labels": [
           {"start": 2, "stop": 11, "step": 1},
           {"start": 3, "stop": 4, "step": 1},
@@ -197,6 +201,9 @@ components:
     group_meta:
       description: "metadata for group"
       value: {
+        "attributeCount": 0,
+        "childrenCount": 2,
+        "id": 144115188075855872,
         "name": "beta",
         "type": "group"
       }
@@ -374,9 +381,14 @@ components:
       required: [dtype, labels, name, ndim, shape, size, type]
       type: object
       properties:
+        attributeCount: "number of attributes of the dataset"
+          type: number
         dtype:
           description: "datatype of an hdf dataset"
           type: string
+        id:
+          description: "internal HDF5 id"
+          type: number
         labels:
           description: "ranges that label the indices of an hdf dataset, given as an array of slices"
           type: array
@@ -405,6 +417,13 @@ components:
       required: [name, type]
       type: object
       properties:
+        attributeCount: "number of attributes of the group"
+          type: number
+        childrenCount: "number of child entities of the group"
+          type: number
+        id:
+          description: "internal HDF5 id"
+          type: number
         name:
           description: "name of hdf group"
           type: string
