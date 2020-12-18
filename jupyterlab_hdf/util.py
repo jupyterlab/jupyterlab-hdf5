@@ -79,7 +79,7 @@ def hobjContentsDict(hobj, content=False, ixstr=None, min_ndim=None):
 def hobjMetaDict(hobj, ixstr=None, min_ndim=None):
     d = dict((
         *_hobjDict(hobj).items(),
-        ('id', hobj.id.id),
+        ('id', str(hobj.id.id)),
         ('attributeCount', len(hobj.attrs))
     ))
 

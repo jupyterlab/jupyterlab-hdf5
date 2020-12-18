@@ -169,7 +169,7 @@ components:
       value: {
         "attributeCount": 1,
         "dtype": "int64",
-        "id": 360287970189639680,
+        "id": "360287970189639680",
         "labels": [
           {"start": 0, "stop": 13, "step": 1},
           {"start": 0, "stop": 5, "step": 1},
@@ -186,7 +186,7 @@ components:
       value: {
         "attributeCount": 1,
         "dtype": "int64",
-        "id": 360287970189639680,
+        "id": "360287970189639680",
         "labels": [
           {"start": 2, "stop": 11, "step": 1},
           {"start": 3, "stop": 4, "step": 1},
@@ -203,7 +203,7 @@ components:
       value: {
         "attributeCount": 0,
         "childrenCount": 2,
-        "id": 144115188075855872,
+        "id": "144115188075855872",
         "name": "beta",
         "type": "group"
       }
@@ -389,7 +389,7 @@ components:
           type: string
         id:
           description: "internal HDF5 id"
-          type: number
+          type: string
         labels:
           description: "ranges that label the indices of an hdf dataset, given as an array of slices"
           type: array
@@ -426,7 +426,7 @@ components:
           type: number
         id:
           description: "internal HDF5 id"
-          type: number
+          type: string
         name:
           description: "name of hdf group"
           type: string
