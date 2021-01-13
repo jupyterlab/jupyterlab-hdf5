@@ -169,7 +169,6 @@ components:
       value: {
         "attributeCount": 1,
         "dtype": "int64",
-        "id": 360287970189639680,
         "labels": [
           {"start": 0, "stop": 13, "step": 1},
           {"start": 0, "stop": 5, "step": 1},
@@ -186,7 +185,6 @@ components:
       value: {
         "attributeCount": 1,
         "dtype": "int64",
-        "id": 360287970189639680,
         "labels": [
           {"start": 2, "stop": 11, "step": 1},
           {"start": 3, "stop": 4, "step": 1},
@@ -203,7 +201,6 @@ components:
       value: {
         "attributeCount": 0,
         "childrenCount": 2,
-        "id": 144115188075855872,
         "name": "beta",
         "type": "group"
       }
@@ -378,7 +375,7 @@ components:
           - $ref: "#/components/schemas/data"
     dataset_meta:
       description: "metadata of an hdf dataset, as a dictionary"
-      required: [attributeCount, dtype, id, labels, name, ndim, shape, size, type]
+      required: [attributeCount, dtype, labels, name, ndim, shape, size, type]
       type: object
       properties:
         attributeCount: 
@@ -387,9 +384,6 @@ components:
         dtype:
           description: "datatype of an hdf dataset"
           type: string
-        id:
-          description: "internal HDF5 id"
-          type: number
         labels:
           description: "ranges that label the indices of an hdf dataset, given as an array of slices"
           type: array
@@ -415,7 +409,7 @@ components:
           type: string
     group_meta:
       description: "metadata of an hdf group, as a dictionary"
-      required: [attributeCount, childrenCount, id, name, type]
+      required: [attributeCount, childrenCount, name, type]
       type: object
       properties:
         attributeCount: 
@@ -423,9 +417,6 @@ components:
           type: number
         childrenCount: 
           description: "number of child entities of the group"
-          type: number
-        id:
-          description: "internal HDF5 id"
           type: number
         name:
           description: "name of hdf group"
