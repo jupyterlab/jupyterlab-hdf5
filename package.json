@@ -52,14 +52,14 @@
     ]
   },
   "dependencies": {
-    "@jupyterlab/application": "^2.0.0",
-    "@jupyterlab/apputils": "^2.0.0",
-    "@jupyterlab/coreutils": "^4.0.0",
-    "@jupyterlab/docmanager": "^2.0.0",
-    "@jupyterlab/docregistry": "^2.0.0",
-    "@jupyterlab/filebrowser": "^2.0.0",
-    "@jupyterlab/notebook": "^2.0.0",
-    "@jupyterlab/services": "^5.0.0",
+    "@jupyterlab/application": "^3.0.0",
+    "@jupyterlab/apputils": "^3.0.0",
+    "@jupyterlab/coreutils": "^5.0.0",
+    "@jupyterlab/docmanager": "^3.0.0",
+    "@jupyterlab/docregistry": "^3.0.0",
+    "@jupyterlab/filebrowser": "^3.0.0",
+    "@jupyterlab/notebook": "^3.0.0",
+    "@jupyterlab/services": "^6.0.0",
     "@lumino/algorithm": "^1.3.0",
     "@lumino/coreutils": "^1.5.0",
     "@lumino/datagrid": "^0.14.0",
@@ -75,7 +75,7 @@
     "tslint": "^5.10.0",
     "tslint-config-prettier": "^1.13.0",
     "tslint-plugin-prettier": "^2.0.1",
-    "typescript": "~3.7.2",
+    "typescript": "~4.1.0",
     "yarn-deduplicate": "^1.1.1"
   },
   "publishConfig": {
