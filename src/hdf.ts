@@ -236,6 +236,8 @@ export interface IMetaParameters extends IParameters {
   min_ndim?: number;
 }
 
+type HdfType = 'dataset' | 'group' | 'soft_link' | 'external_link';
+
 /**
  * typings representing contents from an object in an hdf5 file
  */
@@ -248,7 +250,7 @@ class HdfContents {
   /**
    * The type of the object.
    */
-  type: 'dataset' | 'group';
+  type: HdfType;
 
   /**
    * The path to the object in the hdf5 file.
@@ -268,19 +270,34 @@ export class HdfGroupContents extends HdfContents {
   type: 'group';
 }
 
+export class HdfExternalLinkContents extends HdfContents {
+  content: IExternalLinkMeta;
+
+  type: 'external_link';
+}
+
+export class HdfSoftLinkContents extends HdfContents {
+  content: ISoftLinkMeta;
+
+  type: 'soft_link';
+}
+
 /**
  * Typings representing directory contents
  */
-export type HdfDirectoryListing = (HdfDatasetContents | HdfGroupContents)[];
+export type HdfDirectoryListing = (
+  | HdfDatasetContents
+  | HdfGroupContents
+  | HdfSoftLinkContents
+  | HdfExternalLinkContents
+)[];
 
 export type AttributeValue = any;
 
 interface IAttrMeta {
   name: string;
-
   dtype: string;
-
-  shape: number[];
+  type: HdfType;
 }
 
 interface IMeta {
@@ -288,7 +305,7 @@ interface IMeta {
 
   name: string;
 
-  type: 'dataset' | 'group';
+  type: HdfType;
 }
 
 export interface IDatasetMeta extends IMeta {
@@ -309,6 +326,18 @@ export interface IGroupMeta extends IMeta {
   type: 'group';
 }
 
+export interface ISoftLinkMeta extends IMeta {
+  targetUri: string;
+  type: 'soft_link';
+}
+
+export interface IExternalLinkMeta extends IMeta {
+  targetUri: string;
+  targetFile: string;
+
+  type: 'external_link';
+}
+
 export function datasetMetaEmpty(): IDatasetMeta {
   return {
     attributes: [],
@@ -321,43 +350,3 @@ export function datasetMetaEmpty(): IDatasetMeta {
     type: 'dataset',
   };
 }
-
-// /**
-//  * Typings representing a directory from the Hdf
-//  */
-// export class HdfDirectoryContents extends HdfContents {
-//   /**
-//    * The type of the contents.
-//    */
-//   type: 'dir';
-// }
-//
-// /**
-//  * Typings representing a blob from the Hdf
-//  */
-// export class HdfBlob {
-//   /**
-//    * The base64-encoded contents of the file.
-//    */
-//   content: string;
-//
-//   /**
-//    * The encoding of the contents. Always base64.
-//    */
-//   encoding: 'base64';
-//
-//   /**
-//    * The URL for the blob.
-//    */
-//   url: string;
-//
-//   /**
-//    * The unique sha for the blob.
-//    */
-//   sha: string;
-//
-//   /**
-//    * The size of the blob, in bytes.
-//    */
-//   size: number;
-// }

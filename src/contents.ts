@@ -1,25 +1,27 @@
 // Copyright (c) Jupyter Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-import { Signal, ISignal } from "@lumino/signaling";
+import { Signal, ISignal } from '@lumino/signaling';
 
-import { PathExt, URLExt } from "@jupyterlab/coreutils";
+import { PathExt, URLExt } from '@jupyterlab/coreutils';
 
-import { DocumentRegistry } from "@jupyterlab/docregistry";
+import { DocumentRegistry } from '@jupyterlab/docregistry';
 
-import { Contents, ServerConnection } from "@jupyterlab/services";
+import { Contents, ServerConnection } from '@jupyterlab/services';
 
 import {
   hdfContentsRequest,
   HdfDatasetContents,
   HdfDirectoryListing,
   HdfGroupContents,
-  parseHdfQuery
-} from "./hdf";
+  HdfExternalLinkContents,
+  parseHdfQuery,
+  HdfSoftLinkContents,
+} from './hdf';
 
 /**
  * A Contents.IDrive implementation that serves as a read-only
- * view onto GitHub repositories.
+ * view onto HDF5 files.
  */
 export class HdfDrive implements Contents.IDrive {
   /**
@@ -34,8 +36,8 @@ export class HdfDrive implements Contents.IDrive {
   /**
    * The name of the drive.
    */
-  get name(): "Hdf" {
-    return "Hdf";
+  get name(): 'Hdf' {
+    return 'Hdf';
   }
 
   /**
@@ -126,7 +128,7 @@ export class HdfDrive implements Contents.IDrive {
     // const resource = parsePath(path);
 
     return Promise.resolve(
-      URLExt.join(this._serverSettings.baseUrl, "hdf", "contents", path)
+      URLExt.join(this._serverSettings.baseUrl, 'hdf', 'contents', path)
     );
   }
 
@@ -139,7 +141,7 @@ export class HdfDrive implements Contents.IDrive {
    *    file is created.
    */
   newUntitled(options: Contents.ICreateOptions = {}): Promise<Contents.IModel> {
-    return Promise.reject("Hdf file is read only");
+    return Promise.reject('Hdf file is read only');
   }
 
   /**
@@ -150,7 +152,7 @@ export class HdfDrive implements Contents.IDrive {
    * @returns A promise which resolves when the file is deleted.
    */
   delete(path: string): Promise<void> {
-    return Promise.reject("Hdf file is read only");
+    return Promise.reject('Hdf file is read only');
   }
 
   /**
@@ -164,7 +166,7 @@ export class HdfDrive implements Contents.IDrive {
    *   the file is renamed.
    */
   rename(path: string, newPath: string): Promise<Contents.IModel> {
-    return Promise.reject("Hdf file is read only");
+    return Promise.reject('Hdf file is read only');
   }
 
   /**
@@ -181,7 +183,7 @@ export class HdfDrive implements Contents.IDrive {
     path: string,
     options: Partial<Contents.IModel>
   ): Promise<Contents.IModel> {
-    return Promise.reject("Hdf file is read only");
+    return Promise.reject('Hdf file is read only');
   }
 
   /**
@@ -195,7 +197,7 @@ export class HdfDrive implements Contents.IDrive {
    *  file is copied.
    */
   copy(fromFile: string, toDir: string): Promise<Contents.IModel> {
-    return Promise.reject("Hdf file is read only");
+    return Promise.reject('Hdf file is read only');
   }
 
   /**
@@ -207,7 +209,7 @@ export class HdfDrive implements Contents.IDrive {
    *   checkpoint is created.
    */
   createCheckpoint(path: string): Promise<Contents.ICheckpointModel> {
-    return Promise.reject("Hdf file is read only");
+    return Promise.reject('Hdf file is read only');
   }
 
   /**
@@ -232,7 +234,7 @@ export class HdfDrive implements Contents.IDrive {
    * @returns A promise which resolves when the checkpoint is restored.
    */
   restoreCheckpoint(path: string, checkpointID: string): Promise<void> {
-    return Promise.reject("Hdf file is read only");
+    return Promise.reject('Hdf file is read only');
   }
 
   /**
@@ -245,7 +247,7 @@ export class HdfDrive implements Contents.IDrive {
    * @returns A promise which resolves when the checkpoint is deleted.
    */
   deleteCheckpoint(path: string, checkpointID: string): Promise<void> {
-    return Promise.reject("Read only");
+    return Promise.reject('Read only');
   }
 
   private _validFile = false;
@@ -269,15 +271,15 @@ namespace Private {
    * nonexistent repository.
    */
   export const dummyDirectory: Contents.IModel = {
-    type: "directory",
-    path: "",
-    name: "",
-    format: "json",
+    type: 'directory',
+    path: '',
+    name: '',
+    format: 'json',
     content: [],
-    created: "",
+    created: '',
     writable: false,
-    last_modified: "",
-    mimetype: ""
+    last_modified: '',
+    mimetype: '',
   };
 
   /**
@@ -292,7 +294,14 @@ namespace Private {
    */
   export function hdfContentsToJupyterContents(
     path: string,
-    contents: (HdfDatasetContents | HdfGroupContents) | HdfDirectoryListing
+    contents:
+      | (
+          | HdfDatasetContents
+          | HdfGroupContents
+          | HdfExternalLinkContents
+          | HdfSoftLinkContents
+        )
+      | HdfDirectoryListing
   ): Contents.IModel {
     if (Array.isArray(contents)) {
       // If we have an array, it is a directory of HdfContents.
@@ -301,45 +310,69 @@ namespace Private {
       return {
         name: PathExt.basename(fpath),
         path: path,
-        format: "json",
-        type: "directory",
+        format: 'json',
+        type: 'directory',
         writable: false,
-        created: "",
-        last_modified: "",
-        mimetype: "",
+        created: '',
+        last_modified: '',
+        mimetype: '',
         content: contents.map(c => {
           return hdfContentsToJupyterContents(fpath + `?uri=${c.uri}`, c);
-        })
+        }),
       } as Contents.IModel;
-    } else if (contents.type === "dataset") {
+    } else if (contents.type === 'dataset') {
       return {
         name: contents.name,
         path: path,
-        format: "json",
-        type: "file",
-        created: "",
+        format: 'json',
+        type: 'file',
+        created: '',
         writable: false,
-        last_modified: "",
-        mimetype: "application/x-hdf5.dataset",
-        content: contents.content
+        last_modified: '',
+        mimetype: 'application/x-hdf5.dataset',
+        content: contents.content,
       };
-    } else if (contents.type === "group") {
+    } else if (contents.type === 'external_link') {
+      return {
+        name: contents.name,
+        path: path,
+        format: 'json',
+        type: 'file',
+        created: '',
+        writable: false,
+        last_modified: '',
+        mimetype: 'application/json',
+        content: contents.content,
+      };
+    } else if (contents.type === 'soft_link') {
+      return {
+        name: contents.name,
+        path: path,
+        format: 'json',
+        type: 'file',
+        created: '',
+        writable: false,
+        last_modified: '',
+        mimetype: 'application/json',
+        content: contents.content,
+      };
+    } else if (contents.type === 'group') {
       // If it is a directory, convert to that.
       return {
         name: contents.name,
         path: path,
-        format: "json",
-        type: "directory",
-        created: "",
+        format: 'json',
+        type: 'directory',
+        created: '',
         writable: false,
-        last_modified: "",
-        mimetype: "",
-        content: null
+        last_modified: '',
+        mimetype: '',
+        content: null,
       };
     } else {
       throw makeError(
         500,
-        `"${(contents as any).name}" has and unexpected type: ${
+        `"${(contents as any).name}" has an unexpected type: ${
           (contents as any).type
         }`
       );
@@ -356,7 +389,7 @@ namespace Private {
   ): ServerConnection.ResponseError {
     const response = new Response(message, {
       status: code,
-      statusText: message
+      statusText: message,
     });
     return new ServerConnection.ResponseError(response, message);
   }
