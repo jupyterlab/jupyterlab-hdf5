@@ -10,13 +10,14 @@ __all__ = ['HdfAttrsManager', 'HdfAttrsHandler']
 
 ## manager
 class HdfAttrsManager(HdfFileManager):
-    """Implements HDF5 attributes handling
-    """
-    def _getFromFile(self, f, uri, **kwargs):
-        return jsonize(hobjAttrsDict(f[uri]))
+    """Implements HDF5 attributes handling"""
+
+    def _getResponse(self, hobj, **kwargs):
+        return jsonize(hobjAttrsDict(hobj))
+
 
 ## handler
 class HdfAttrsHandler(HdfBaseHandler):
-    """A handler for HDF5 attributes
-    """
+    """A handler for HDF5 attributes"""
+
     managerClass = HdfAttrsManager

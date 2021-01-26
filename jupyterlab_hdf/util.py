@@ -77,20 +77,25 @@ def hobjContentsDict(hobj, content=False, ixstr=None, min_ndim=None):
     ))
 
 def hobjMetaDict(hobj, ixstr=None, min_ndim=None):
-    d = dict((
-        *_hobjDict(hobj).items(),
-        ('attributeCount', len(hobj.attrs))
-    ))
+    d = dict((*_hobjDict(hobj).items(),))
 
     if d['type'] == 'dataset':
         return dict(sorted((
             *d.items(),
             *_dsetMetaDict(hobj, ixstr=ixstr, min_ndim=min_ndim).items(),
+            ('attributeCount', len(hobj.attrs))
         )))
     elif d['type'] == 'group':
         return dict(sorted((
             *d.items(),
-            ('childrenCount', len(hobj))
+            ('childrenCount', len(hobj)),
+            ('attributeCount', len(hobj.attrs))
+        )))
+    elif d['type'] == 'externalLink':
+        return dict(sorted((
+            *d.items(),
+            ('externalFile', hobj.original_link.filename),
+            ('externalUri', hobj.original_link.path),
         )))
     else:
         return d
@@ -100,6 +105,8 @@ def hobjType(hobj):
         return 'dataset'
     elif isinstance(hobj, h5py.Group):
         return 'group'
+    elif isinstance(hobj, HobjExternalLink):
+        return 'externalLink'
     else:
         return 'other'
 
@@ -307,3 +314,9 @@ def uriJoin(*parts):
 
 def uriName(uri):
     return uri.split('/')[-1]
+
+## External link that holds ref to its name in the file
+class HobjExternalLink:
+    def __init__(self, link, name):
+        self.name = name
+        self.original_link = link

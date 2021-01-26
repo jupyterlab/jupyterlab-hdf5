@@ -12,12 +12,14 @@ class TestContents(ServerTest):
             # Empty group
             h5file.create_group('empty_group')
 
-            # Group with 2 children
+            # Group with 3 children
             grp = h5file.create_group('group_with_children')
             # A simple dataset
             grp['dataset_1'] = np.random.random((2, 3, 4))
-            # and a group
+            # a group
             grp.create_group('nested_group')
+            # and an external link
+            grp['external'] = h5py.ExternalLink('another_file.h5', 'path/in/the/file')
 
     def test_empty_group(self):
         response = self.tester.get(['contents', 'test_file.h5'], params={'uri': '/empty_group'})
@@ -31,8 +33,11 @@ class TestContents(ServerTest):
 
         assert response.status_code == 200
         payload = response.json()
-        assert payload == [dict((('name', 'dataset_1'), ('type', 'dataset'), ('uri', '/group_with_children/dataset_1'))),
-         dict((('name', 'nested_group'), ('type', 'group'), ('uri', '/group_with_children/nested_group')))]
+        assert payload == [
+            dict((('name', 'dataset_1'), ('type', 'dataset'), ('uri', '/group_with_children/dataset_1'))),
+            dict((('name', 'external'), ('type', 'externalLink'), ('uri', '/group_with_children/external'))),
+            dict((('name', 'nested_group'), ('type', 'group'), ('uri', '/group_with_children/nested_group')))
+        ]
 
     def test_full_dataset(self):
         uri = '/group_with_children/dataset_1'

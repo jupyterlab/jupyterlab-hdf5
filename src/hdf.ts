@@ -226,6 +226,8 @@ export interface IMetaParameters extends IParameters {
   min_ndim?: number;
 }
 
+type HdfType = "dataset" | "group" | "externalLink";
+
 /**
  * typings representing contents from an object in an hdf5 file
  */
@@ -238,7 +240,7 @@ class HdfContents {
   /**
    * The type of the object.
    */
-  type: "dataset" | "group";
+  type: HdfType;
 
   /**
    * The path to the object in the hdf5 file.
@@ -258,6 +260,12 @@ export class HdfGroupContents extends HdfContents {
   type: "group";
 }
 
+export class HdfExternalLinkContents extends HdfContents {
+  content: IExternalLinkMeta;
+
+  type: "externalLink";
+}
+
 /**
  * Typings representing directory contents
  */
@@ -268,7 +276,7 @@ interface IAttrs {
 
   name: string;
 
-  type: "dataset" | "group";
+  type: HdfType;
 }
 
 export interface IDatasetAttrs extends IAttrs {
@@ -282,7 +290,7 @@ export interface IGroupAttrs extends IAttrs {
 interface IMeta {
   name: string;
 
-  type: "dataset" | "group";
+  type: HdfType;
 }
 
 export interface IDatasetMeta extends IMeta {
@@ -301,6 +309,13 @@ export interface IDatasetMeta extends IMeta {
 
 export interface IGroupMeta extends IMeta {
   type: "group";
+}
+
+export interface IExternalLinkMeta extends IMeta {
+  externalFile: string;
+  externalUri: string;
+
+  type: "externalLink";
 }
 
 export function datasetMetaEmpty(): IDatasetMeta {

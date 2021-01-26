@@ -25,7 +25,10 @@ class TestMeta(ServerTest):
             h5file['scalar'] = 56
 
             # Empty dataset
-            h5file['empty'] = h5py.Empty('>f8')
+            h5file['empty'] = h5py.Empty('>f8')            
+
+            # External link
+            h5file['external'] = h5py.ExternalLink('another_file.h5', 'path/in/the/file')
 
     def test_empty_group(self):
         response = self.tester.get(['meta', 'test_file.h5'], params={'uri': '/empty_group'})
@@ -114,3 +117,11 @@ class TestMeta(ServerTest):
             ('size', 0),
             ('type', 'dataset')
         ))
+
+    def test_external_link(self):
+        response = self.tester.get(['meta', 'test_file.h5'], params={'uri': '/external'})
+
+        assert response.status_code == 200
+        payload = response.json()
+
+        assert payload['type'] == 'externalLink'

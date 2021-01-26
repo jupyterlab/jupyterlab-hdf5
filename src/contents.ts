@@ -14,6 +14,7 @@ import {
   HdfDatasetContents,
   HdfDirectoryListing,
   HdfGroupContents,
+  HdfExternalLinkContents,
   parseHdfQuery
 } from "./hdf";
 
@@ -292,7 +293,9 @@ namespace Private {
    */
   export function hdfContentsToJupyterContents(
     path: string,
-    contents: (HdfDatasetContents | HdfGroupContents) | HdfDirectoryListing
+    contents:
+      | (HdfDatasetContents | HdfGroupContents | HdfExternalLinkContents)
+      | HdfDirectoryListing
   ): Contents.IModel {
     if (Array.isArray(contents)) {
       // If we have an array, it is a directory of HdfContents.
@@ -321,6 +324,18 @@ namespace Private {
         writable: false,
         last_modified: "",
         mimetype: "application/x-hdf5.dataset",
+        content: contents.content
+      };
+    } else if (contents.type === "externalLink") {
+      return {
+        name: contents.name,
+        path: path,
+        format: "json",
+        type: "file",
+        created: "",
+        writable: false,
+        last_modified: "",
+        mimetype: "",
         content: contents.content
       };
     } else if (contents.type === "group") {
