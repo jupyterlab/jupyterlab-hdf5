@@ -42,10 +42,14 @@ setup_dict = dict(
     install_requires=[
         'h5py',
         'notebook',
-        'simplejson'
+        'simplejson',
     ],
     extras_require={
-        'test': ['numpy', 'pytest']
+        'test': [
+            'numpy',
+            'pytest',
+            'requests',
+        ]
     }
 )
 
