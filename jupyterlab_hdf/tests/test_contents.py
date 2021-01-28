@@ -32,7 +32,7 @@ class TestContents(ServerTest):
         assert response.status_code == 200
         payload = response.json()
         assert payload == [dict((('name', 'dataset_1'), ('type', 'dataset'), ('uri', '/group_with_children/dataset_1'))),
-         dict((('name', 'group_with_attr'), ('type', 'group'), ('uri', '/group_with_children/nested_group')))]
+         dict((('name', 'nested_group'), ('type', 'group'), ('uri', '/group_with_children/nested_group')))]
 
     def test_full_dataset(self):
         uri = '/group_with_children/dataset_1'
