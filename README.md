@@ -41,7 +41,7 @@ pip install hdf5plugin
 For a development install, clone the repository and then run the following in the repo dir:
 
 ```bash
-pip install .
+pip install -e .[dev]
 jlpm build:dev
 ```
 

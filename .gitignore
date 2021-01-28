@@ -38,7 +38,3 @@ MANIFEST
 *.code-workspace
 .history
 .vscode
-
-# tmp dev stuff
-json.py
-json.ts
