@@ -20,6 +20,7 @@ class TestAttrs(ServerTest):
             attr_dset = h5file.create_dataset('dataset_with_attrs', shape=())
             attr_dset.attrs['bool_attr'] = False
             attr_dset.attrs['list_attr'] = [0, 1, 2]
+            attr_dset.attrs['complex_attr'] = 1 + 2j
 
     def test_group_without_attrs(self):
         response = self.tester.get(['attrs', 'test_file.h5'], params={'uri': '/group_without_attrs'})
@@ -40,4 +41,4 @@ class TestAttrs(ServerTest):
 
         assert response.status_code == 200
         payload = response.json()
-        assert payload == {'bool_attr': False, 'list_attr': [0, 1, 2]}
+        assert payload == {'bool_attr': False, 'list_attr': [0, 1, 2], 'complex_attr': "(1+2j)"}

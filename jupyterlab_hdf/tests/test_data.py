@@ -3,9 +3,11 @@ import os
 import numpy as np
 from jupyterlab_hdf.tests.utils import ServerTest
 
+
 ONE_D = np.arange(0, 11, dtype=np.int64)
 TWO_D = np.arange(0, 10, dtype=np.float64).reshape(2, 5) / 10.
 THREE_D = np.arange(0, 24, dtype=np.int64).reshape(2, 3, 4)
+COMPLEX = np.array([1 + 1j, 1 + 2j, 2 + 2j, -5j, 5], dtype=np.complex)
 
 
 class TestData(ServerTest):
@@ -16,6 +18,7 @@ class TestData(ServerTest):
             h5file['oneD_dataset'] = ONE_D
             h5file['twoD_dataset'] = TWO_D
             h5file['threeD_dataset'] = THREE_D
+            h5file['complex'] = COMPLEX
 
     def test_oneD_dataset(self):
         response = self.tester.get(['data', 'test_file.h5'], params={'uri': '/oneD_dataset'})
@@ -46,3 +49,11 @@ class TestData(ServerTest):
         assert response.status_code == 200
         payload = response.json()
         assert payload == sliced_dataset.tolist()
+
+    def test_complex_dataset(self):
+        response = self.tester.get(['data', 'test_file.h5'], params={'uri': '/complex'})
+
+        assert response.status_code == 200
+        payload = response.json()
+        # Complex are serialized as str
+        assert payload == [str(c) for c in COMPLEX]
