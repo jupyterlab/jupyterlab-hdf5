@@ -284,6 +284,8 @@ def jsonize(v):
         ))
     if isinstance(v, np.bool_):
         return bool(v)
+    if isinstance(v, complex):
+        return str(v)
     return v
 
 
