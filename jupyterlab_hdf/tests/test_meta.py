@@ -28,7 +28,6 @@ class TestMeta(ServerTest):
         payload = response.json()
         assert payload['name'] == 'empty_group'
         assert payload['type'] == 'group'
-        assert type(payload['id']) == int and payload['id'] > 0
         assert payload['attributeCount'] == 0
         assert payload['childrenCount'] == 0
 
@@ -39,7 +38,6 @@ class TestMeta(ServerTest):
         payload = response.json()
         assert payload['name'] == 'group_with_children'
         assert payload['type'] == 'group'
-        assert type(payload['id']) == int and payload['id'] > 0
         assert payload['attributeCount'] == 0
         assert payload['childrenCount'] == 2
 
@@ -50,7 +48,6 @@ class TestMeta(ServerTest):
         payload = response.json()
         assert payload['name'] == 'group_with_attrs'
         assert payload['type'] == 'group'
-        assert type(payload['id']) == int and payload['id'] > 0
         assert payload['attributeCount'] == 2
         assert payload['childrenCount'] == 0
 
@@ -61,7 +58,6 @@ class TestMeta(ServerTest):
         payload = response.json()
         assert payload['name'] == 'dataset_1'
         assert payload['type'] == 'dataset'
-        assert type(payload['id']) == int and payload['id'] > 0
         assert payload['attributeCount'] == 0
         assert 'childrenCount' not in payload
         assert payload['labels'] == [{'start': 0, 'stop': 2, 'step': 1}, {'start': 0, 'stop': 3, 'step': 1}, {'start': 0, 'stop': 4, 'step': 1}]
