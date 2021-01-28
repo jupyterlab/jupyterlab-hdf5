@@ -8,6 +8,11 @@ module.exports = {
     'prettier',
     'prettier/@typescript-eslint',
   ],
+  ignorePatterns: [
+    "**/*.d.ts",
+    "**/dist",
+    "**/node_modules",
+  ],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     project: 'tsconfig.eslint.json',
