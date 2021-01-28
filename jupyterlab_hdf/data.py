@@ -3,6 +3,10 @@
 # Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+try:
+    import hdf5plugin
+except ImportError:
+    pass
 from .baseHandler import HdfFileManager, HdfBaseHandler
 from .util import dsetChunk, jsonize
 

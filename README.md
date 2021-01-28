@@ -26,6 +26,16 @@ This will install both the server extension and the labextension needed by this 
 
 You can also install the labextension via Jupyterlab's extension manager GUI. Keep in mind that if you use the lab extension GUI, you'll still need to install the `jupyterlab_hdf` server extension via `pip`.
 
+### Compression filters
+
+The extension supports all compression filters supported by h5py: https://docs.h5py.org/en/stable/high/dataset.html#filter-pipeline.
+
+To enable support for additional filters such as [blosc](https://github.com/Blosc/hdf5-blosc) or [bitshuffle](https://github.com/kiyo-masui/bitshuffle), you need to install [hdf5plugin](https://pypi.org/project/hdf5plugin/) in addition to the extension:
+
+```bash
+pip install hdf5plugin
+```
+
 ## Development
 
 For a development install, clone the repository and then run the following in the repo dir:
