@@ -283,6 +283,8 @@ def jsonize(v):
             ('stop', v.stop),
             ('step', v.step),
         ))
+    if isinstance(v, np.bool_):
+        return bool(v)
     return v
 
 

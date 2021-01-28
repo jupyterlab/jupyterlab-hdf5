@@ -43,7 +43,10 @@ setup_dict = dict(
         'h5py',
         'notebook',
         'simplejson'
-    ]
+    ],
+    extras_require={
+        'test': ['numpy', 'pytest']
+    }
 )
 
 try:
