@@ -21,6 +21,12 @@ class TestMeta(ServerTest):
             attr_grp.attrs['string_attr'] = 'I am a group'
             attr_grp.attrs['number_attr'] = 5676
 
+            # Scalar dataset
+            h5file['scalar'] = 56
+
+            # Empty dataset
+            h5file['empty'] = h5py.Empty('>f8')
+
     def test_empty_group(self):
         response = self.tester.get(['meta', 'test_file.h5'], params={'uri': '/empty_group'})
 
@@ -67,7 +73,7 @@ class TestMeta(ServerTest):
         assert payload['size'] == 24
 
     def test_sliced_dataset(self):
-        response = self.tester.get(['meta', 'test_file.h5'], params={'uri': '/group_with_children/dataset_1', 'ixstr': ":, 1:3, 2"})
+        response = self.tester.get(['meta', 'test_file.h5'], params={'uri': '/group_with_children/dataset_1', 'ixstr': ':, 1:3, 2'})
 
         assert response.status_code == 200
         payload = response.json()
@@ -76,3 +82,35 @@ class TestMeta(ServerTest):
         assert payload['ndim'] == 2
         assert payload['shape'] == [2, 2]
         assert payload['size'] == 4
+
+    def test_scalar_dataset(self):
+        response = self.tester.get(['meta', 'test_file.h5'], params={'uri': '/scalar'})
+
+        assert response.status_code == 200
+        payload = response.json()
+        assert payload == dict((
+            ('attributeCount', 0),
+            ('dtype', '<i8'),
+            ('labels', []),
+            ('name', 'scalar'),
+            ('ndim', 0),
+            ('shape', []),
+            ('size', 1),
+            ('type', 'dataset')
+        ))
+
+    def test_empty_dataset(self):
+        response = self.tester.get(['meta', 'test_file.h5'], params={'uri': '/empty'})
+
+        assert response.status_code == 200
+        payload = response.json()
+        assert payload == dict((
+            ('attributeCount', 0),
+            ('dtype', '>f8'),
+            ('labels', None),
+            ('name', 'empty'),
+            ('ndim', 0),
+            ('shape', None),
+            ('size', 0),
+            ('type', 'dataset')
+        ))
