@@ -218,12 +218,12 @@ def parseSubindex(shape, size, ixstr, subixstr):
 def shapemeta(shape, size, ixstr=None, min_ndim=None):
     if shape is None:
         return dict((
-        ('labels', None),
-        ('ndim', 0),
-        ('shape', None),
-        ('size', 0),
-        ('visdims', None),
-    ))
+            ('labels', None),
+            ('ndim', 0),
+            ('shape', None),
+            ('size', 0),
+            ('visdims', None),
+        ))
 
     if ixstr is None:
         ix = (slice(None), )*len(shape)
