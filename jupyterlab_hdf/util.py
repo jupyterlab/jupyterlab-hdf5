@@ -216,6 +216,15 @@ def parseSubindex(shape, size, ixstr, subixstr):
     return tuple(ixcompound)
 
 def shapemeta(shape, size, ixstr=None, min_ndim=None):
+    if shape is None:
+        return dict((
+            ('labels', None),
+            ('ndim', 0),
+            ('shape', None),
+            ('size', 0),
+            ('visdims', None),
+        ))
+
     if ixstr is None:
         ix = (slice(None), )*len(shape)
     else:
@@ -286,6 +295,8 @@ def jsonize(v):
         return bool(v)
     if isinstance(v, complex):
         return str(v)
+    if isinstance(v, h5py.Empty):
+        return None
     return v
 
 
