@@ -1,0 +1,37 @@
+/*-----------------------------------------------------------------------------
+| Copyright (c) Jupyter Development Team.
+| Distributed under the terms of the Modified BSD License.
+|----------------------------------------------------------------------------*/
+
+.jhdf-attribute-table {
+  width: 100%;
+  margin-bottom: 0.25rem;
+  text-align: left;
+  border-collapse: collapse;
+}
+
+.jhdf-attribute-table:not(:first-child) {
+  margin-top: 1rem;
+}
+
+.jhdf-attribute-table thead th {
+  font-weight: var(--jp-content-font-weight);
+  padding: 0.675rem 1rem;
+  background-color: var(--jp-layout-color2);
+  font-size: var(--jp-content-font-size3);
+}
+
+.jhdf-attribute-table tbody th,
+.jhdf-attribute-table tbody td {
+  padding: 0.5rem 1rem;
+  vertical-align: top;
+}
+
+.jhdf-attribute-table tbody th {
+  width: 15%; /* acts as min-width */
+}
+
+.jhdf-attribute-table tbody tr:first-child > th,
+.jhdf-attribute-table tbody tr:first-child > td {
+  padding-top: 1rem;
+}

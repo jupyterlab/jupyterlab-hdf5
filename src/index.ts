@@ -7,7 +7,7 @@ import {
   ILabShell,
   ILayoutRestorer
 } from "@jupyterlab/application";
-import { WidgetTracker } from "@jupyterlab/apputils";
+import { MainAreaWidget, WidgetTracker } from "@jupyterlab/apputils";
 import { PathExt } from "@jupyterlab/coreutils";
 import { IDocumentManager } from "@jupyterlab/docmanager";
 import { DocumentRegistry } from "@jupyterlab/docregistry";
@@ -15,9 +15,11 @@ import { FileBrowser, IFileBrowserFactory } from "@jupyterlab/filebrowser";
 import { INotebookTracker } from "@jupyterlab/notebook";
 import { ServerConnection } from "@jupyterlab/services";
 import { map, toArray } from "@lumino/algorithm";
+import { searchIcon } from "@jupyterlab/ui-components";
 
 // import { IRegistry } from "@jupyterlab/dataregistry-extension";
 
+import AttributeViewer from "./AttributeViewer";
 import { HdfSidepanel } from "./browser";
 import { HdfDrive } from "./contents";
 // import { addHdfConverters } from "./dataregistry";
@@ -32,7 +34,8 @@ import {
   HDF_MIME_TYPE,
   hdfContentsRequest,
   hdfSnippetRequest,
-  parseHdfQuery
+  parseHdfQuery,
+  hdfAttrsRequest
 } from "./hdf";
 
 /**
@@ -65,6 +68,8 @@ namespace CommandIDs {
   export const openInBrowser = "hdf:open-in-browser";
 
   export const openSnippet = "hdf:open-snippet";
+
+  export const viewAttributes = "hdf:view-attributes";
 }
 
 /**
@@ -293,6 +298,36 @@ function addBrowserCommands(
     }
   });
 
+  commands.addCommand(CommandIDs.viewAttributes, {
+    label: "View attributes",
+    iconClass: HDF_FILE_ICON,
+    execute: async () => {
+      const widget = tracker.currentWidget;
+      if (!widget) {
+        return;
+      }
+
+      const items = toArray(
+        map(widget.selectedItems(), item => {
+          return item;
+        })
+      );
+      const params = parseHdfQuery(items[0].path);
+
+      try {
+        const attrs = await hdfAttrsRequest(params, serverSettings);
+        const widget = new MainAreaWidget<AttributeViewer>({
+          content: new AttributeViewer(attrs)
+        });
+        widget.title.label = items[0].name;
+        widget.title.icon = searchIcon;
+        app.shell.add(widget, "main");
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  });
+
   // add context menu items for commands
 
   // matches all hdf filebrowser items
@@ -302,6 +337,11 @@ function addBrowserCommands(
   app.contextMenu.addItem({
     command: CommandIDs.openSnippet,
     rank: 3,
+    selector: selectorDefaultItem
+  });
+  app.contextMenu.addItem({
+    command: CommandIDs.viewAttributes,
+    rank: 4,
     selector: selectorDefaultItem
   });
 
