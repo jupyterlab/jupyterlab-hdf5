@@ -58,8 +58,8 @@ class TestData(ServerTest):
 
         assert response.status_code == 200
         payload = response.json()
-        # Complex are serialized as str
-        assert payload == [str(c) for c in COMPLEX]
+        # Complex are serialized as double-value array
+        assert payload == [[c.real, c.imag] for c in COMPLEX]
 
     def test_scalar_dataset(self):
         response = self.tester.get(['data', 'test_file.h5'], params={'uri': '/scalar'})

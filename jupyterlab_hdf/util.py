@@ -290,7 +290,7 @@ def jsonize(v):
             ('step', v.step),
         ))
     if isinstance(v, complex):
-        return str(v)
+        return [v.real, v.imag]
     if isinstance(v, h5py.Empty):
         return None
     return v
