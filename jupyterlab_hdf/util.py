@@ -281,9 +281,7 @@ def jsonize(v):
         return {k:jsonize(v) for k,v in v.items()}
     if isinstance(v, (list, tuple)):
         return [jsonize(i) for i in v]
-    if isinstance(v, np.integer):
-        return int(v)
-    if isinstance(v, np.ndarray):
+    if isinstance(v, np.generic) or isinstance(v, np.ndarray):
         return jsonize(v.tolist())
     if isinstance(v, slice):
         return dict((
@@ -291,8 +289,6 @@ def jsonize(v):
             ('stop', v.stop),
             ('step', v.step),
         ))
-    if isinstance(v, np.bool_):
-        return bool(v)
     if isinstance(v, complex):
         return str(v)
     if isinstance(v, h5py.Empty):

@@ -4,7 +4,7 @@ import numpy as np
 from jupyterlab_hdf.tests.utils import ServerTest
 
 
-SCALAR = 56
+SCALAR = np.int32(56)
 ONE_D = np.arange(0, 11, dtype=np.int64)
 TWO_D = np.arange(0, 10, dtype=np.float64).reshape(2, 5) / 10.
 THREE_D = np.arange(0, 24, dtype=np.int64).reshape(2, 3, 4)
