@@ -9,9 +9,13 @@ module.exports = {
     'prettier/@typescript-eslint',
   ],
   ignorePatterns: [
-    "**/*.d.ts",
-    "**/dist",
-    "**/node_modules",
+    '**/.autoversion',
+    '**/*.d.ts',
+    '**/.github',
+    '**/.history',
+    '**/dist',
+    '**/lib',
+    '**/node_modules',
   ],
   parser: '@typescript-eslint/parser',
   parserOptions: {
