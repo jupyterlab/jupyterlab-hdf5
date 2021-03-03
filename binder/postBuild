@@ -1,5 +1,16 @@
 #!/bin/bash
+mkdir -p /tmp/yarn
+export YARN_CACHE_FOLDER="/tmp/yarn"
 
-set -ex
+python --version
 
-jlpm build:dev
+jupyter lab clean --all
+
+pip install -e .[dev]
+
+jupyter --version
+
+jlpm
+jlpm build
+jupyter labextension install . --no-build
+jupyter lab build --debug
