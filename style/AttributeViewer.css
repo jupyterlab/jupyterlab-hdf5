@@ -8,6 +8,7 @@
   margin-bottom: 0.25rem;
   text-align: left;
   border-collapse: collapse;
+  color: var(--jp-ui-font-color1);
 }
 
 .jhdf-attribute-table:not(:first-child) {
