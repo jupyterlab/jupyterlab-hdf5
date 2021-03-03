@@ -39,9 +39,10 @@ setup_dict = dict(
     ],
     install_requires=[
         "h5py",
-        "jupyterlab<=3",
+        "notebook",
         "numpy",
         "simplejson",
+        "tornado",
     ],
     extras_require={
         "dev": [
