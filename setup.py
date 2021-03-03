@@ -45,8 +45,10 @@ setup_dict = dict(
         'simplejson',
     ],
     extras_require={
-        'test': [
+        'dev': [
+            'black',
             'numpy',
+            'pre-commit',
             'pytest',
             'requests',
         ]

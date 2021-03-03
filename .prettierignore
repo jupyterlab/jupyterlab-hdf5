@@ -1,0 +1,12 @@
+**/.autoversion
+**/.github
+**/.history
+**/.pytest_cache
+**/.vscode
+**/build
+**/dist
+**/lib
+**/node_modules
+**/package.json
+**/static
+tests/**/coverage

@@ -1,0 +1,9 @@
+repos:
+  - repo: https://github.com/psf/black
+    rev: 20.8b1
+    hooks:
+      - id: black
+        # ref: https://stackoverflow.com/a/58459499/425458
+        # ref: https://github.com/pre-commit/pre-commit/issues/747
+        entry: bash -c 'black "$@"; git add -u' --
+        language_version: python # Should be a command that runs python3.6+
