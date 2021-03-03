@@ -1,0 +1,7 @@
+channels:
+- conda-forge
+dependencies:
+- jupyterlab=2.2
+- nodejs=14
+# Python Kernel
+- python=3.7

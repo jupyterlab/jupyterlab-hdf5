@@ -1,0 +1,6 @@
+h5py
+simplejson
+black
+numpy
+pytest
+requests
