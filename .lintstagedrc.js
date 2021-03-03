@@ -20,4 +20,12 @@ module.exports = {
       `eslint --fix ${escapedFileNames}`,
     ];
   },
+  'jupyterlab_hdf/**/*.py': filenames => {
+    const escapedFileNames = escapeFileNames(filenames);
+    return [`black ${escapedFileNames}`];
+  },
+  'setup.py': filenames => {
+    const escapedFileNames = escapeFileNames(filenames);
+    return [`black ${escapedFileNames}`];
+  },
 };
