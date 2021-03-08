@@ -1,40 +1,40 @@
 // Copyright (c) Jupyter Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-import { PromiseDelegate, Token } from "@lumino/coreutils";
+import { PromiseDelegate, Token } from '@lumino/coreutils';
 
 import {
   BasicKeyHandler,
   BasicMouseHandler,
   BasicSelectionModel,
   DataGrid,
-  DataModel
-} from "@lumino/datagrid";
+  DataModel,
+} from '@lumino/datagrid';
 
-import { Signal } from "@lumino/signaling";
+import { Signal } from '@lumino/signaling';
 
 import {
   IWidgetTracker,
   MainAreaWidget,
   Toolbar,
-  ToolbarButton
-} from "@jupyterlab/apputils";
+  ToolbarButton,
+} from '@jupyterlab/apputils';
 
 import {
   ABCWidgetFactory,
   DocumentRegistry,
   DocumentWidget,
-  IDocumentWidget
-} from "@jupyterlab/docregistry";
+  IDocumentWidget,
+} from '@jupyterlab/docregistry';
 
-import { ServerConnection } from "@jupyterlab/services";
+import { ServerConnection } from '@jupyterlab/services';
 
 import {
   HdfResponseError,
   modalHdfError,
   modalResponseError,
-  modalValidationFail
-} from "./exception";
+  modalValidationFail,
+} from './exception';
 
 import {
   datasetMetaEmpty,
@@ -43,22 +43,23 @@ import {
   IDataParameters,
   IMetaParameters,
   IDatasetMeta,
-  parseHdfQuery
-} from "./hdf";
+  parseHdfQuery,
+} from './hdf';
 
-import { noneSlice, slice } from "./slice";
+import { noneSlice, slice } from './slice';
 
-import { IxInput } from "./toolbar";
+import { IxInput } from './toolbar';
+import { convertToStr, isComplexArray } from './complex';
 
 /**
  * The CSS class for the data grid widget.
  */
-export const HDF_CLASS = "jhdf-dataGrid";
+export const HDF_CLASS = 'jhdf-dataGrid';
 
 /**
  * The CSS class for our HDF5 container.
  */
-export const HDF_CONTAINER_CLASS = "jhdf-container";
+export const HDF_CONTAINER_CLASS = 'jhdf-container';
 
 /**
  * Base implementation of the hdf dataset model.
@@ -70,7 +71,7 @@ export abstract class HdfDatasetModel extends DataModel {
   init({
     fpath,
     uri,
-    meta
+    meta,
   }: {
     fpath: string;
     uri: string;
@@ -82,12 +83,12 @@ export abstract class HdfDatasetModel extends DataModel {
 
     // create a default index string
     if (this._meta.ndim < 1) {
-      this._ixstr = "";
+      this._ixstr = '';
     } else if (this._meta.ndim < 2) {
-      this._ixstr = ":";
+      this._ixstr = ':';
     } else {
-      this._ixstr = [...Array(this._meta.ndim - 2).fill("0"), ":", ":"].join(
-        ", "
+      this._ixstr = [...Array(this._meta.ndim - 2).fill('0'), ':', ':'].join(
+        ', '
       );
     }
 
@@ -99,7 +100,7 @@ export abstract class HdfDatasetModel extends DataModel {
       shape: meta.shape.slice(-2),
       size: meta.shape.length
         ? meta.shape.slice(-2).reduce((x, y) => x * y)
-        : meta.size
+        : meta.size,
     };
 
     // Refresh wrt the newly set ix and then resolve the ready promise.
@@ -108,13 +109,13 @@ export abstract class HdfDatasetModel extends DataModel {
   }
 
   data(region: DataModel.CellRegion, row: number, col: number): any {
-    if (region === "row-header") {
+    if (region === 'row-header') {
       return `${this._labels[0].start + row * this._labels[0].step}`;
     }
-    if (region === "column-header") {
+    if (region === 'column-header') {
       return `${this._labels[1].start + col * this._labels[1].step}`;
     }
-    if (region === "corner-header") {
+    if (region === 'corner-header') {
       return null;
     }
 
@@ -124,20 +125,20 @@ export abstract class HdfDatasetModel extends DataModel {
     const colBlock = (col - relCol) / this._blockSize;
     if (this._blocks[rowBlock]) {
       const block = this._blocks[rowBlock][colBlock];
-      if (block !== "busy") {
+      if (block !== 'busy') {
         if (block) {
           // This data has already been loaded.
           return this._blocks[rowBlock][colBlock][relRow][relCol];
         } else {
           // This data has not yet been loaded, load it.
-          this._blocks[rowBlock][colBlock] = "busy";
+          this._blocks[rowBlock][colBlock] = 'busy';
           this._fetchBlock(rowBlock, colBlock);
         }
       }
     } else {
       // This data has not yet been loaded, load it.
       this._blocks[rowBlock] = Object();
-      this._blocks[rowBlock][colBlock] = "busy";
+      this._blocks[rowBlock][colBlock] = 'busy';
       this._fetchBlock(rowBlock, colBlock);
     }
 
@@ -165,11 +166,11 @@ export abstract class HdfDatasetModel extends DataModel {
     return this._ready.promise;
   }
 
-  async refresh(ixstr: string) {
+  async refresh(ixstr: string): Promise<void> {
     const meta = await this.getMeta({
       fpath: this._fpath,
       uri: this._uri,
-      ixstr
+      ixstr,
     });
     if (!this.validateMeta(ixstr, meta)) {
       this._refreshed.emit(this._ixstr);
@@ -180,28 +181,35 @@ export abstract class HdfDatasetModel extends DataModel {
     this._refresh(meta);
   }
 
-  get refreshed() {
+  get refreshed(): Signal<this, string> {
     return this._refreshed;
   }
 
   rowCount(region: DataModel.RowRegion): number {
-    if (region === "body") {
+    if (region === 'body') {
       return this._n[0];
     }
 
     return this._nheader[0];
   }
   columnCount(region: DataModel.ColumnRegion): number {
-    if (region === "body") {
+    if (region === 'body') {
       return this._n[1];
     }
 
     return this._nheader[1];
   }
 
-  protected async getData(params: IDataParameters): Promise<number[][]> {
+  protected async getData(
+    params: IDataParameters
+  ): Promise<number[][] | string[][]> {
     try {
-      return await hdfDataRequest(params, this._serverSettings);
+      const data = await hdfDataRequest(params, this._serverSettings);
+      const { dtype } = this.meta;
+      if (isComplexArray(data, dtype)) {
+        return data.map(inner => inner.map(convertToStr));
+      }
+      return data;
     } catch (err) {
       // on any error, reduce displayed shape to [] in order to prevent unending failed data requests
       this._refresh(datasetMetaEmpty());
@@ -255,47 +263,47 @@ export abstract class HdfDatasetModel extends DataModel {
     const row = rowBlock * this._blockSize;
     const rowStop: number = Math.min(
       row + this._blockSize,
-      this.rowCount("body")
+      this.rowCount('body')
     );
 
     const column = colBlock * this._blockSize;
     const colStop: number = Math.min(
       column + this._blockSize,
-      this.columnCount("body")
+      this.columnCount('body')
     );
 
     const subixstr = [
-      this._hassubix[0] ? `${row}:${rowStop}` : "",
-      this._hassubix[1] ? `${column}:${colStop}` : ""
+      this._hassubix[0] ? `${row}:${rowStop}` : '',
+      this._hassubix[1] ? `${column}:${colStop}` : '',
     ]
       .filter(x => x)
-      .join(", ");
+      .join(', ');
 
     const params = {
       fpath: this._fpath,
       uri: this._uri,
       ixstr: this._ixstr,
       min_ndim: 2,
-      subixstr
+      subixstr,
     };
 
     const data = await this.getData(params);
     this._blocks[rowBlock][colBlock] = data;
 
     const msg = {
-      type: "cells-changed",
-      region: "body",
+      type: 'cells-changed',
+      region: 'body',
       row,
       column,
       rowSpan: rowStop - row,
-      columnSpan: colStop - column
+      columnSpan: colStop - column,
     };
     this.emitChanged(msg as DataModel.ChangedArgs);
   };
 
   private _refresh(meta: IDatasetMeta) {
-    const oldRowCount = this.rowCount("body");
-    const oldColCount = this.columnCount("body");
+    const oldRowCount = this.rowCount('body');
+    const oldColCount = this.columnCount('body');
 
     // changing the index meta will also change the result of the row/colCount methods
     this._setMetaIx(meta);
@@ -303,33 +311,33 @@ export abstract class HdfDatasetModel extends DataModel {
     this._blocks = Object();
 
     this.emitChanged({
-      type: "rows-removed",
-      region: "body",
+      type: 'rows-removed',
+      region: 'body',
       index: 0,
-      span: oldRowCount
+      span: oldRowCount,
     });
     this.emitChanged({
-      type: "columns-removed",
-      region: "body",
+      type: 'columns-removed',
+      region: 'body',
       index: 0,
-      span: oldColCount
-    });
-
-    this.emitChanged({
-      type: "rows-inserted",
-      region: "body",
-      index: 0,
-      span: this.rowCount("body")
-    });
-    this.emitChanged({
-      type: "columns-inserted",
-      region: "body",
-      index: 0,
-      span: this.columnCount("body")
+      span: oldColCount,
     });
 
     this.emitChanged({
-      type: "model-reset"
+      type: 'rows-inserted',
+      region: 'body',
+      index: 0,
+      span: this.rowCount('body'),
+    });
+    this.emitChanged({
+      type: 'columns-inserted',
+      region: 'body',
+      index: 0,
+      span: this.columnCount('body'),
+    });
+
+    this.emitChanged({
+      type: 'model-reset',
     });
 
     this._refreshed.emit(this.ixstr);
@@ -366,8 +374,8 @@ export abstract class HdfDatasetModel extends DataModel {
     }
   }
 
-  protected _fpath: string = "";
-  protected _uri: string = "";
+  protected _fpath: string = '';
+  protected _uri: string = '';
 
   protected _serverSettings: ServerConnection.ISettings = ServerConnection.makeSettings();
 
@@ -378,7 +386,7 @@ export abstract class HdfDatasetModel extends DataModel {
 
   private _meta: IDatasetMeta;
   private _metaIx: IDatasetMeta;
-  private _ixstr: string = "";
+  private _ixstr: string = '';
 
   private _blocks: any = Object();
   private _blockSize: number = 100;
@@ -505,7 +513,8 @@ export class HdfDatasetMain extends MainAreaWidget<DataGrid> {
 /**
  * A document widget for HDF content widgets.
  */
-export class HdfDatasetDoc extends DocumentWidget<DataGrid>
+export class HdfDatasetDoc
+  extends DocumentWidget<DataGrid>
   implements IDocumentWidget<DataGrid> {
   constructor(context: DocumentRegistry.Context) {
     const { grid: content, reveal, toolbar } = createHdfGridFromContext(
@@ -534,7 +543,7 @@ export class HdfDatasetDocFactory extends ABCWidgetFactory<HdfDatasetDoc> {
 export interface IHdfDatasetDocTracker extends IWidgetTracker<HdfDatasetDoc> {}
 
 export const IHdfDatasetDocTracker = new Token<IHdfDatasetDocTracker>(
-  "jupyterlab-hdf:IHdfDatasetTracker"
+  'jupyterlab-hdf:IHdfDatasetTracker'
 );
 
 /**
@@ -573,9 +582,9 @@ namespace Private {
    * Create the node for the HDF widget.
    */
   export function createNode(): HTMLElement {
-    let node = document.createElement("div");
+    let node = document.createElement('div');
     node.className = HDF_CONTAINER_CLASS;
-    let hdf = document.createElement("div");
+    let hdf = document.createElement('div');
     hdf.className = HDF_CLASS;
     node.appendChild(hdf);
     node.tabIndex = -1;
@@ -588,10 +597,10 @@ namespace Private {
   export function createToolbar(grid: DataGrid): Toolbar<ToolbarButton> {
     const toolbar = new Toolbar();
 
-    toolbar.addClass("jp-Toolbar");
-    toolbar.addClass("jhdf-toolbar");
+    toolbar.addClass('jp-Toolbar');
+    toolbar.addClass('jhdf-toolbar');
 
-    toolbar.addItem("slice input", new IxInput(grid));
+    toolbar.addItem('slice input', new IxInput(grid));
 
     // toolbar.addItem(
     //   'previous',
