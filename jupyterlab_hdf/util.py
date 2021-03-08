@@ -10,7 +10,7 @@ import numpy as np
 
 from .exception import JhdfError
 
-__all__ = ['atleast_nd', 'dsetChunk', 'hobjAttrsDict', 'hobjContentsDict', 'hobjMetaDict', 'hobjType', 'jsonize', 'parseIndex', 'parseSubindex', 'slicelen', 'shapemeta', 'uriJoin', 'uriName']
+__all__ = ["atleast_nd", "dsetChunk", "hobjAttrsDict", "hobjContentsDict", "hobjMetaDict", "hobjType", "jsonize", "parseIndex", "parseSubindex", "slicelen", "shapemeta", "uriJoin", "uriName"]
 
 ## array handling
 def atleast_nd(ary, ndim, pos=0):
@@ -64,59 +64,77 @@ def dsetChunk(dset, ixstr=None, subixstr=None, min_ndim=None):
 
 ## create dicts to be returned by the various api
 def hobjAttrsDict(hobj):
-    return dict((
-        *hobj.attrs.items(),
-    ))
+    return dict((*hobj.attrs.items(),))
+
 
 def hobjContentsDict(hobj, content=False, ixstr=None, min_ndim=None):
-    return dict((
-        # ensure that 'content' is undefined if not explicitly requested
-        *((('content', hobjMetaDict(hobj, ixstr=ixstr, min_ndim=min_ndim)),) if content else ()),
-        *_hobjDict(hobj).items(),
-        ('uri', hobj.name),
-    ))
+    return dict(
+        (
+            # ensure that 'content' is undefined if not explicitly requested
+            *((("content", hobjMetaDict(hobj, ixstr=ixstr, min_ndim=min_ndim)),) if content else ()),
+            *_hobjDict(hobj).items(),
+            ("uri", hobj.name),
+        )
+    )
+
 
 def hobjMetaDict(hobj, ixstr=None, min_ndim=None):
-    d = dict((
-        *_hobjDict(hobj).items(),
-        ('attributeCount', len(hobj.attrs))
-    ))
+    d = dict((*_hobjDict(hobj).items(), ("attributes", [_attrMetaDict(hobj.attrs.get_id(k)) for k in sorted(hobj.attrs.keys())])))
 
-    if d['type'] == 'dataset':
-        return dict(sorted((
-            *d.items(),
-            *_dsetMetaDict(hobj, ixstr=ixstr, min_ndim=min_ndim).items(),
-        )))
-    elif d['type'] == 'group':
-        return dict(sorted((
-            *d.items(),
-            ('childrenCount', len(hobj))
-        )))
+    if d["type"] == "dataset":
+        return dict(
+            sorted(
+                (
+                    *d.items(),
+                    *_dsetMetaDict(hobj, ixstr=ixstr, min_ndim=min_ndim).items(),
+                )
+            )
+        )
+    elif d["type"] == "group":
+        return dict(sorted((*d.items(), ("childrenCount", len(hobj)))))
     else:
         return d
 
+
 def hobjType(hobj):
     if isinstance(hobj, h5py.Dataset):
-        return 'dataset'
+        return "dataset"
     elif isinstance(hobj, h5py.Group):
-        return 'group'
+        return "group"
     else:
-        return 'other'
+        return "other"
+
+
+def _attrMetaDict(attrId):
+    return dict(
+        (
+            ("name", attrId.name),
+            ("dtype", attrId.dtype.str),
+            ("shape", attrId.shape),
+        )
+    )
+
 
 def _dsetMetaDict(dset, ixstr=None, min_ndim=None):
-    shapekeys = ('labels', 'ndim', 'shape', 'size')
-    smeta = {k:v for k,v in shapemeta(dset.shape, dset.size, ixstr=ixstr, min_ndim=min_ndim).items() if k in shapekeys}
+    shapekeys = ("labels", "ndim", "shape", "size")
+    smeta = {k: v for k, v in shapemeta(dset.shape, dset.size, ixstr=ixstr, min_ndim=min_ndim).items() if k in shapekeys}
 
-    return dict((
-        ('dtype', dset.dtype.str),
-        *smeta.items(),
-    ))
+    return dict(
+        (
+            ("dtype", dset.dtype.str),
+            *smeta.items(),
+        )
+    )
+
 
 def _hobjDict(hobj):
-    return dict((
-        ('name', uriName(hobj.name)),
-        ('type', hobjType(hobj)),
-    ))
+    return dict(
+        (
+            ("name", uriName(hobj.name)),
+            ("type", hobjType(hobj)),
+        )
+    )
+
 
 ## index parsing and handling
 class _Guard:
@@ -130,24 +148,26 @@ class _Guard:
             self.val = True
             return False
 
+
 def parseIndex(node_or_string):
     """Safely evaluate an expression node or a string containing
     a (limited subset) of valid numpy index or slice expressions.
     """
     if isinstance(node_or_string, str):
-        if ',' not in node_or_string:
+        if "," not in node_or_string:
             # handle ndim <= 1 case
-            node_or_string += ','
-        node_or_string = ast.parse('dummy[{}]'.format(node_or_string.lstrip(" \t")) , mode='eval')
+            node_or_string += ","
+        node_or_string = ast.parse("dummy[{}]".format(node_or_string.lstrip(" \t")), mode="eval")
     if isinstance(node_or_string, ast.Expression):
         node_or_string = node_or_string.body
     if isinstance(node_or_string, ast.Subscript):
         node_or_string = node_or_string.slice
 
     def _raise_malformed_node(node):
-        raise ValueError('malformed node or string: {}, {}'.format(node, ast.dump(node)))
+        raise ValueError("malformed node or string: {}, {}".format(node, ast.dump(node)))
+
     def _raise_nested_tuple_node(node):
-        raise ValueError('tuples inside of tuple indices are not supported: {}, {}'.format(node, ast.dump(node)))
+        raise ValueError("tuples inside of tuple indices are not supported: {}, {}".format(node, ast.dump(node)))
 
     # from cpy37, should work until they remove ast.Num (not until cpy310)
     def _convert_num(node):
@@ -156,18 +176,20 @@ def parseIndex(node_or_string):
                 return node.value
         elif isinstance(node, ast.Num):
             # ast.Num was removed from ast grammar in cpy38
-            return node.n # pragma: no cover
+            return node.n  # pragma: no cover
         _raise_malformed_node(node)
+
     def _convert_signed_num(node):
         if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.UAdd, ast.USub)):
             operand = _convert_num(node.operand)
             if isinstance(node.op, ast.UAdd):
-                return + operand
+                return +operand
             else:
-                return - operand
+                return -operand
         return _convert_num(node)
 
     _nested_tuple_guard = _Guard()
+
     def _convert(node):
         if isinstance(node, ast.Tuple):
             if _nested_tuple_guard():
@@ -188,19 +210,21 @@ def parseIndex(node_or_string):
         elif isinstance(node, ast.Ellipsis):
             # support for three dot '...' ellipsis syntax
             return ...
-        elif isinstance(node, ast.Name) and node.id == 'Ellipsis':
+        elif isinstance(node, ast.Name) and node.id == "Ellipsis":
             # support for 'Ellipsis' ellipsis syntax
             return ...
         elif isinstance(node, ast.Index):
             # ast.Index was removed from ast grammar in cpy39
-            return _convert(node.value) # pragma: no cover
+            return _convert(node.value)  # pragma: no cover
         elif isinstance(node, ast.ExtSlice):
             # ast.ExtSlice was removed from ast grammar in cpy39
-            _nested_tuple_guard() # pragma: no cover
+            _nested_tuple_guard()  # pragma: no cover
             return tuple(map(_convert, node.dims))
 
         return _convert_signed_num(node)
+
     return _convert(node_or_string)
+
 
 def parseSubindex(shape, size, ixstr, subixstr):
     ix = parseIndex(ixstr)
@@ -208,25 +232,28 @@ def parseSubindex(shape, size, ixstr, subixstr):
     subix = parseIndex(subixstr)
 
     ixcompound = list(ix)
-    for d, dlabel, subdix in zip(meta['visdims'], meta['labels'], subix):
-        start = dlabel.start + (subdix.start*dlabel.step)
-        stop = dlabel.start + (min(subdix.stop, dlabel.stop // dlabel.step)*dlabel.step) # dlabel.start + (subdix.stop*dlabel.step)
+    for d, dlabel, subdix in zip(meta["visdims"], meta["labels"], subix):
+        start = dlabel.start + (subdix.start * dlabel.step)
+        stop = dlabel.start + (min(subdix.stop, dlabel.stop // dlabel.step) * dlabel.step)  # dlabel.start + (subdix.stop*dlabel.step)
         ixcompound[d] = slice(start, stop)
 
     return tuple(ixcompound)
 
+
 def shapemeta(shape, size, ixstr=None, min_ndim=None):
     if shape is None:
-        return dict((
-            ('labels', None),
-            ('ndim', 0),
-            ('shape', None),
-            ('size', 0),
-            ('visdims', None),
-        ))
+        return dict(
+            (
+                ("labels", None),
+                ("ndim", 0),
+                ("shape", None),
+                ("size", 0),
+                ("visdims", None),
+            )
+        )
 
     if ixstr is None:
-        ix = (slice(None), )*len(shape)
+        ix = (slice(None),) * len(shape)
     else:
         ix = parseIndex(ixstr)
 
@@ -234,61 +261,67 @@ def shapemeta(shape, size, ixstr=None, min_ndim=None):
 
     promote = 0 if min_ndim is None else max(0, min_ndim - ndimIx)
     if promote:
-        ix = (slice(None), )*promote + ix
+        ix = (slice(None),) * promote + ix
         ndimIx += promote
-        shape = (1, )*promote + shape
+        shape = (1,) * promote + shape
 
-    visdimsIx = tuple(d for d,dix in enumerate(ix) if isinstance(dix, slice))
+    visdimsIx = tuple(d for d, dix in enumerate(ix) if isinstance(dix, slice))
 
     labelsIx = [slice(*ix[d].indices(shape[d])) for d in visdimsIx]
     shapeIx = [slicelen(ix[d], shape[d]) for d in visdimsIx]
 
     sizeIx = np.prod(shapeIx) if ndimIx else size
 
-    return dict((
-        ('labels', labelsIx),
-        ('ndim', ndimIx),
-        ('shape', shapeIx),
-        ('size', sizeIx),
-        ('visdims', visdimsIx),
-    ))
+    return dict(
+        (
+            ("labels", labelsIx),
+            ("ndim", ndimIx),
+            ("shape", shapeIx),
+            ("size", sizeIx),
+            ("visdims", visdimsIx),
+        )
+    )
+
 
 def slicelen(slyce, seqlen):
-    """Based on https://stackoverflow.com/a/36188683
-    """
+    """Based on https://stackoverflow.com/a/36188683"""
     start, stop, step = slyce.indices(seqlen)
     return max(0, (stop - start + (step - (1 if step > 0 else -1))) // step)
+
 
 def validateSubindex(shape, size, ixstr, subixstr):
     meta = shapemeta(shape, size, ixstr)
     subix = parseIndex(subixstr)
 
-    if len(subix) != len(meta['visdims']):
-        msg = dict((
-            ('message', 'malformed subixstr: number of visible dimensions in index not equal to number of dimensions in subindex.'),
-            ('debugVars', {'ixstr': ixstr, 'subix': subix, 'subixstr': subixstr, 'visdims': meta['visdims']}),
-        ))
+    if len(subix) != len(meta["visdims"]):
+        msg = dict(
+            (
+                ("message", "malformed subixstr: number of visible dimensions in index not equal to number of dimensions in subindex."),
+                ("debugVars", {"ixstr": ixstr, "subix": subix, "subixstr": subixstr, "visdims": meta["visdims"]}),
+            )
+        )
         raise JhdfError(msg)
 
 
 ## json handling
 def jsonize(v):
-    """Turns a value into a JSON serializable version
-    """
+    """Turns a value into a JSON serializable version"""
     if isinstance(v, bytes):
         return v.decode()
     if isinstance(v, dict):
-        return {k:jsonize(v) for k,v in v.items()}
+        return {k: jsonize(v) for k, v in v.items()}
     if isinstance(v, (list, tuple)):
         return [jsonize(i) for i in v]
     if isinstance(v, np.generic) or isinstance(v, np.ndarray):
         return jsonize(v.tolist())
     if isinstance(v, slice):
-        return dict((
-            ('start', v.start),
-            ('stop', v.stop),
-            ('step', v.step),
-        ))
+        return dict(
+            (
+                ("start", v.start),
+                ("stop", v.stop),
+                ("step", v.step),
+            )
+        )
     if isinstance(v, complex):
         return str(v)
     if isinstance(v, h5py.Empty):
@@ -297,9 +330,12 @@ def jsonize(v):
 
 
 ## uri handling
-_emptyUriRe = re.compile('//')
+_emptyUriRe = re.compile("//")
+
+
 def uriJoin(*parts):
-    return _emptyUriRe.sub('/', '/'.join(parts))
+    return _emptyUriRe.sub("/", "/".join(parts))
+
 
 def uriName(uri):
-    return uri.split('/')[-1]
+    return uri.split("/")[-1]
