@@ -61,6 +61,15 @@ export function parseHdfQuery(path: string): IContentsParameters {
   };
 }
 
+export function nameFromPath(path: string): string {
+  if (path === '' || path === '/') {
+    return '/';
+  }
+
+  const parts = path.split('/');
+  return parts[parts.length - 1];
+}
+
 /**
  * make a parameterized request to the `hdf/attrs` api
  */
