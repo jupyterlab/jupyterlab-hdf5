@@ -324,6 +324,22 @@ components:
       description: "attributes of an arbitrary hdf object, as a dictionary"
       type: object
       additionalProperties: true
+    attr_meta:
+      description: "metadata of an attribute"
+      required: [name, dtype, shape]
+      type: object
+      properties:
+        name:
+          description: "name of an attribute"
+          type: string
+        dtype:
+          description: "datatype of an attribute"
+          type: string
+        shape:
+          description: "shape of an attribute"
+          type: array
+          items:
+            type: number
     dataset_contents:
       description: "a basic description of an hdf dataset, in the format required by the jupyterlab `Contents` stack"
       required: [name, type, uri]
@@ -375,12 +391,14 @@ components:
           - $ref: "#/components/schemas/data"
     dataset_meta:
       description: "metadata of an hdf dataset, as a dictionary"
-      required: [attributeCount, dtype, labels, name, ndim, shape, size, type]
+      required: [attributes, dtype, labels, name, ndim, shape, size, type]
       type: object
       properties:
-        attributeCount: 
-          description: "number of attributes of the dataset"
-          type: number
+        attributes: 
+          description: "metadata of the attributes of a dataset"
+          type: array
+          items:
+            $ref: "#/components/schemas/attr_meta"
         dtype:
           description: "datatype of an hdf dataset"
           type: string
@@ -409,12 +427,14 @@ components:
           type: string
     group_meta:
       description: "metadata of an hdf group, as a dictionary"
-      required: [attributeCount, childrenCount, name, type]
+      required: [attributes, childrenCount, name, type]
       type: object
       properties:
-        attributeCount: 
-          description: "number of attributes of the group"
-          type: number
+        attributes: 
+          description: "metadata of the attributes of the group"
+          type: array
+          items:
+            $ref: "#/components/schemas/attr_meta"
         childrenCount: 
           description: "number of child entities of the group"
           type: number
