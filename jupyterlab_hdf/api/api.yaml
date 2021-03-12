@@ -25,6 +25,7 @@ paths:
     parameters:
       - $ref: "#/components/parameters/fpath"
       - $ref: "#/components/parameters/uri"
+      - $ref: "#/components/parameters/names"
     get:
       description: "get the attributes of an hdf object"
       summary: "get the attributes of an hdf object"
@@ -253,6 +254,13 @@ components:
       description: "if set, all shape-related metadata and array data fetched from a dataset will be promoted to have at least this many dimensions"
       schema:
         type: number
+    names:
+      name: names
+      in: query
+      required: false
+      description: "names of the attributes to fetch. If not set, all attributes will be fetched"
+      schema:
+        type: array
     uri:
       name: uri
       in: query

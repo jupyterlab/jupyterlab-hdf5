@@ -6,17 +6,18 @@
 from .baseHandler import HdfFileManager, HdfBaseHandler
 from .util import hobjAttrsDict, jsonize
 
-__all__ = ['HdfAttrsManager', 'HdfAttrsHandler']
+__all__ = ["HdfAttrsManager", "HdfAttrsHandler"]
 
 ## manager
 class HdfAttrsManager(HdfFileManager):
-    """Implements HDF5 attributes handling
-    """
-    def _getFromFile(self, f, uri, **kwargs):
-        return jsonize(hobjAttrsDict(f[uri]))
+    """Implements HDF5 attributes handling"""
+
+    def _getFromFile(self, f, uri, names=None, **kwargs):
+        return jsonize(hobjAttrsDict(f[uri], names))
+
 
 ## handler
 class HdfAttrsHandler(HdfBaseHandler):
-    """A handler for HDF5 attributes
-    """
+    """A handler for HDF5 attributes"""
+
     managerClass = HdfAttrsManager

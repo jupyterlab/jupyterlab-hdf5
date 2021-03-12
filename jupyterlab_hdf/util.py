@@ -63,8 +63,11 @@ def dsetChunk(dset, ixstr=None, subixstr=None, min_ndim=None):
 
 
 ## create dicts to be returned by the various api
-def hobjAttrsDict(hobj):
-    return dict((*hobj.attrs.items(),))
+def hobjAttrsDict(hobj, names=None):
+    if names is None:
+        return dict((*hobj.attrs.items(),))
+
+    return dict(((name, hobj.attrs[name]) for name in names))
 
 
 def hobjContentsDict(hobj, content=False, ixstr=None, min_ndim=None):
