@@ -132,7 +132,11 @@ components:
       description: "example contents of a dataset object"
       value: {
         "content": {
-          "dtype": "int64",
+          "attributes": [
+            {"name": "attr1", "dtype": "|O", "shape": []},
+            {"name": "attr2", "dtype": "<f4", "shape": [5]},
+          ],
+          "dtype": ">i8",
           "labels": [
             {"start": 0, "stop": 13, "step": 1},
             {"start": 0, "stop": 5, "step": 1},
@@ -167,8 +171,11 @@ components:
     dataset_meta:
       description: "metadata for dataset of shape `[13, 5, 17]`"
       value: {
-        "attributeCount": 1,
-        "dtype": "int64",
+        "attributes": [
+          {"name": "attr1", "dtype": "|O", "shape": []},
+          {"name": "attr2", "dtype": "<f4", "shape": [5]},
+        ],
+        "dtype": ">i8",
         "labels": [
           {"start": 0, "stop": 13, "step": 1},
           {"start": 0, "stop": 5, "step": 1},
@@ -183,8 +190,11 @@ components:
     dataset_meta_w_ixstr:
       description: 'metadata for dataset of shape `[13, 5, 17]`, given an ixstr of `"2:11, 3, 1:16"`'
       value: {
-        "attributeCount": 1,
-        "dtype": "int64",
+        "attributes": [
+          {"name": "attr1", "dtype": "|O", "shape": []},
+          {"name": "attr2", "dtype": "<f4", "shape": [5]},
+        ],
+        "dtype": ">i8",
         "labels": [
           {"start": 2, "stop": 11, "step": 1},
           {"start": 3, "stop": 4, "step": 1},
@@ -199,7 +209,7 @@ components:
     group_meta:
       description: "metadata for group"
       value: {
-        "attributeCount": 0,
+        "attributes": [],
         "childrenCount": 2,
         "name": "beta",
         "type": "group"
