@@ -6,7 +6,7 @@ python --version
 
 jupyter lab clean --all
 
-pip install -e .[dev]
+pip install .[dev]
 
 jupyter --version
 
