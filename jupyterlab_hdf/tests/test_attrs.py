@@ -43,4 +43,4 @@ class TestAttrs(ServerTest):
 
         assert response.status_code == 200
         payload = response.json()
-        assert payload == {'bool_attr': False, 'list_attr': [0, 1, 2], 'complex_attr': "(1+2j)"}
+        assert payload == {'bool_attr': False, 'list_attr': [0, 1, 2], 'complex_attr': [1, 2]}

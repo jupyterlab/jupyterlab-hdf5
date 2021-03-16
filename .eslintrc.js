@@ -27,7 +27,7 @@ module.exports = {
     // 'jest',
   ],
   rules: {
-    '@typescript-eslint/no-floating-promises': ['error', { ignoreVoid: true }],
+    '@typescript-eslint/no-floating-promises': ['warn', { ignoreVoid: true }],
     '@typescript-eslint/naming-convention': [
       'error',
       {
@@ -64,6 +64,10 @@ module.exports = {
     'no-useless-escape': 'off',
     'prefer-const': 'off',
     // 'react/prop-types': 'warn'
+  },
+  env: {
+    browser: true,
+    node: true,
   },
   // settings: {
   //   react: {

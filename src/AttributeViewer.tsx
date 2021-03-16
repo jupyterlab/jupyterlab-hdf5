@@ -1,15 +1,15 @@
 // Copyright (c) Jupyter Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-import React from "react";
-import { ReactWidget } from "@jupyterlab/apputils";
+import React from 'react';
+import { ReactWidget } from '@jupyterlab/apputils';
 
 class AttributeViewer extends ReactWidget {
-  readonly attributes: Record<string, any>;
+  readonly attributes: Array<[string, any]>;
 
   constructor(attributes: Record<string, any>) {
     super();
-    this.attributes = attributes;
+    this.attributes = Object.entries(attributes);
   }
 
   render(): JSX.Element {
@@ -23,12 +23,18 @@ class AttributeViewer extends ReactWidget {
           </tr>
         </thead>
         <tbody>
-          {Object.entries(this.attributes).map(
-            ([name, value]): JSX.Element => (
-              <tr key={name}>
-                <th scope="row">{name}</th>
-                <td>{JSON.stringify(value)}</td>
-              </tr>
+          {this.attributes.length === 0 ? (
+            <tr>
+              <td>No attributes.</td>
+            </tr>
+          ) : (
+            this.attributes.map(
+              ([name, value]): JSX.Element => (
+                <tr key={name}>
+                  <th scope="row">{name}</th>
+                  <td>{JSON.stringify(value)}</td>
+                </tr>
+              )
             )
           )}
         </tbody>

@@ -323,7 +323,7 @@ def jsonize(v):
             )
         )
     if isinstance(v, complex):
-        return str(v)
+        return [v.real, v.imag]
     if isinstance(v, h5py.Empty):
         return None
     return v
