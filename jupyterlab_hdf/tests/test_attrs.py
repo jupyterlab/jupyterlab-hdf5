@@ -46,14 +46,14 @@ class TestAttrs(ServerTest):
         assert payload == {'bool_attr': False, 'list_attr': [0, 1, 2], 'complex_attr': [1, 2]}
 
     def test_one_attr_from_group(self):
-        response = self.tester.get(["attrs", "test_file.h5"], params={"uri": "/group_with_attrs", "names": "string_attr"})
+        response = self.tester.get(["attrs", "test_file.h5"], params={"uri": "/group_with_attrs", "attr_keys": "string_attr"})
 
         assert response.status_code == 200
         payload = response.json()
         assert payload == {"string_attr": "I am a group"}
 
     def test_two_attr_from_dset(self):
-        response = self.tester.get(["attrs", "test_file.h5"], params={"uri": "/dataset_with_attrs", "names": ["bool_attr", "list_attr"]})
+        response = self.tester.get(["attrs", "test_file.h5"], params={"uri": "/dataset_with_attrs", "attr_keys": ["bool_attr", "list_attr"]})
 
         assert response.status_code == 200
         payload = response.json()

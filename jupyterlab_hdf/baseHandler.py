@@ -112,20 +112,25 @@ class HdfBaseHandler(APIHandler):
         slice of a dataset and return it as serialized JSON.
         """
         uri = "/" + self.get_query_argument("uri").lstrip("/")
+        itemss = ()
 
         # get any query parameter vals
         _kws = ("min_ndim", "ixstr", "subixstr")
         _vals = (self.get_query_argument(kw, default=None) for kw in _kws)
-        kwargs = {k: v if v else None for k, v in zip(_kws, _vals)}
+        itemss += (zip(_kws, _vals),)
+
+        # get any repeated query parameter array vals
+        _array_kws = ("attr_keys",)
+        _array_vals = (self.get_query_arguments(kw) or None for kw in _array_kws)
+        itemss += (zip(_array_kws, _array_vals),)
+
+        # filter all of the collected params and vals into a kwargs dict
+        kwargs = {k: v if v else None for items in itemss for k, v in items}
 
         # do any needed type conversions of param vals
         _num_kws = ("min_ndim",)
         for k in (k for k in _num_kws if kwargs[k] is not None):
             kwargs[k] = int(kwargs[k])
-
-        names = self.get_query_arguments("names")
-        if len(names) > 0:
-            kwargs["names"] = names
 
         try:
             self.finish(simplejson.dumps(self.manager.get(path, uri, **kwargs), ignore_nan=True))

@@ -25,7 +25,7 @@ paths:
     parameters:
       - $ref: "#/components/parameters/fpath"
       - $ref: "#/components/parameters/uri"
-      - $ref: "#/components/parameters/names"
+      - $ref: "#/components/parameters/attr_keys"
     get:
       description: "get the attributes of an hdf object"
       summary: "get the attributes of an hdf object"
@@ -254,11 +254,11 @@ components:
       description: "if set, all shape-related metadata and array data fetched from a dataset will be promoted to have at least this many dimensions"
       schema:
         type: number
-    names:
-      name: names
+    attr_keys:
+      name: attr_keys
       in: query
       required: false
-      description: "names of the attributes to fetch. If not set, all attributes will be fetched"
+      description: "keys of the attributes to fetch. If not set, all attributes will be fetched"
       schema:
         type: array
     uri:
@@ -412,7 +412,7 @@ components:
       required: [attributes, dtype, labels, name, ndim, shape, size, type]
       type: object
       properties:
-        attributes: 
+        attributes:
           description: "metadata of the attributes of a dataset"
           type: array
           items:
@@ -448,12 +448,12 @@ components:
       required: [attributes, childrenCount, name, type]
       type: object
       properties:
-        attributes: 
+        attributes:
           description: "metadata of the attributes of the group"
           type: array
           items:
             $ref: "#/components/schemas/attr_meta"
-        childrenCount: 
+        childrenCount:
           description: "number of child entities of the group"
           type: number
         name:
