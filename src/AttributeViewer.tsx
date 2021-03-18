@@ -3,13 +3,21 @@
 
 import React from 'react';
 import { ReactWidget } from '@jupyterlab/apputils';
+import { convertValuesToString, isComplexDtype } from './complex';
+import { AttributeValue } from './hdf';
+
+interface IAttribute {
+  dtype: string;
+  name: string;
+  value: AttributeValue;
+}
 
 class AttributeViewer extends ReactWidget {
-  readonly attributes: Array<[string, any]>;
+  readonly attributes: IAttribute[];
 
-  constructor(attributes: Record<string, any>) {
+  constructor(attributes: IAttribute[]) {
     super();
-    this.attributes = Object.entries(attributes);
+    this.attributes = attributes;
   }
 
   render(): JSX.Element {
@@ -29,12 +37,17 @@ class AttributeViewer extends ReactWidget {
             </tr>
           ) : (
             this.attributes.map(
-              ([name, value]): JSX.Element => (
-                <tr key={name}>
-                  <th scope="row">{name}</th>
-                  <td>{JSON.stringify(value)}</td>
-                </tr>
-              )
+              ({ name, value, dtype }): JSX.Element => {
+                const valueToDisplay = isComplexDtype(dtype)
+                  ? convertValuesToString(value)
+                  : value;
+                return (
+                  <tr key={name}>
+                    <th scope="row">{name}</th>
+                    <td>{JSON.stringify(valueToDisplay, null, ' ')}</td>
+                  </tr>
+                );
+              }
             )
           )}
         </tbody>

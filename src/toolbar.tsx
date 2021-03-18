@@ -1,18 +1,18 @@
 // Copyright (c) Jupyter Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-import { DataGrid } from "@lumino/datagrid";
+import { DataGrid } from '@lumino/datagrid';
 
-import { ISignal } from "@lumino/signaling";
+import { ISignal } from '@lumino/signaling';
 
-import { ReactWidget } from "@jupyterlab/apputils";
+import { ReactWidget } from '@jupyterlab/apputils';
 
-import * as React from "react";
+import * as React from 'react';
 
-import { HdfDatasetModel } from "./dataset";
+import { HdfDatasetModel } from './dataset';
 
-const TOOLBAR_IX_INPUT_CLASS = ".jp-IxInputToolbar";
-const TOOLBAR_IX_INPUT_BOX_CLASS = ".jp-IxInputToolbar-box";
+const TOOLBAR_IX_INPUT_CLASS = '.jp-IxInputToolbar';
+const TOOLBAR_IX_INPUT_BOX_CLASS = '.jp-IxInputToolbar-box';
 
 /**
  * a namespace for IxInputBox statics
@@ -68,7 +68,7 @@ export class IxInput extends ReactWidget {
     this._model = this._grid.dataModel as HdfDatasetModel;
   }
 
-  render() {
+  render(): JSX.Element {
     return (
       <IxInputBox
         handleEnter={val => (this._model.ixstr = val)}
@@ -92,15 +92,15 @@ export class IxInputBox extends React.Component<
   constructor(props: IxInputBox.IProps) {
     super(props);
     this.state = {
-      value: this.props.initialValue || "",
-      hasFocus: false
+      value: this.props.initialValue || '',
+      hasFocus: false,
     };
   }
 
   /**
    * attach the value change signal and focus the element on mount
    */
-  componentDidMount() {
+  componentDidMount(): void {
     this.props.signal.connect(this._slot);
     this._textInput!.focus();
   }
@@ -108,7 +108,7 @@ export class IxInputBox extends React.Component<
   /**
    * detach the value change signal on unmount
    */
-  componentWillUnmount() {
+  componentWillUnmount(): void {
     this.props.signal.disconnect(this._slot);
   }
 
@@ -118,7 +118,7 @@ export class IxInputBox extends React.Component<
   private _handleKeyDown = (
     event: React.KeyboardEvent<HTMLInputElement>
   ): void => {
-    if (event.key === "Enter") {
+    if (event.key === 'Enter') {
       this.props.handleEnter(event.currentTarget.value);
     }
   };
@@ -156,10 +156,10 @@ export class IxInputBox extends React.Component<
     this.setState({ value: args });
   };
 
-  render() {
+  render(): JSX.Element {
     return (
-      <label title={"Use Numpy syntax. 2D slices only"}>
-        {"Slice: "}
+      <label title={'Use Numpy syntax. 2D slices only'}>
+        {'Slice: '}
         <input
           type="text"
           className={TOOLBAR_IX_INPUT_BOX_CLASS}
