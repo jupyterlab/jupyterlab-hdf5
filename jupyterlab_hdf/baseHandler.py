@@ -4,7 +4,6 @@
 # Distributed under the terms of the Modified BSD License.
 
 from jupyterlab_hdf.util import jsonize
-from jupyterlab_hdf.classes import Entity, Group
 import h5py
 import os
 import simplejson

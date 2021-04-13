@@ -3,9 +3,7 @@
 # Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-from jupyterlab_hdf.classes import Entity
 from .baseHandler import HdfFileManager, HdfBaseHandler
-from .util import jsonize
 
 __all__ = ["HdfAttrsManager", "HdfAttrsHandler"]
 

@@ -4,7 +4,6 @@
 # Distributed under the terms of the Modified BSD License.
 
 from .baseHandler import HdfFileManager, HdfBaseHandler
-from .util import jsonize
 
 __all__ = ["HdfMetaManager", "HdfMetaHandler"]
 

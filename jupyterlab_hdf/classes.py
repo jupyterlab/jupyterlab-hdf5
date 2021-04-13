@@ -1,6 +1,11 @@
 from typing import Union
 import h5py
-from .util import _attrMetaDict, _hobjDict, shapemeta
+
+try:
+    import hdf5plugin  # noqa: F401
+except ImportError:
+    pass
+from .util import attrMetaDict, dsetChunk, shapemeta, uriName
 
 
 class Entity:
@@ -20,17 +25,22 @@ class Entity:
             (
                 # ensure that 'content' is undefined if not explicitly requested
                 *((("content", self.metadata(ixstr=ixstr, min_ndim=min_ndim)),) if content else ()),
-                *_hobjDict(self._hobj).items(),
-                ("uri", self.name),
+                ("name", self.name),
+                ("uri", self.uri),
+                ("type", self.type),
             )
         )
 
     def metadata(self, **kwargs):
         attribute_names = sorted(self._hobj.attrs.keys())
-        return dict((*_hobjDict(self._hobj).items(), ("attributes", [_attrMetaDict(self._hobj.attrs.get_id(k)) for k in attribute_names])))
+        return dict((("name", self.name), ("type", self.type), ("attributes", [attrMetaDict(self._hobj.attrs.get_id(k)) for k in attribute_names])))
 
     @property
     def name(self):
+        return uriName(self.uri)
+
+    @property
+    def uri(self):
         return self._hobj.name
 
 
@@ -52,23 +62,26 @@ class Dataset(Entity):
             )
         )
 
+    def data(self, ixstr=None, subixstr=None, min_ndim=None):
+        return dsetChunk(self._hobj, ixstr=ixstr, subixstr=subixstr, min_ndim=min_ndim)
+
 
 class Group(Entity):
     type = "group"
 
     def contents(self, content=False, ixstr=None, min_ndim=None):
-        if content:
-            return [
-                create_entity(self._hobj, suburi).contents(
-                    content=False,
-                    ixstr=ixstr,
-                    min_ndim=min_ndim,
-                )
-                for suburi in self._hobj.keys()
-            ]
-
-        else:
+        if not content:
             return super().contents(ixstr=ixstr, min_ndim=min_ndim)
+
+        # Recurse one level
+        return [
+            create_entity(self._hobj, suburi).contents(
+                content=False,
+                ixstr=ixstr,
+                min_ndim=min_ndim,
+            )
+            for suburi in self._hobj.keys()
+        ]
 
     def metadata(self, **kwargs):
         d = super().metadata()

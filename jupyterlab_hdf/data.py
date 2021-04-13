@@ -3,12 +3,7 @@
 # Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-try:
-    import hdf5plugin
-except ImportError:
-    pass
 from .baseHandler import HdfFileManager, HdfBaseHandler
-from .util import dsetChunk, jsonize
 
 __all__ = ["HdfDataManager", "HdfDataHandler"]
 
@@ -25,7 +20,7 @@ class HdfDataManager(HdfFileManager):
         #     logd['ixcompound'] = parseSubindex(ixstr, subixstr, f[uri].shape)
         # self.log.info('{}'.format(logd))
 
-        return dsetChunk(entity._hobj, ixstr=ixstr, subixstr=subixstr, min_ndim=min_ndim)
+        return entity.data(ixstr=ixstr, subixstr=subixstr, min_ndim=min_ndim)
 
 
 ## handler

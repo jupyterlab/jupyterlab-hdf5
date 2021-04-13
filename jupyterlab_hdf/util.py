@@ -10,7 +10,7 @@ import numpy as np
 
 from .exception import JhdfError
 
-__all__ = ["atleast_nd", "dsetChunk", "hobjType", "jsonize", "parseIndex", "parseSubindex", "slicelen", "shapemeta", "uriJoin", "uriName"]
+__all__ = ["atleast_nd", "dsetChunk", "attrMetaDict", "jsonize", "parseIndex", "parseSubindex", "slicelen", "shapemeta", "uriJoin", "uriName"]
 
 ## array handling
 def atleast_nd(ary, ndim, pos=0):
@@ -65,30 +65,12 @@ def dsetChunk(dset, ixstr=None, subixstr=None, min_ndim=None):
 ## create dicts to be returned by the various api
 
 
-def hobjType(hobj):
-    if isinstance(hobj, h5py.Dataset):
-        return "dataset"
-    elif isinstance(hobj, h5py.Group):
-        return "group"
-    else:
-        return "other"
-
-
-def _attrMetaDict(attrId):
+def attrMetaDict(attrId):
     return dict(
         (
             ("name", attrId.name),
             ("dtype", attrId.dtype.str),
             ("shape", attrId.shape),
-        )
-    )
-
-
-def _hobjDict(hobj):
-    return dict(
-        (
-            ("name", uriName(hobj.name)),
-            ("type", hobjType(hobj)),
         )
     )
 
