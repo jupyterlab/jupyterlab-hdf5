@@ -1,5 +1,6 @@
 from typing import Union
 import h5py
+from h5py._hl.group import ExternalLink
 
 try:
     import hdf5plugin  # noqa: F401
@@ -8,10 +9,54 @@ except ImportError:
 from .util import attrMetaDict, dsetChunk, shapemeta, uriJoin, uriName
 
 
-class ResolvedEntity:
+class Entity:
     type = "other"
 
-    def __init__(self, hobj):
+    def __init__(self, uri):
+        self._uri = uri
+
+    def contents(self, content=False, ixstr=None, min_ndim=None):
+        return dict(
+            (
+                # ensure that 'content' is undefined if not explicitly requested
+                *((("content", self.metadata(ixstr=ixstr, min_ndim=min_ndim)),) if content else ()),
+                ("name", self.name),
+                ("uri", self._uri),
+                ("type", self.type),
+            )
+        )
+
+    def metadata(self, **kwargs):
+        return dict((("name", self.name), ("type", self.type)))
+
+    @property
+    def name(self):
+        return uriName(self._uri)
+
+
+class ExternalLink(Entity):
+    type = "externalLink"
+
+    def __init__(self, uri, link) -> None:
+        super().__init__(uri)
+        self._target_file = link.filename
+        self._target_uri = link.path
+
+    def metadata(self, **kwargs):
+        return dict(
+            sorted(
+                (
+                    *super().metadata().items(),
+                    ("targetFile", self._target_file),
+                    ("targetUri", self._target_uri),
+                )
+            )
+        )
+
+
+class ResolvedEntity(Entity):
+    def __init__(self, uri, hobj):
+        super().__init__(uri)
         self._hobj = hobj
 
     def attributes(self, attr_keys=None):
@@ -20,28 +65,9 @@ class ResolvedEntity:
 
         return dict((key, self._hobj.attrs[key]) for key in attr_keys)
 
-    def contents(self, content=False, ixstr=None, min_ndim=None):
-        return dict(
-            (
-                # ensure that 'content' is undefined if not explicitly requested
-                *((("content", self.metadata(ixstr=ixstr, min_ndim=min_ndim)),) if content else ()),
-                ("name", self.name),
-                ("uri", self.uri),
-                ("type", self.type),
-            )
-        )
-
     def metadata(self, **kwargs):
         attribute_names = sorted(self._hobj.attrs.keys())
-        return dict((("name", self.name), ("type", self.type), ("attributes", [attrMetaDict(self._hobj.attrs.get_id(k)) for k in attribute_names])))
-
-    @property
-    def name(self):
-        return uriName(self.uri)
-
-    @property
-    def uri(self):
-        return self._hobj.name
+        return dict((*super().metadata().items(), ("attributes", [attrMetaDict(self._hobj.attrs.get_id(k)) for k in attribute_names])))
 
 
 class Dataset(ResolvedEntity):
@@ -75,7 +101,7 @@ class Group(ResolvedEntity):
 
         # Recurse one level
         return [
-            create_entity(self._hobj, suburi).contents(
+            create_entity(self._hobj.file, uriJoin(self._uri, suburi)).contents(
                 content=False,
                 ixstr=ixstr,
                 min_ndim=min_ndim,
@@ -89,65 +115,25 @@ class Group(ResolvedEntity):
         return dict(sorted((*d.items(), ("childrenCount", len(self._hobj)))))
 
 
-class ExternalLink:
-    type = "externalLink"
+def create_entity(h5file: h5py.File, uri: str):
+    hobj = resolve_hobj(h5file, uri)
 
-    def __init__(self, link, uri) -> None:
-        self._target_file = link.filename
-        self._target_uri = link.path
-        self._uri = uri
-
-    @property
-    def name(self):
-        return uriName(self._uri)
-
-    @property
-    def uri(self):
-        return self._uri
-
-    def contents(self, content=False, ixstr=None, min_ndim=None):
-        return dict(
-            (
-                # ensure that 'content' is undefined if not explicitly requested
-                *((("content", self.metadata(ixstr=ixstr, min_ndim=min_ndim)),) if content else ()),
-                ("name", self.name),
-                ("uri", self.uri),
-                ("type", self.type),
-            )
-        )
-
-    def metadata(self, **kwargs):
-        d = dict(
-            (
-                ("name", self.name),
-                ("type", self.type),
-            )
-        )
-
-        return dict(
-            sorted(
-                (
-                    *d.items(),
-                    ("targetFile", self._target_file),
-                    ("targetUri", self._target_uri),
-                )
-            )
-        )
-
-
-def create_entity(root: Union[h5py.File, h5py.Group], uri: str):
-    if uri == "/":
-        return Group(root)
-
-    link = root.get(uri, getlink=True)
-    if isinstance(link, h5py.ExternalLink):
-        root_uri = "" if isinstance(root, h5py.File) else root.name
-        return ExternalLink(link, uriJoin(root_uri, uri))
-
-    hobj = root[uri]
+    if isinstance(hobj, h5py.ExternalLink):
+        return ExternalLink(uri, hobj)
     if isinstance(hobj, h5py.Dataset):
-        return Dataset(hobj)
+        return Dataset(uri, hobj)
     elif isinstance(hobj, h5py.Group):
-        return Group(hobj)
+        return Group(uri, hobj)
     else:
-        return ResolvedEntity(hobj)
+        return ResolvedEntity(uri, hobj)
+
+
+def resolve_hobj(h5file: h5py.File, uri: str):
+    if uri == "/":
+        return h5file[uri]
+
+    link = h5file.get(uri, getlink=True)
+    if isinstance(link, h5py.ExternalLink):
+        return link
+
+    return h5file[uri]
