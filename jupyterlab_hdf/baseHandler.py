@@ -3,6 +3,7 @@
 # Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+from jupyterlab_hdf.classes import Entity, Group
 import h5py
 import os
 import simplejson
@@ -10,6 +11,7 @@ import traceback
 from tornado import web
 from tornado.httpclient import HTTPError
 
+from .classes import Dataset, Group, Entity, create_entity
 from notebook.base.handlers import APIHandler
 from notebook.utils import url_path_join
 
@@ -86,9 +88,14 @@ class HdfFileManager(HdfBaseManager):
 
     def _get(self, fpath, uri, **kwargs):
         with h5py.File(fpath, "r") as f:
-            return self._getFromFile(f, uri, **kwargs)
+            return self._getResponse(f, uri, **kwargs)
 
     def _getFromFile(self, f, uri, **kwargs):
+        hobj = f[uri]
+
+        return create_entity(hobj)
+
+    def _getResponse(self, f, uri, **kwargs):
         raise NotImplementedError
 
 

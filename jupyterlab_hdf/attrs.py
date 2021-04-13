@@ -3,6 +3,7 @@
 # Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+from jupyterlab_hdf.classes import Entity
 from .baseHandler import HdfFileManager, HdfBaseHandler
 from .util import hobjAttrsDict, jsonize
 
@@ -12,8 +13,10 @@ __all__ = ["HdfAttrsManager", "HdfAttrsHandler"]
 class HdfAttrsManager(HdfFileManager):
     """Implements HDF5 attributes handling"""
 
-    def _getFromFile(self, f, uri, attr_keys=None, **kwargs):
-        return jsonize(hobjAttrsDict(f[uri], attr_keys))
+    def _getResponse(self, f, uri, attr_keys=None, **kwargs):
+        entity = self._getFromFile(f, uri)
+
+        return jsonize(entity.attributes(attr_keys))
 
 
 ## handler
