@@ -11,8 +11,8 @@ __all__ = ["HdfMetaManager", "HdfMetaHandler"]
 class HdfMetaManager(HdfFileManager):
     """Implements HDF5 metadata handling"""
 
-    def _getResponse(self, entity, ixstr=None, min_ndim=None, **kwargs):
-        return entity.metadata(ixstr=ixstr, min_ndim=min_ndim)
+    def _getResponse(self, responseObj, ixstr=None, min_ndim=None, **kwargs):
+        return responseObj.metadata(ixstr=ixstr, min_ndim=min_ndim)
 
 
 ## handler

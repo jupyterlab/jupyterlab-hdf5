@@ -11,8 +11,8 @@ __all__ = ["HdfContentsManager", "HdfContentsHandler"]
 class HdfContentsManager(HdfFileManager):
     """Implements HDF5 contents handling"""
 
-    def _getResponse(self, entity, ixstr=None, min_ndim=None, **kwargs):
-        return entity.contents(content=True, ixstr=ixstr, min_ndim=min_ndim)
+    def _getResponse(self, responseObj, ixstr=None, min_ndim=None, **kwargs):
+        return responseObj.contents(content=True, ixstr=ixstr, min_ndim=min_ndim)
 
 
 ## handler

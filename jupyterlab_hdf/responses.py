@@ -9,7 +9,7 @@ except ImportError:
 from .util import attrMetaDict, dsetChunk, shapemeta, uriJoin, uriName
 
 
-class Entity:
+class EntityResponse:
     type = "other"
 
     def __init__(self, uri):
@@ -34,7 +34,7 @@ class Entity:
         return uriName(self._uri)
 
 
-class ExternalLink(Entity):
+class ExternalLinkResponse(EntityResponse):
     type = "externalLink"
 
     def __init__(self, uri, link) -> None:
@@ -54,7 +54,7 @@ class ExternalLink(Entity):
         )
 
 
-class ResolvedEntity(Entity):
+class ResolvedEntityResponse(EntityResponse):
     def __init__(self, uri, hobj):
         super().__init__(uri)
         self._hobj = hobj
@@ -70,7 +70,7 @@ class ResolvedEntity(Entity):
         return dict((*super().metadata().items(), ("attributes", [attrMetaDict(self._hobj.attrs.get_id(k)) for k in attribute_names])))
 
 
-class Dataset(ResolvedEntity):
+class DatasetResponse(ResolvedEntityResponse):
     type = "dataset"
 
     def metadata(self, ixstr=None, min_ndim=None):
@@ -92,7 +92,7 @@ class Dataset(ResolvedEntity):
         return dsetChunk(self._hobj, ixstr=ixstr, subixstr=subixstr, min_ndim=min_ndim)
 
 
-class Group(ResolvedEntity):
+class GroupResponse(ResolvedEntityResponse):
     type = "group"
 
     def contents(self, content=False, ixstr=None, min_ndim=None):
@@ -101,7 +101,7 @@ class Group(ResolvedEntity):
 
         # Recurse one level
         return [
-            create_entity(self._hobj.file, uriJoin(self._uri, suburi)).contents(
+            create_response(self._hobj.file, uriJoin(self._uri, suburi)).contents(
                 content=False,
                 ixstr=ixstr,
                 min_ndim=min_ndim,
@@ -115,17 +115,17 @@ class Group(ResolvedEntity):
         return dict(sorted((*d.items(), ("childrenCount", len(self._hobj)))))
 
 
-def create_entity(h5file: h5py.File, uri: str):
+def create_response(h5file: h5py.File, uri: str):
     hobj = resolve_hobj(h5file, uri)
 
     if isinstance(hobj, h5py.ExternalLink):
-        return ExternalLink(uri, hobj)
+        return ExternalLinkResponse(uri, hobj)
     if isinstance(hobj, h5py.Dataset):
-        return Dataset(uri, hobj)
+        return DatasetResponse(uri, hobj)
     elif isinstance(hobj, h5py.Group):
-        return Group(uri, hobj)
+        return GroupResponse(uri, hobj)
     else:
-        return ResolvedEntity(uri, hobj)
+        return ResolvedEntityResponse(uri, hobj)
 
 
 def resolve_hobj(h5file: h5py.File, uri: str):

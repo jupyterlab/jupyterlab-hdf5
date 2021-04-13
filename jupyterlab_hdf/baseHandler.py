@@ -3,20 +3,19 @@
 # Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-from jupyterlab_hdf.util import jsonize
 import h5py
 import os
 import simplejson
 import traceback
 from tornado import web
 from tornado.httpclient import HTTPError
-
-from .classes import create_entity
 from notebook.base.handlers import APIHandler
 from notebook.utils import url_path_join
 
 # from .config import HdfConfig
 from .exception import JhdfError
+from .responses import create_response
+from .util import jsonize
 
 __all__ = ["HdfBaseManager", "HdfFileManager", "HdfBaseHandler"]
 
@@ -91,11 +90,9 @@ class HdfFileManager(HdfBaseManager):
             return self._getFromFile(f, uri, **kwargs)
 
     def _getFromFile(self, f, uri, **kwargs):
-        entity = create_entity(f, uri)
+        return jsonize(self._getResponse(create_response(f, uri), **kwargs))
 
-        return jsonize(self._getResponse(entity, **kwargs))
-
-    def _getResponse(self, entity, **kwargs):
+    def _getResponse(self, responseObj, **kwargs):
         raise NotImplementedError
 
 
