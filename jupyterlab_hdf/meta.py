@@ -4,7 +4,7 @@
 # Distributed under the terms of the Modified BSD License.
 
 from .baseHandler import HdfFileManager, HdfBaseHandler
-from .util import hobjMetaDict, jsonize
+from .util import jsonize
 
 __all__ = ["HdfMetaManager", "HdfMetaHandler"]
 
@@ -12,8 +12,8 @@ __all__ = ["HdfMetaManager", "HdfMetaHandler"]
 class HdfMetaManager(HdfFileManager):
     """Implements HDF5 metadata handling"""
 
-    def _getResponse(self, f, uri, ixstr=None, min_ndim=None, **kwargs):
-        return jsonize(hobjMetaDict(f[uri], ixstr=ixstr, min_ndim=min_ndim))
+    def _getResponse(self, entity, ixstr=None, min_ndim=None, **kwargs):
+        return entity.metadata(ixstr=ixstr, min_ndim=min_ndim)
 
 
 ## handler

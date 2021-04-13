@@ -10,7 +10,7 @@ import numpy as np
 
 from .exception import JhdfError
 
-__all__ = ["atleast_nd", "dsetChunk", "hobjAttrsDict", "hobjContentsDict", "hobjMetaDict", "hobjType", "jsonize", "parseIndex", "parseSubindex", "slicelen", "shapemeta", "uriJoin", "uriName"]
+__all__ = ["atleast_nd", "dsetChunk", "hobjType", "jsonize", "parseIndex", "parseSubindex", "slicelen", "shapemeta", "uriJoin", "uriName"]
 
 ## array handling
 def atleast_nd(ary, ndim, pos=0):
@@ -63,40 +63,6 @@ def dsetChunk(dset, ixstr=None, subixstr=None, min_ndim=None):
 
 
 ## create dicts to be returned by the various api
-def hobjAttrsDict(hobj, attr_keys=None):
-    if attr_keys is None:
-        return dict((*hobj.attrs.items(),))
-
-    return dict((key, hobj.attrs[key]) for key in attr_keys)
-
-
-def hobjContentsDict(hobj, content=False, ixstr=None, min_ndim=None):
-    return dict(
-        (
-            # ensure that 'content' is undefined if not explicitly requested
-            *((("content", hobjMetaDict(hobj, ixstr=ixstr, min_ndim=min_ndim)),) if content else ()),
-            *_hobjDict(hobj).items(),
-            ("uri", hobj.name),
-        )
-    )
-
-
-def hobjMetaDict(hobj, ixstr=None, min_ndim=None):
-    d = dict((*_hobjDict(hobj).items(), ("attributes", [_attrMetaDict(hobj.attrs.get_id(k)) for k in sorted(hobj.attrs.keys())])))
-
-    if d["type"] == "dataset":
-        return dict(
-            sorted(
-                (
-                    *d.items(),
-                    *_dsetMetaDict(hobj, ixstr=ixstr, min_ndim=min_ndim).items(),
-                )
-            )
-        )
-    elif d["type"] == "group":
-        return dict(sorted((*d.items(), ("childrenCount", len(hobj)))))
-    else:
-        return d
 
 
 def hobjType(hobj):
@@ -114,18 +80,6 @@ def _attrMetaDict(attrId):
             ("name", attrId.name),
             ("dtype", attrId.dtype.str),
             ("shape", attrId.shape),
-        )
-    )
-
-
-def _dsetMetaDict(dset, ixstr=None, min_ndim=None):
-    shapekeys = ("labels", "ndim", "shape", "size")
-    smeta = {k: v for k, v in shapemeta(dset.shape, dset.size, ixstr=ixstr, min_ndim=min_ndim).items() if k in shapekeys}
-
-    return dict(
-        (
-            ("dtype", dset.dtype.str),
-            *smeta.items(),
         )
     )
 

@@ -16,7 +16,7 @@ __all__ = ["HdfDataManager", "HdfDataHandler"]
 class HdfDataManager(HdfFileManager):
     """Implements HDF5 data handling"""
 
-    def _getResponse(self, f, uri, ixstr=None, subixstr=None, min_ndim=None, **kwargs):
+    def _getResponse(self, entity, ixstr=None, subixstr=None, min_ndim=None, **kwargs):
         # # DEBUG: uncomment for logging
         # from .util import dsetContentDict, parseSubindex
         # logd = dsetContentDict(f[uri], ixstr=ixstr)
@@ -25,7 +25,7 @@ class HdfDataManager(HdfFileManager):
         #     logd['ixcompound'] = parseSubindex(ixstr, subixstr, f[uri].shape)
         # self.log.info('{}'.format(logd))
 
-        return jsonize(dsetChunk(f[uri], ixstr=ixstr, subixstr=subixstr, min_ndim=min_ndim))
+        return dsetChunk(entity._hobj, ixstr=ixstr, subixstr=subixstr, min_ndim=min_ndim)
 
 
 ## handler

@@ -3,6 +3,7 @@
 # Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+from jupyterlab_hdf.util import jsonize
 from jupyterlab_hdf.classes import Entity, Group
 import h5py
 import os
@@ -11,7 +12,7 @@ import traceback
 from tornado import web
 from tornado.httpclient import HTTPError
 
-from .classes import Dataset, Group, Entity, create_entity
+from .classes import create_entity
 from notebook.base.handlers import APIHandler
 from notebook.utils import url_path_join
 
@@ -53,20 +54,20 @@ class HdfBaseManager:
             raise HTTPError(code, msg)
 
         if not relfpath:
-            msg = f"The request was malformed; fpath should not be empty."
+            msg = "The request was malformed; fpath should not be empty."
             _handleErr(400, msg)
 
         fpath = url_path_join(self.notebook_dir, relfpath)
 
         if not os.path.exists(fpath):
-            msg = f"The request specified a file that does not exist."
+            msg = "The request specified a file that does not exist."
             _handleErr(403, msg)
         else:
             try:
                 # test opening the file with h5py
                 with h5py.File(fpath, "r") as f:
                     pass
-            except Exception as e:
+            except Exception:
                 msg = f"The request did not specify a file that `h5py` could understand.\n" f"Error: {traceback.format_exc()}"
                 _handleErr(401, msg)
             try:
@@ -76,7 +77,7 @@ class HdfBaseManager:
                 msg["traceback"] = traceback.format_exc()
                 msg["type"] = "JhdfError"
                 _handleErr(400, msg)
-            except Exception as e:
+            except Exception:
                 msg = f"Found and opened file, error getting contents from object specified by the uri.\n" f"Error: {traceback.format_exc()}"
                 _handleErr(500, msg)
 
@@ -88,14 +89,14 @@ class HdfFileManager(HdfBaseManager):
 
     def _get(self, fpath, uri, **kwargs):
         with h5py.File(fpath, "r") as f:
-            return self._getResponse(f, uri, **kwargs)
+            return self._getFromFile(f, uri, **kwargs)
 
     def _getFromFile(self, f, uri, **kwargs):
-        hobj = f[uri]
+        entity = create_entity(f, uri)
 
-        return create_entity(hobj)
+        return jsonize(self._getResponse(entity, **kwargs))
 
-    def _getResponse(self, f, uri, **kwargs):
+    def _getResponse(self, entity, **kwargs):
         raise NotImplementedError
 
 
