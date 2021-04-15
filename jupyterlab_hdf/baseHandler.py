@@ -9,12 +9,13 @@ import simplejson
 import traceback
 from tornado import web
 from tornado.httpclient import HTTPError
-
 from notebook.base.handlers import APIHandler
 from notebook.utils import url_path_join
 
 # from .config import HdfConfig
 from .exception import JhdfError
+from .responses import create_response
+from .util import jsonize
 
 __all__ = ["HdfBaseManager", "HdfFileManager", "HdfBaseHandler"]
 
@@ -51,20 +52,20 @@ class HdfBaseManager:
             raise HTTPError(code, msg)
 
         if not relfpath:
-            msg = f"The request was malformed; fpath should not be empty."
+            msg = "The request was malformed; fpath should not be empty."
             _handleErr(400, msg)
 
         fpath = url_path_join(self.notebook_dir, relfpath)
 
         if not os.path.exists(fpath):
-            msg = f"The request specified a file that does not exist."
+            msg = "The request specified a file that does not exist."
             _handleErr(403, msg)
         else:
             try:
                 # test opening the file with h5py
                 with h5py.File(fpath, "r") as f:
                     pass
-            except Exception as e:
+            except Exception:
                 msg = f"The request did not specify a file that `h5py` could understand.\n" f"Error: {traceback.format_exc()}"
                 _handleErr(401, msg)
             try:
@@ -74,7 +75,7 @@ class HdfBaseManager:
                 msg["traceback"] = traceback.format_exc()
                 msg["type"] = "JhdfError"
                 _handleErr(400, msg)
-            except Exception as e:
+            except Exception:
                 msg = f"Found and opened file, error getting contents from object specified by the uri.\n" f"Error: {traceback.format_exc()}"
                 _handleErr(500, msg)
 
@@ -89,6 +90,9 @@ class HdfFileManager(HdfBaseManager):
             return self._getFromFile(f, uri, **kwargs)
 
     def _getFromFile(self, f, uri, **kwargs):
+        return jsonize(self._getResponse(create_response(f, uri), **kwargs))
+
+    def _getResponse(self, responseObj, **kwargs):
         raise NotImplementedError
 
 
