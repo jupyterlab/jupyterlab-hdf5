@@ -22,6 +22,7 @@ class TestData(ServerTest):
             h5file["complex"] = COMPLEX
             h5file["scalar"] = SCALAR
             h5file["empty"] = h5py.Empty(">f8")
+            h5file["NaNs"] = [np.NaN, np.inf, np.NINF, 0]
 
     def test_oneD_dataset(self):
         response = self.tester.get(["data", "test_file.h5"], params={"uri": "/oneD_dataset"})
@@ -88,3 +89,10 @@ class TestData(ServerTest):
         assert response.status_code == 200
         payload = response.json()
         assert payload is None
+
+    def test_dataset_with_NaNs(self):
+        response = self.tester.get(["data", "test_file.h5"], params={"uri": "/NaNs"})
+
+        assert response.status_code == 200
+        payload = response.json()
+        assert payload == ["NaN", "Infinity", "-Infinity", 0]

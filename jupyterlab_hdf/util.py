@@ -329,6 +329,12 @@ def jsonize(v):
         return [v.real, v.imag]
     if isinstance(v, h5py.Empty):
         return None
+    if isinstance(v, float) and np.isnan(v):
+        return "NaN"
+    if isinstance(v, float) and np.isposinf(v):
+        return "Infinity"
+    if isinstance(v, float) and np.isneginf(v):
+        return "-Infinity"
     return v
 
 
