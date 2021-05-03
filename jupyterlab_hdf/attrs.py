@@ -4,7 +4,7 @@
 # Distributed under the terms of the Modified BSD License.
 
 from .baseHandler import HdfFileManager, HdfBaseHandler
-from .util import hobjAttrsDict, jsonize
+from .util import hobjAttrsDict
 
 __all__ = ["HdfAttrsManager", "HdfAttrsHandler"]
 
@@ -13,7 +13,7 @@ class HdfAttrsManager(HdfFileManager):
     """Implements HDF5 attributes handling"""
 
     def _getFromFile(self, f, uri, attr_keys=None, **kwargs):
-        return jsonize(hobjAttrsDict(f[uri], attr_keys))
+        return hobjAttrsDict(f[uri], attr_keys)
 
 
 ## handler

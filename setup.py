@@ -41,7 +41,7 @@ setup_dict = dict(
         "h5py",
         "notebook",
         "numpy",
-        "simplejson",
+        "orjson",
         "tornado",
     ],
     extras_require={
