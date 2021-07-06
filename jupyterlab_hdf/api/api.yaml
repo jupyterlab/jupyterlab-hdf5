@@ -6,230 +6,257 @@
 openapi: 3.0.0
 info:
   title: JupyterLab HDF5 proxy
-  description: "Proxies HDF5 API requests from JupyterLab to HDF5."
+  description: 'Proxies HDF5 API requests from JupyterLab to HDF5.'
   version: 0.6.0
 
 servers:
-- url: http://{host}:{port}/
-  description: 'a jupyter server running the jupyterlab_hdf serverextension. Defaults to "localhost:8888"'
-  variables:
-    host:
-      default: "localhost"
-      description: 'the address of the host on which your jupyter server is running. Defaults to "localhost"'
-    port:
-      default: "8888"
-      description: 'the port on which your jupyter server is running. Defaults to "8888"'
+  - url: http://{host}:{port}/
+    description: 'a jupyter server running the jupyterlab_hdf serverextension. Defaults to "localhost:8888"'
+    variables:
+      host:
+        default: 'localhost'
+        description: 'the address of the host on which your jupyter server is running. Defaults to "localhost"'
+      port:
+        default: '8888'
+        description: 'the port on which your jupyter server is running. Defaults to "8888"'
 
 paths:
   /hdf/attrs/{fpath}:
     parameters:
-      - $ref: "#/components/parameters/fpath"
-      - $ref: "#/components/parameters/uri"
-      - $ref: "#/components/parameters/attr_keys"
+      - $ref: '#/components/parameters/fpath'
+      - $ref: '#/components/parameters/uri'
+      - $ref: '#/components/parameters/attr_keys'
     get:
-      description: "get the attributes of an hdf object"
-      summary: "get the attributes of an hdf object"
+      description: 'get the attributes of an hdf object'
+      summary: 'get the attributes of an hdf object'
       responses:
-        "200":
-          $ref: "#/components/responses/attrs"
-        "400":
-          $ref: "#/components/responses/400"
-        "401":
-          $ref: "#/components/responses/401"
-        "403":
-          $ref: "#/components/responses/403"
-        "500":
-          $ref: "#/components/responses/500"
+        '200':
+          $ref: '#/components/responses/attrs'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '500':
+          $ref: '#/components/responses/500'
 
   /hdf/contents/{fpath}:
     parameters:
-      - $ref: "#/components/parameters/fpath"
-      - $ref: "#/components/parameters/uri"
-      - $ref: "#/components/parameters/ixstr"
-      - $ref: "#/components/parameters/min_ndim"
+      - $ref: '#/components/parameters/fpath'
+      - $ref: '#/components/parameters/uri'
+      - $ref: '#/components/parameters/ixstr'
+      - $ref: '#/components/parameters/min_ndim'
     get:
-      description: "get the contents of an hdf object"
-      summary: "get the contents of an hdf object"
+      description: 'get the contents of an hdf object'
+      summary: 'get the contents of an hdf object'
       responses:
-        "200":
-          $ref: "#/components/responses/contents"
-        "400":
-          $ref: "#/components/responses/400"
-        "401":
-          $ref: "#/components/responses/401"
-        "403":
-          $ref: "#/components/responses/403"
-        "500":
-          $ref: "#/components/responses/500"
+        '200':
+          $ref: '#/components/responses/contents'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '500':
+          $ref: '#/components/responses/500'
 
   /hdf/data/{fpath}:
     parameters:
-      - $ref: "#/components/parameters/fpath"
-      - $ref: "#/components/parameters/uri"
-      - $ref: "#/components/parameters/ixstr"
-      - $ref: "#/components/parameters/subixstr"
-      - $ref: "#/components/parameters/min_ndim"
+      - $ref: '#/components/parameters/fpath'
+      - $ref: '#/components/parameters/uri'
+      - $ref: '#/components/parameters/ixstr'
+      - $ref: '#/components/parameters/subixstr'
+      - $ref: '#/components/parameters/min_ndim'
     get:
-      description: "get raw array data from one hdf dataset, as a json blob"
-      summary: "get data from an hdf dataset"
+      description: 'get raw array data from one hdf dataset, as a json blob'
+      summary: 'get data from an hdf dataset'
       responses:
-        "200":
-          $ref: "#/components/responses/data"
-        "400":
-          $ref: "#/components/responses/400"
-        "401":
-          $ref: "#/components/responses/401"
-        "403":
-          $ref: "#/components/responses/403"
-        "500":
-          $ref: "#/components/responses/500"
+        '200':
+          $ref: '#/components/responses/data'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '500':
+          $ref: '#/components/responses/500'
 
   /hdf/meta/{fpath}:
     parameters:
-      - $ref: "#/components/parameters/fpath"
-      - $ref: "#/components/parameters/uri"
-      - $ref: "#/components/parameters/ixstr"
-      - $ref: "#/components/parameters/min_ndim"
+      - $ref: '#/components/parameters/fpath'
+      - $ref: '#/components/parameters/uri'
+      - $ref: '#/components/parameters/ixstr'
+      - $ref: '#/components/parameters/min_ndim'
     get:
-      description: "get the metadata of an hdf object. If the object is a dataset and the ixstr parameter is provided, all shape-related metadata will be for the slab specified by ixstr"
-      summary: "get the metadata of an hdf object"
+      description: 'get the metadata of an hdf object. If the object is a dataset and the ixstr parameter is provided, all shape-related metadata will be for the slab specified by ixstr'
+      summary: 'get the metadata of an hdf object'
       responses:
-        "200":
-          $ref: "#/components/responses/meta"
-        "400":
-          $ref: "#/components/responses/400"
-        "401":
-          $ref: "#/components/responses/401"
-        "403":
-          $ref: "#/components/responses/403"
-        "500":
-          $ref: "#/components/responses/500"
+        '200':
+          $ref: '#/components/responses/meta'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '500':
+          $ref: '#/components/responses/500'
 
   /hdf/snippet/{fpath}:
     parameters:
-      - $ref: "#/components/parameters/fpath"
-      - $ref: "#/components/parameters/uri"
-      - $ref: "#/components/parameters/ixstr"
-      - $ref: "#/components/parameters/subixstr"
+      - $ref: '#/components/parameters/fpath'
+      - $ref: '#/components/parameters/uri'
+      - $ref: '#/components/parameters/ixstr'
+      - $ref: '#/components/parameters/subixstr'
     get:
-      description: "get a Python snippet that fetches the hdf dataset or group pointed to by the path and uri"
-      summary: "get a Python snippet that fetches an hdf dataset or group"
+      description: 'get a Python snippet that fetches the hdf dataset or group pointed to by the path and uri'
+      summary: 'get a Python snippet that fetches an hdf dataset or group'
       responses:
-        "200":
-          $ref: "#/components/responses/py_snippet"
-        "400":
-          $ref: "#/components/responses/400"
-        "401":
-          $ref: "#/components/responses/401"
-        "403":
-          $ref: "#/components/responses/403"
-        "500":
-          $ref: "#/components/responses/500"
-
+        '200':
+          $ref: '#/components/responses/py_snippet'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '500':
+          $ref: '#/components/responses/500'
 
 components:
   examples:
     dataset_contents:
-      description: "example contents of a dataset object"
-      value: {
-        "content": {
-          "attributes": [
-            {"name": "attr1", "dtype": "|O", "shape": []},
-            {"name": "attr2", "dtype": "<f4", "shape": [5]},
-          ],
-          "dtype": ">i8",
-          "labels": [
-            {"start": 0, "stop": 13, "step": 1},
-            {"start": 0, "stop": 5, "step": 1},
-            {"start": 0, "stop": 17, "step": 1},
-          ],
-          "name": "foo",
-          "ndim": 3,
-          "shape": [13, 5, 17],
-          "size": 1105,
-          "type": "dataset"
-        },
-        "name": "foo",
-        "type": "dataset",
-        "uri": "/able/foo"
-      }
+      description: 'example contents of a dataset object'
+      value:
+        {
+          'content':
+            {
+              'attributes':
+                [
+                  { 'name': 'attr1', 'dtype': '|O', 'shape': [] },
+                  { 'name': 'attr2', 'dtype': '<f4', 'shape': [5] },
+                ],
+              'dtype': '>i8',
+              'labels':
+                [
+                  { 'start': 0, 'stop': 13, 'step': 1 },
+                  { 'start': 0, 'stop': 5, 'step': 1 },
+                  { 'start': 0, 'stop': 17, 'step': 1 },
+                ],
+              'name': 'foo',
+              'ndim': 3,
+              'shape': [13, 5, 17],
+              'size': 1105,
+              'type': 'dataset',
+            },
+          'name': 'foo',
+          'type': 'dataset',
+          'uri': '/able/foo',
+        }
     group_contents:
-      description: "example contents of a group object"
-      value: [
-        {"name": "baker", "type": "group", "uri": "/able/baker"},
-        {"name": "foo", "type": "dataset", "uri": "/able/foo"},
-        {"name": "bar", "type": "dataset", "uri": "/able/bar"}
-      ]
+      description: 'example contents of a group object'
+      value:
+        [
+          { 'name': 'baker', 'type': 'group', 'uri': '/able/baker' },
+          { 'name': 'foo', 'type': 'dataset', 'uri': '/able/foo' },
+          { 'name': 'bar', 'type': 'dataset', 'uri': '/able/bar' },
+        ]
     data_1d:
-      description: "a 1D chunk of raw array data"
+      description: 'a 1D chunk of raw array data'
       value: [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26]
     data_2d:
-      description: "a 2D chunk of raw array data"
-      value: [[11, 12, 13, 14], [15, 16, 17, 18], [19, 20, 21, 22], [23, 24, 25, 26]]
+      description: 'a 2D chunk of raw array data'
+      value:
+        [[11, 12, 13, 14], [15, 16, 17, 18], [19, 20, 21, 22], [23, 24, 25, 26]]
     data_4d:
-      description: "a 4D chunk of raw array data"
-      value: [[[[11, 12], [13, 14]], [[15, 16], [17, 18]]], [[[19, 20], [21, 22]], [[23, 24], [25, 26]]]]
+      description: 'a 4D chunk of raw array data'
+      value:
+        [
+          [[[11, 12], [13, 14]], [[15, 16], [17, 18]]],
+          [[[19, 20], [21, 22]], [[23, 24], [25, 26]]],
+        ]
     dataset_meta:
-      description: "metadata for dataset of shape `[13, 5, 17]`"
-      value: {
-        "attributes": [
-          {"name": "attr1", "dtype": "|O", "shape": []},
-          {"name": "attr2", "dtype": "<f4", "shape": [5]},
-        ],
-        "dtype": ">i8",
-        "labels": [
-          {"start": 0, "stop": 13, "step": 1},
-          {"start": 0, "stop": 5, "step": 1},
-          {"start": 0, "stop": 17, "step": 1},
-        ],
-        "name": "foo",
-        "ndim": 3,
-        "shape": [13, 5, 17],
-        "size": 1105,
-        "type": "dataset"
-      }
+      description: 'metadata for dataset of shape `[13, 5, 17]`'
+      value:
+        {
+          'attributes':
+            [
+              { 'name': 'attr1', 'dtype': '|O', 'shape': [] },
+              { 'name': 'attr2', 'dtype': '<f4', 'shape': [5] },
+            ],
+          'dtype': '>i8',
+          'labels':
+            [
+              { 'start': 0, 'stop': 13, 'step': 1 },
+              { 'start': 0, 'stop': 5, 'step': 1 },
+              { 'start': 0, 'stop': 17, 'step': 1 },
+            ],
+          'name': 'foo',
+          'ndim': 3,
+          'shape': [13, 5, 17],
+          'size': 1105,
+          'type': 'dataset',
+        }
     dataset_meta_w_ixstr:
       description: 'metadata for dataset of shape `[13, 5, 17]`, given an ixstr of `"2:11, 3, 1:16"`'
-      value: {
-        "attributes": [
-          {"name": "attr1", "dtype": "|O", "shape": []},
-          {"name": "attr2", "dtype": "<f4", "shape": [5]},
-        ],
-        "dtype": ">i8",
-        "labels": [
-          {"start": 2, "stop": 11, "step": 1},
-          {"start": 3, "stop": 4, "step": 1},
-          {"start": 1, "stop": 16, "step": 1},
-        ],
-        "name": "foo",
-        "ndim": 2,
-        "shape": [9, 15],
-        "size": 135,
-        "type": "dataset"
-      }
+      value:
+        {
+          'attributes':
+            [
+              { 'name': 'attr1', 'dtype': '|O', 'shape': [] },
+              { 'name': 'attr2', 'dtype': '<f4', 'shape': [5] },
+            ],
+          'dtype': '>i8',
+          'labels':
+            [
+              { 'start': 2, 'stop': 11, 'step': 1 },
+              { 'start': 3, 'stop': 4, 'step': 1 },
+              { 'start': 1, 'stop': 16, 'step': 1 },
+            ],
+          'name': 'foo',
+          'ndim': 2,
+          'shape': [9, 15],
+          'size': 135,
+          'type': 'dataset',
+        }
     group_meta:
-      description: "metadata for group"
-      value: {
-        "attributes": [],
-        "childrenCount": 2,
-        "name": "beta",
-        "type": "group"
-      }
+      description: 'metadata for group'
+      value:
+        {
+          'attributes': [],
+          'children':
+            {
+              'name': 'dataset_1',
+              'dtype': '<f8',
+              'type': 'dataset',
+              'shape': [2, 3, 4],
+              'attributes': [],
+            },
+          {
+            'name': 'group_with_attrs',
+            'type': 'group',
+            'attributes':
+              [{ 'name': 'array_attr', 'dtype': '>f4', 'shape': [10] }],
+          },
+          'name': 'beta',
+          'type': 'group',
+        }
     dataset_py_snippet:
-      description: "python snippet for dataset"
-      value:
-        "with h5py.File('/Users/alice/git/jupyterlab-hdf/example/nested_int.hdf5', 'r') as f:\n    dataset = f['/leaf01/data01']"
+      description: 'python snippet for dataset'
+      value: "with h5py.File('/Users/alice/git/jupyterlab-hdf/example/nested_int.hdf5', 'r') as f:\n    dataset = f['/leaf01/data01']"
     group_py_snippet:
-      description: "python snippet for group"
-      value:
-        "with h5py.File('/Users/alice/git/jupyterlab-hdf/example/nested_int.hdf5', 'r') as f:\n    group = f['/leaf01']"
+      description: 'python snippet for group'
+      value: "with h5py.File('/Users/alice/git/jupyterlab-hdf/example/nested_int.hdf5', 'r') as f:\n    group = f['/leaf01']"
 
   parameters:
     fpath:
       name: fpath
       in: path
       required: true
-      description: "path on disk to an HDF5 file"
+      description: 'path on disk to an HDF5 file'
       schema:
         type: string
         format: uri
@@ -237,256 +264,256 @@ components:
       name: ixstr
       in: query
       required: false
-      description: "index specifying which ND slab of a dataset to consider when fetching data. Uses numpy-style index syntax"
+      description: 'index specifying which ND slab of a dataset to consider when fetching data. Uses numpy-style index syntax'
       schema:
         type: string
     subixstr:
       name: subixstr
       in: query
       required: false
-      description: "index specifying which chunk (of the ND slab specified by ixstr) of a dataset to fetch. Uses numpy-style index syntax. The count of slices in ixstr and subixstr should match"
+      description: 'index specifying which chunk (of the ND slab specified by ixstr) of a dataset to fetch. Uses numpy-style index syntax. The count of slices in ixstr and subixstr should match'
       schema:
         type: string
     min_ndim:
       name: min_ndim
       in: query
       required: false
-      description: "if set, all shape-related metadata and array data fetched from a dataset will be promoted to have at least this many dimensions"
+      description: 'if set, all shape-related metadata and array data fetched from a dataset will be promoted to have at least this many dimensions'
       schema:
         type: number
     attr_keys:
       name: attr_keys
       in: query
       required: false
-      description: "keys of the attributes to fetch. If not set, all attributes will be fetched"
+      description: 'keys of the attributes to fetch. If not set, all attributes will be fetched'
       schema:
         type: array
     uri:
       name: uri
       in: query
       required: true
-      description: "path within an HDF5 file to a specific group or dataset"
+      description: 'path within an HDF5 file to a specific group or dataset'
       schema:
         type: string
 
   responses:
-    "400":
+    '400':
       description: 'the request was malformed; url should be of the format `"fpath?uri=uri"`'
-    "401":
-      description: "the request did not specify a file that `h5py` could understand"
-    "403":
-      description: "the request specified a file that does not exist"
-    "500":
-      description: "found and opened file, error getting contents from object specified by the uri"
+    '401':
+      description: 'the request did not specify a file that `h5py` could understand'
+    '403':
+      description: 'the request specified a file that does not exist'
+    '500':
+      description: 'found and opened file, error getting contents from object specified by the uri'
     attrs:
-      description: "attributes of an arbitrary hdf object, as a dictionary"
+      description: 'attributes of an arbitrary hdf object, as a dictionary'
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/attrs"
+            $ref: '#/components/schemas/attrs'
     contents:
       description: "data representing an arbitrary hdf object, in the format required by the jupyterlab `Contents` stack. If object is a dataset, basic information (including metadata) about that dataset will be reutrned as a dict. If object is a group, then basic information (but not metadata) about that group's children will be returned as an array of dicts"
       content:
         application/json:
           schema:
             oneOf:
-            - $ref: "#/components/schemas/dataset_contents"
-            - type: array
-              items:
-                $ref: "#/components/schemas/contents"
+              - $ref: '#/components/schemas/dataset_contents'
+              - type: array
+                items:
+                  $ref: '#/components/schemas/contents'
           examples:
-            "contents of a dataset":
-              $ref: "#/components/examples/dataset_contents"
-            "contents of a group":
-              $ref: "#/components/examples/group_contents"
+            'contents of a dataset':
+              $ref: '#/components/examples/dataset_contents'
+            'contents of a group':
+              $ref: '#/components/examples/group_contents'
     data:
-      description: "a chunk of raw array data from an hdf dataset. May be of any dimensionality"
+      description: 'a chunk of raw array data from an hdf dataset. May be of any dimensionality'
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/data"
+            $ref: '#/components/schemas/data'
           examples:
-            "1D data":
-              $ref: "#/components/examples/data_1d"
-            "2D data":
-              $ref: "#/components/examples/data_2d"
-            "4D data":
-              $ref: "#/components/examples/data_4d"
+            '1D data':
+              $ref: '#/components/examples/data_1d'
+            '2D data':
+              $ref: '#/components/examples/data_2d'
+            '4D data':
+              $ref: '#/components/examples/data_4d'
     meta:
-      description: "metadata of an arbitrary hdf object, as a dictionary"
+      description: 'metadata of an arbitrary hdf object, as a dictionary'
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/meta"
+            $ref: '#/components/schemas/meta'
           examples:
-            "metadata for dataset":
-              $ref: "#/components/examples/dataset_meta"
-            "metadata for dataset, given an ixstr":
-              $ref: "#/components/examples/dataset_meta_w_ixstr"
-            "metadata for group":
-              $ref: "#/components/examples/group_meta"
+            'metadata for dataset':
+              $ref: '#/components/examples/dataset_meta'
+            'metadata for dataset, given an ixstr':
+              $ref: '#/components/examples/dataset_meta_w_ixstr'
+            'metadata for group':
+              $ref: '#/components/examples/group_meta'
     py_snippet:
-      description: "python code snippet"
+      description: 'python code snippet'
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/py_snippet"
+            $ref: '#/components/schemas/py_snippet'
           examples:
-            "python snippet for dataset":
-              $ref: "#/components/examples/dataset_py_snippet"
-            "python snippet for group":
-              $ref: "#/components/examples/group_py_snippet"
+            'python snippet for dataset':
+              $ref: '#/components/examples/dataset_py_snippet'
+            'python snippet for group':
+              $ref: '#/components/examples/group_py_snippet'
 
   schemas:
     attrs:
-      description: "attributes of an arbitrary hdf object, as a dictionary"
+      description: 'attributes of an arbitrary hdf object, as a dictionary'
       type: object
       additionalProperties: true
     attr_meta:
-      description: "metadata of an attribute"
+      description: 'metadata of an attribute'
       required: [name, dtype, shape]
       type: object
       properties:
         name:
-          description: "name of an attribute"
+          description: 'name of an attribute'
           type: string
         dtype:
-          description: "datatype of an attribute"
+          description: 'datatype of an attribute'
           type: string
         shape:
-          description: "shape of an attribute"
+          description: 'shape of an attribute'
           type: array
           items:
             type: number
     dataset_contents:
-      description: "a basic description of an hdf dataset, in the format required by the jupyterlab `Contents` stack"
+      description: 'a basic description of an hdf dataset, in the format required by the jupyterlab `Contents` stack'
       required: [name, type, uri]
       type: object
       properties:
         content:
-          $ref: "#/components/schemas/dataset_meta"
+          $ref: '#/components/schemas/dataset_meta'
         name:
-          description: "object name (ie last part of uri)"
+          description: 'object name (ie last part of uri)'
           type: string
         type:
           description: 'the string literal `"dataset"`'
-          enum: ["dataset"]
+          enum: ['dataset']
           type: string
         uri:
-          description: "full uri pointing to the object"
+          description: 'full uri pointing to the object'
           type: string
     group_contents:
-      description: "a basic description of an hdf group, in the format required by the jupyterlab `Contents` stack"
+      description: 'a basic description of an hdf group, in the format required by the jupyterlab `Contents` stack'
       required: [name, type, uri]
       type: object
       properties:
         name:
-          description: "object name (ie last part of uri)"
+          description: 'object name (ie last part of uri)'
           type: string
         type:
           description: 'the string literal `"group"`'
-          enum: ["group"]
+          enum: ['group']
           type: string
         uri:
-          description: "full uri pointing to the object"
+          description: 'full uri pointing to the object'
           type: string
     contents:
-      description: "data representing an arbitrary hdf object, in the format required by the jupyterlab `Contents` stack"
+      description: 'data representing an arbitrary hdf object, in the format required by the jupyterlab `Contents` stack'
       discriminator:
         propertyName: type
         mapping:
-          dataset: "#/components/schemas/dataset_contents"
-          group: "#/components/schemas/group_contents"
+          dataset: '#/components/schemas/dataset_contents'
+          group: '#/components/schemas/group_contents'
       oneOf:
-        - $ref: "#/components/schemas/dataset_contents"
-        - $ref: "#/components/schemas/group_contents"
+        - $ref: '#/components/schemas/dataset_contents'
+        - $ref: '#/components/schemas/group_contents'
     data:
-      description: "a chunk of raw array data from an hdf dataset. May be of any dimensionality"
+      description: 'a chunk of raw array data from an hdf dataset. May be of any dimensionality'
       type: array
       items:
         oneOf:
           - type: number
-          - $ref: "#/components/schemas/data"
+          - $ref: '#/components/schemas/data'
     dataset_meta:
-      description: "metadata of an hdf dataset, as a dictionary"
+      description: 'metadata of an hdf dataset, as a dictionary'
       required: [attributes, dtype, labels, name, ndim, shape, size, type]
       type: object
       properties:
         attributes:
-          description: "metadata of the attributes of a dataset"
+          description: 'metadata of the attributes of a dataset'
           type: array
           items:
-            $ref: "#/components/schemas/attr_meta"
+            $ref: '#/components/schemas/attr_meta'
         dtype:
-          description: "datatype of an hdf dataset"
+          description: 'datatype of an hdf dataset'
           type: string
         labels:
-          description: "ranges that label the indices of an hdf dataset, given as an array of slices"
+          description: 'ranges that label the indices of an hdf dataset, given as an array of slices'
           type: array
           items:
-            $ref: "#/components/schemas/slice"
+            $ref: '#/components/schemas/slice'
         name:
-          description: "name of hdf dataset"
+          description: 'name of hdf dataset'
           type: string
         ndim:
-          description: "count of dimensions of an hdf dataset"
+          description: 'count of dimensions of an hdf dataset'
           type: number
         shape:
-          description: "shape of an hdf dataset"
+          description: 'shape of an hdf dataset'
           type: array
           items:
             type: number
         size:
-          description: "count of entries of an hdf dataset"
+          description: 'count of entries of an hdf dataset'
           type: number
         type:
           description: 'the string literal `"dataset"`'
-          enum: ["dataset"]
+          enum: ['dataset']
           type: string
     group_meta:
-      description: "metadata of an hdf group, as a dictionary"
-      required: [attributes, childrenCount, name, type]
+      description: 'metadata of an hdf group, as a dictionary'
+      required: [attributes, children, name, type]
       type: object
       properties:
         attributes:
-          description: "metadata of the attributes of the group"
+          description: 'metadata of the attributes of the group'
           type: array
           items:
-            $ref: "#/components/schemas/attr_meta"
+            $ref: '#/components/schemas/attr_meta'
         childrenCount:
-          description: "number of child entities of the group"
+          description: 'number of child entities of the group'
           type: number
         name:
-          description: "name of hdf group"
+          description: 'name of hdf group'
           type: string
         type:
           description: 'the string literal `"group"`'
-          enum: ["group"]
+          enum: ['group']
           type: string
     meta:
-      description: "the metadata of an hdf object"
+      description: 'the metadata of an hdf object'
       discriminator:
         propertyName: type
         mapping:
-          dataset: "#/components/schemas/dataset_meta"
-          group: "#/components/schemas/group_meta"
+          dataset: '#/components/schemas/dataset_meta'
+          group: '#/components/schemas/group_meta'
       oneOf:
-        - $ref: "#/components/schemas/dataset_meta"
-        - $ref: "#/components/schemas/group_meta"
+        - $ref: '#/components/schemas/dataset_meta'
+        - $ref: '#/components/schemas/group_meta'
     py_snippet:
-      description: "python code snippet"
+      description: 'python code snippet'
       type: string
     slice:
-      description: "python-style slice"
+      description: 'python-style slice'
       required: [start, stop, step]
       type: object
       properties:
         start:
-          description: "first index of the slice"
+          description: 'first index of the slice'
           type: number
         stop:
-          description: "one past the last index of the slice"
+          description: 'one past the last index of the slice'
           type: number
         step:
-          description: "step of the slice"
+          description: 'step of the slice'
           type: number
