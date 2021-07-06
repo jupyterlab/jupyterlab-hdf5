@@ -94,7 +94,7 @@ def hobjMetaDict(hobj, ixstr=None, min_ndim=None):
             )
         )
     elif d["type"] == "group":
-        return dict(sorted((*d.items(), ("childrenCount", len(hobj)))))
+        return dict(sorted((*d.items(), ("children", sorted([dict(**_childMetaDict(child)) for child in hobj.values()], key=lambda d: d["name"])))))
     else:
         return d
 
@@ -137,6 +137,15 @@ def _hobjDict(hobj):
             ("type", hobjType(hobj)),
         )
     )
+
+
+def _childMetaDict(hobj):
+    d = dict((*_hobjDict(hobj).items(), ("attributes", [_attrMetaDict(hobj.attrs.get_id(k)) for k in sorted(hobj.attrs.keys())])))
+
+    if isinstance(hobj, h5py.Dataset):
+        return dict((*d.items(), ("shape", hobj.shape), ("dtype", hobj.dtype.str)))
+
+    return d
 
 
 ## index parsing and handling

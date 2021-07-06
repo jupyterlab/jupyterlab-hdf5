@@ -38,7 +38,7 @@ class TestMeta(ServerTest):
         assert payload["name"] == "empty_group"
         assert payload["type"] == "group"
         assert payload["attributes"] == []
-        assert payload["childrenCount"] == 0
+        assert payload["children"] == []
 
     def test_group_with_children(self):
         response = self.tester.get(["meta", "test_file.h5"], params={"uri": "/group_with_children"})
@@ -48,7 +48,20 @@ class TestMeta(ServerTest):
         assert payload["name"] == "group_with_children"
         assert payload["type"] == "group"
         assert payload["attributes"] == []
-        assert payload["childrenCount"] == 2
+        assert payload["children"] == [
+            {"name": "dataset_1", "dtype": "<f8", "type": "dataset", "shape": [2, 3, 4], "attributes": []},
+            {
+                "name": "group_with_attrs",
+                "type": "group",
+                "attributes": [
+                    {"name": "array_attr", "dtype": ">f4", "shape": [10]},
+                    {"name": "bool_attr", "dtype": "|b1", "shape": []},
+                    {"name": "complex_attr", "dtype": "<c8", "shape": []},
+                    {"name": "number_attr", "dtype": "<i4", "shape": []},
+                    {"name": "string_attr", "dtype": "|O", "shape": []},
+                ],
+            },
+        ]
 
     def test_group_with_attr(self):
         response = self.tester.get(["meta", "test_file.h5"], params={"uri": "/group_with_children/group_with_attrs"})
@@ -64,7 +77,7 @@ class TestMeta(ServerTest):
             {"name": "number_attr", "dtype": "<i4", "shape": []},
             {"name": "string_attr", "dtype": "|O", "shape": []},
         ]
-        assert payload["childrenCount"] == 0
+        assert payload["children"] == []
 
     def test_full_dataset(self):
         response = self.tester.get(["meta", "test_file.h5"], params={"uri": "/group_with_children/dataset_1"})
@@ -74,7 +87,7 @@ class TestMeta(ServerTest):
         assert payload["name"] == "dataset_1"
         assert payload["type"] == "dataset"
         assert payload["attributes"] == []
-        assert "childrenCount" not in payload
+        assert "children" not in payload
         assert payload["labels"] == [{"start": 0, "stop": 2, "step": 1}, {"start": 0, "stop": 3, "step": 1}, {"start": 0, "stop": 4, "step": 1}]
         assert payload["dtype"] == "<f8"
         assert payload["ndim"] == 3
