@@ -1,12 +1,27 @@
 export type Complex = [number, number];
 
-export function convertToStr(c: Complex): string {
-  return `${c[0]}${c[1] >= 0 ? '+' : ''}${c[1]}i`;
+type ComplexArrayOrVal = ComplexArrayOrVal[] | Complex;
+type StringArrayOrVal = StringArrayOrVal[] | string;
+
+export function convertValuesToString(c: ComplexArrayOrVal): StringArrayOrVal {
+  if (isComplexValue(c)) {
+    return `${c[0]}${c[1] >= 0 ? '+' : ''}${c[1]}i`;
+  }
+
+  return c.map(inner => convertValuesToString(inner));
+}
+
+export function isComplexDtype(dtype: string): boolean {
+  return dtype.includes('c');
 }
 
 export function isComplexArray(
   data: (number | Complex)[][],
   dtype: string
 ): data is Complex[][] {
-  return dtype.includes('c');
+  return isComplexDtype(dtype);
+}
+
+function isComplexValue(c: ComplexArrayOrVal): c is Complex {
+  return typeof c[0] === 'number';
 }

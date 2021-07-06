@@ -37,6 +37,7 @@ import {
   parseHdfQuery,
   hdfAttrsRequest,
   nameFromPath,
+  hdfMetaRequest,
 } from './hdf';
 
 /**
@@ -206,7 +207,7 @@ function monkeyPatchBrowser(app: JupyterFrontEnd, browser: FileBrowser) {
     const extname = PathExt.extname(item.path);
     if (extname === '.hdf5' || extname === '.h5') {
       // special handling for .hdf5 files
-      commands.execute(CommandIDs.openInBrowser);
+      await commands.execute(CommandIDs.openInBrowser);
     } else if (item.type === 'directory') {
       browser.model
         .cd('/' + contents.localPath(item.path))
@@ -318,7 +319,15 @@ function addBrowserCommands(
       const params = parseHdfQuery(selectedItem.path);
 
       try {
-        const attrs = await hdfAttrsRequest(params, serverSettings);
+        const [{ attributes }, attrValues] = await Promise.all([
+          hdfMetaRequest(params, serverSettings),
+          hdfAttrsRequest(params, serverSettings),
+        ]);
+        const attrs = Object.entries(attrValues).map(([name, value], i) => ({
+          name,
+          value,
+          dtype: attributes[i].dtype,
+        }));
         const widget = new MainAreaWidget<AttributeViewer>({
           content: new AttributeViewer(attrs),
         });

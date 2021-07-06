@@ -76,7 +76,7 @@ export function nameFromPath(path: string): string {
 export function hdfAttrsRequest(
   parameters: IAttrsParameters,
   settings: ServerConnection.ISettings
-): Promise<IDatasetAttrs | IGroupAttrs> {
+): Promise<Record<string, AttributeValue>> {
   // allow the query parameters to be optional
   const { fpath, uri } = parameters;
 
@@ -273,23 +273,19 @@ export class HdfGroupContents extends HdfContents {
  */
 export type HdfDirectoryListing = (HdfDatasetContents | HdfGroupContents)[];
 
-interface IAttrs {
-  attrs: { [key: string]: any };
+export type AttributeValue = any;
 
+interface IAttrMeta {
   name: string;
 
-  type: 'dataset' | 'group';
-}
+  dtype: string;
 
-export interface IDatasetAttrs extends IAttrs {
-  type: 'dataset';
-}
-
-export interface IGroupAttrs extends IAttrs {
-  type: 'group';
+  shape: number[];
 }
 
 interface IMeta {
+  attributes: IAttrMeta[];
+
   name: string;
 
   type: 'dataset' | 'group';
@@ -315,6 +311,7 @@ export interface IGroupMeta extends IMeta {
 
 export function datasetMetaEmpty(): IDatasetMeta {
   return {
+    attributes: [],
     dtype: 'int64',
     labels: [],
     name: '',

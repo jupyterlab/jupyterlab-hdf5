@@ -49,7 +49,7 @@ import {
 import { noneSlice, slice } from './slice';
 
 import { IxInput } from './toolbar';
-import { convertToStr, isComplexArray } from './complex';
+import { convertValuesToString, isComplexArray } from './complex';
 
 /**
  * The CSS class for the data grid widget.
@@ -207,7 +207,7 @@ export abstract class HdfDatasetModel extends DataModel {
       const data = await hdfDataRequest(params, this._serverSettings);
       const { dtype } = this.meta;
       if (isComplexArray(data, dtype)) {
-        return data.map(inner => inner.map(convertToStr));
+        return convertValuesToString(data) as string[][];
       }
       return data;
     } catch (err) {
