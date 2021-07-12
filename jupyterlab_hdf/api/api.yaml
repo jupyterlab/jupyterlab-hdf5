@@ -228,22 +228,27 @@ components:
         {
           'attributes': [],
           'children':
-            {
-              'name': 'dataset_1',
-              'dtype': '<f8',
-              'type': 'dataset',
-              'shape': [2, 3, 4],
-              'attributes': [],
-            },
-          {
-            'name': 'group_with_attrs',
-            'type': 'group',
-            'attributes':
-              [{ 'name': 'array_attr', 'dtype': '>f4', 'shape': [10] }],
-          },
+            [
+              {
+                'name': 'dataset_1',
+                'dtype': '<f8',
+                'type': 'dataset',
+                'shape': [2, 3, 4],
+                'attributes': [],
+              },
+              {
+                'name': 'group_with_attrs',
+                'type': 'group',
+                'attributes':
+                  [{ 'name': 'array_attr', 'dtype': '>f4', 'shape': [10] }],
+              },
+            ],
           'name': 'beta',
           'type': 'group',
         }
+    child_group_meta:
+      description: 'metadata for child group'
+      value: { 'attributes': [], 'name': 'beta', 'type': 'group' }
     dataset_py_snippet:
       description: 'python snippet for dataset'
       value: "with h5py.File('/Users/alice/git/jupyterlab-hdf/example/nested_int.hdf5', 'r') as f:\n    dataset = f['/leaf01/data01']"
@@ -480,9 +485,30 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/attr_meta'
-        childrenCount:
-          description: 'number of child entities of the group'
-          type: number
+        children:
+          description: 'metadata of the children of the group'
+          type: array
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/dataset_meta'
+              - $ref: '#/components/schemas/child_group_meta'
+        name:
+          description: 'name of hdf group'
+          type: string
+        type:
+          description: 'the string literal `"group"`'
+          enum: ['group']
+          type: string
+    child_group_meta:
+      description: 'metadata of a child hdf group (does not include children)'
+      required: [attributes, children, name, type]
+      type: object
+      properties:
+        attributes:
+          description: 'metadata of the attributes of the group'
+          type: array
+          items:
+            $ref: '#/components/schemas/attr_meta'
         name:
           description: 'name of hdf group'
           type: string
