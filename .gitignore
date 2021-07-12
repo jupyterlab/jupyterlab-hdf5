@@ -12,6 +12,7 @@ __pycache__
 *.tsbuildinfo
 
 # python distribution stuff
+build
 dist
 MANIFEST
 
@@ -38,7 +39,3 @@ MANIFEST
 *.code-workspace
 .history
 .vscode
-
-# tmp dev stuff
-json.py
-json.ts

@@ -1,0 +1,37 @@
+name: pytest
+
+on: [push, pull_request]
+
+jobs:
+  pytest:
+    name: pytest jupyterlab_hdf
+    strategy:
+      matrix:
+        python: [3.6, 3.7, 3.8, 3.9]
+      fail-fast: false
+    timeout-minutes: 120
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Cache pip on Linux
+        uses: actions/cache@v2
+        if: startsWith(runner.os, 'Linux')
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ matrix.python }}-${{ hashFiles('**/requirements.txt', 'setup.py') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ matrix.python }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .[dev]
+
+      - name: Test with pytest
+        run: |
+          python -m pytest jupyterlab_hdf

@@ -1,17 +1,18 @@
 // Copyright (c) Jupyter Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-import { PathExt, URLExt } from "@jupyterlab/coreutils";
-import { ServerConnection } from "@jupyterlab/services";
-import { JSONObject, PartialJSONObject } from "@lumino/coreutils";
+import { PathExt, URLExt } from '@jupyterlab/coreutils';
+import { ServerConnection } from '@jupyterlab/services';
+import { JSONObject, PartialJSONObject } from '@lumino/coreutils';
+import { Complex } from './complex';
 
-import { HdfResponseError } from "./exception";
-import { ISlice } from "./slice";
+import { HdfResponseError } from './exception';
+import { ISlice } from './slice';
 
 /**
  * Hdf mime types
  */
-export const HDF_MIME_TYPE = "application/x-hdf5";
+export const HDF_MIME_TYPE = 'application/x-hdf5';
 export const HDF_DATASET_MIME_TYPE = `${HDF_MIME_TYPE}.dataset`;
 // export const HDF_GROUP_MIME_TYPE = `${HDF_MIME_TYPE}.group`;
 
@@ -36,12 +37,12 @@ function objectToQueryString(value: PartialJSONObject) {
  * A static version of the localPath method from ContentsManager
  */
 export function localAbsPath(path: string): string {
-  const parts = path.split("/");
-  const firstParts = parts[0].split(":");
+  const parts = path.split('/');
+  const firstParts = parts[0].split(':');
   if (firstParts.length === 1) {
-    return "/" + path;
+    return '/' + path;
   }
-  return "/" + PathExt.join(firstParts.slice(1).join(":"), ...parts.slice(1));
+  return '/' + PathExt.join(firstParts.slice(1).join(':'), ...parts.slice(1));
 }
 
 /**
@@ -49,15 +50,24 @@ export function localAbsPath(path: string): string {
  */
 export function parseHdfQuery(path: string): IContentsParameters {
   // deal with the possibility of leading "Hdf:" drive specifier via localPath
-  const parts = localAbsPath(path).split("?");
+  const parts = localAbsPath(path).split('?');
 
   // list some defaults in return value, which may be overridden
   // by params in input query string
   return {
     fpath: parts[0],
-    uri: "/",
-    ...(parts[1] ? URLExt.queryStringToObject(parts[1]) : {})
+    uri: '/',
+    ...(parts[1] ? URLExt.queryStringToObject(parts[1]) : {}),
   };
+}
+
+export function nameFromPath(path: string): string {
+  if (path === '' || path === '/') {
+    return '/';
+  }
+
+  const parts = path.split('/');
+  return parts[parts.length - 1];
 }
 
 /**
@@ -66,12 +76,12 @@ export function parseHdfQuery(path: string): IContentsParameters {
 export function hdfAttrsRequest(
   parameters: IAttrsParameters,
   settings: ServerConnection.ISettings
-): Promise<IDatasetAttrs | IGroupAttrs> {
+): Promise<Record<string, AttributeValue>> {
   // allow the query parameters to be optional
   const { fpath, uri } = parameters;
 
   const fullUrl =
-    URLExt.join(settings.baseUrl, "hdf", "attrs", fpath).split("?")[0] +
+    URLExt.join(settings.baseUrl, 'hdf', 'attrs', fpath).split('?')[0] +
     objectToQueryString({ uri });
 
   return hdfApiRequest(fullUrl, {}, settings);
@@ -88,7 +98,7 @@ export function hdfContentsRequest(
   const { fpath, uri } = parameters;
 
   const fullUrl =
-    URLExt.join(settings.baseUrl, "hdf", "contents", fpath).split("?")[0] +
+    URLExt.join(settings.baseUrl, 'hdf', 'contents', fpath).split('?')[0] +
     objectToQueryString({ uri });
 
   return hdfApiRequest(fullUrl, {}, settings);
@@ -100,12 +110,12 @@ export function hdfContentsRequest(
 export function hdfDataRequest(
   parameters: IDataParameters,
   settings: ServerConnection.ISettings
-): Promise<number[][]> {
+): Promise<number[][] | Complex[][]> {
   // require the uri, row, and col query parameters
   const { fpath, uri, ixstr, min_ndim, subixstr } = parameters;
 
   const fullUrl =
-    URLExt.join(settings.baseUrl, "hdf", "data", fpath).split("?")[0] +
+    URLExt.join(settings.baseUrl, 'hdf', 'data', fpath).split('?')[0] +
     objectToQueryString({ uri, ixstr, min_ndim, subixstr });
 
   return hdfApiRequest(fullUrl, {}, settings);
@@ -122,7 +132,7 @@ export function hdfMetaRequest(
   const { fpath, uri, ixstr, min_ndim } = parameters;
 
   const fullUrl =
-    URLExt.join(settings.baseUrl, "hdf", "meta", fpath).split("?")[0] +
+    URLExt.join(settings.baseUrl, 'hdf', 'meta', fpath).split('?')[0] +
     objectToQueryString({ uri, ixstr, min_ndim });
 
   return hdfApiRequest(fullUrl, {}, settings);
@@ -140,7 +150,7 @@ export function hdfSnippetRequest(
   const { fpath, uri, ixstr, subixstr } = parameters;
 
   const fullUrl =
-    URLExt.join(settings.baseUrl, "hdf", "snippet", fpath).split("?")[0] +
+    URLExt.join(settings.baseUrl, 'hdf', 'snippet', fpath).split('?')[0] +
     objectToQueryString({ uri, ixstr, subixstr });
 
   return hdfApiRequest(fullUrl, {}, settings);
@@ -162,11 +172,11 @@ export async function hdfApiRequest(
     if (data.length > 0) {
       try {
         // HTTPError on the python side adds some leading cruft, strip it
-        json = JSON.parse(data.substring(data.indexOf("{")));
-      } catch (error) {}
+        json = JSON.parse(data.substring(data.indexOf('{')));
+      } catch (error) {} // eslint-disable-line no-empty
     }
 
-    if (json?.type === "JhdfError") {
+    if (json?.type === 'JhdfError') {
       const { message, debugVars, traceback } = json;
       throw new HdfResponseError({ response, message, debugVars, traceback });
     } else {
@@ -238,7 +248,7 @@ class HdfContents {
   /**
    * The type of the object.
    */
-  type: "dataset" | "group";
+  type: 'dataset' | 'group';
 
   /**
    * The path to the object in the hdf5 file.
@@ -249,13 +259,13 @@ class HdfContents {
 export class HdfDatasetContents extends HdfContents {
   content: IDatasetMeta;
 
-  type: "dataset";
+  type: 'dataset';
 }
 
 export class HdfGroupContents extends HdfContents {
   content: IGroupMeta;
 
-  type: "group";
+  type: 'group';
 }
 
 /**
@@ -263,26 +273,22 @@ export class HdfGroupContents extends HdfContents {
  */
 export type HdfDirectoryListing = (HdfDatasetContents | HdfGroupContents)[];
 
-interface IAttrs {
-  attrs: { [key: string]: any };
+export type AttributeValue = any;
 
+interface IAttrMeta {
   name: string;
 
-  type: "dataset" | "group";
-}
+  dtype: string;
 
-export interface IDatasetAttrs extends IAttrs {
-  type: "dataset";
-}
-
-export interface IGroupAttrs extends IAttrs {
-  type: "group";
+  shape: number[];
 }
 
 interface IMeta {
+  attributes: IAttrMeta[];
+
   name: string;
 
-  type: "dataset" | "group";
+  type: 'dataset' | 'group';
 }
 
 export interface IDatasetMeta extends IMeta {
@@ -296,11 +302,24 @@ export interface IDatasetMeta extends IMeta {
 
   size: number;
 
-  type: "dataset";
+  type: 'dataset';
 }
 
 export interface IGroupMeta extends IMeta {
-  type: "group";
+  type: 'group';
+}
+
+export function datasetMetaEmpty(): IDatasetMeta {
+  return {
+    attributes: [],
+    dtype: 'int64',
+    labels: [],
+    name: '',
+    ndim: 0,
+    shape: [],
+    size: 0,
+    type: 'dataset',
+  };
 }
 
 // /**

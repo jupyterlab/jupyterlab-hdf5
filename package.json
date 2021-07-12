@@ -1,6 +1,6 @@
 {
   "name": "@jupyterlab/hdf5",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Open and explore (very large) HDF5 files in Jupyterlab.",
   "keywords": [
     "jupyter",
@@ -27,6 +27,8 @@
   "types": "lib/index.d.ts",
   "style": "style/index.css",
   "scripts": {
+    "black:check": "black --check 'setup.py' 'jupyterlab_hdf'",
+    "black:fix": "black 'setup.py' 'jupyterlab_hdf'",
     "build": "tsc",
     "build:apidocs": "redoc-cli bundle jupyterlab_hdf/api/api.yaml",
     "build:dev": "jlpm build:integrity && jlpm run lab:install",
@@ -36,21 +38,18 @@
     "clean:more": "jlpm run clean && rimraf build && rimraf dist && rimraf package && rimraf *.tgz",
     "clean:slate": "jlpm run clean:more && rimraf node_modules",
     "deduplicate": "jlpm yarn-deduplicate -s fewer",
+    "eslint:check": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "eslint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "lab:install": "jupyter labextension link .",
     "lab:link": "jupyter labextension link . --no-build",
     "lab:uninstall": "jupyter labextension uninstall @jupyterlab/hdf5",
     "lab:unlink": "jupyter labextension uninstall @jupyterlab/hdf5 --no-build",
-    "precommit": "lint-staged",
+    "lint:check": "jlpm run eslint:check && jlpm run prettier:check && jlpm run black:check",
+    "lint:fix": "jlpm run eslint:fix && jlpm run prettier:fix && jlpm run black:fix",
     "prepublishOnly": "jlpm build:integrity",
-    "prettier": "prettier --write '**/*{.ts,.tsx,.js,.jsx,.css,.json,.md}'",
-    "tslint": "tslint -c tslint.json --project tsconfig.json '**/*{.ts,.tsx}'",
+    "prettier:check": "prettier --check '**/*{.ts,.tsx,.js,.jsx,.css,.json,.md}'",
+    "prettier:fix": "prettier --write '**/*{.ts,.tsx,.js,.jsx,.css,.json,.md}'",
     "watch": "tsc -w"
-  },
-  "lint-staged": {
-    "**/*{.ts,.tsx,.css,.json,.md}": [
-      "prettier --write",
-      "git add"
-    ]
   },
   "dependencies": {
     "@jupyterlab/application": "^2.0.0",
@@ -69,19 +68,28 @@
     "@lumino/widgets": "^1.14.0"
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.10.0",
+    "@typescript-eslint/parser": "^4.10.0",
+    "eslint": "^7.15.0",
+    "eslint-config-prettier": "^7.0.0",
     "husky": "^3.0.1",
-    "lint-staged": "^9.2.0",
-    "prettier": "^1.13.7",
     "redoc-cli": "^0.10.2",
+    "lint-staged": "^10.5.3",
+    "prettier": "^2.2.1",
     "rimraf": "~2.6.2",
-    "tslint": "^5.10.0",
-    "tslint-config-prettier": "^1.13.0",
-    "tslint-plugin-prettier": "^2.0.1",
-    "typescript": "~3.7.2",
-    "yarn-deduplicate": "^1.1.1"
+    "shell-quote": "^1.7.2",
+    "typescript": "^3.9.0",
+    "yarn-deduplicate": "^3.1.0"
   },
   "publishConfig": {
     "access": "public"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": [
+        "lint-staged"
+      ]
+    }
   },
   "jupyterlab": {
     "extension": true,
