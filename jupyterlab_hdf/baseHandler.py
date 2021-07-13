@@ -5,7 +5,7 @@
 
 import h5py
 import os
-import simplejson
+import orjson
 import traceback
 from tornado import web
 from tornado.httpclient import HTTPError
@@ -15,6 +15,7 @@ from notebook.utils import url_path_join
 
 # from .config import HdfConfig
 from .exception import JhdfError
+from .util import jsonize
 
 __all__ = ["HdfBaseManager", "HdfFileManager", "HdfBaseHandler"]
 
@@ -133,7 +134,7 @@ class HdfBaseHandler(APIHandler):
             kwargs[k] = int(kwargs[k])
 
         try:
-            self.finish(simplejson.dumps(self.manager.get(path, uri, **kwargs), ignore_nan=True))
+            self.finish(orjson.dumps(self.manager.get(path, uri, **kwargs), default=jsonize, option=orjson.OPT_SERIALIZE_NUMPY))
         except HTTPError as err:
             self.set_status(err.code)
             response = err.response.body if err.response else str(err.code)
