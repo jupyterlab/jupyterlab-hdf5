@@ -15,6 +15,8 @@ from notebook.utils import url_path_join
 
 # from .config import HdfConfig
 from .exception import JhdfError
+from .responses import create_response
+from .util import jsonize
 
 __all__ = ["HdfBaseManager", "HdfFileManager", "HdfBaseHandler"]
 
@@ -62,23 +64,23 @@ class HdfBaseManager:
         else:
             try:
                 # test opening the file with h5py
-                with h5py.File(fpath, "r") as f:
+                with h5py.File(fpath, "r"):
                     pass
-            except Exception as e:
+            except Exception:
                 msg = f"The request did not specify a file that `h5py` could understand.\n" f"Error: {traceback.format_exc()}"
                 _handleErr(401, msg)
             try:
-                out = self._get(fpath, uri, **kwargs)
-            except JhdfError as e:
+                result = self._get(fpath, uri, **kwargs)
+            except JhdfError:
                 msg = e.args[0]
                 msg["traceback"] = traceback.format_exc()
                 msg["type"] = "JhdfError"
                 _handleErr(400, msg)
-            except Exception as e:
+            except Exception:
                 msg = f"Found and opened file, error getting contents from object specified by the uri.\n" f"Error: {traceback.format_exc()}"
                 _handleErr(500, msg)
 
-            return out
+            return result
 
 
 class HdfFileManager(HdfBaseManager):
@@ -89,6 +91,9 @@ class HdfFileManager(HdfBaseManager):
             return self._getFromFile(f, uri, **kwargs)
 
     def _getFromFile(self, f, uri, **kwargs):
+        return jsonize(self._getResponse(create_response(f, uri), **kwargs))
+
+    def _getResponse(self, responseObj, **kwargs):
         raise NotImplementedError
 
 
