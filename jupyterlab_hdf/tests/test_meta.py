@@ -33,6 +33,9 @@ class TestMeta(ServerTest):
             # External link
             h5file["external"] = h5py.ExternalLink("another_file.h5", "path/in/the/file")
 
+            # Soft link
+            h5file["soft"] = h5py.SoftLink("/scalar")
+
     def test_empty_group(self):
         response = self.tester.get(["meta", "test_file.h5"], params={"uri": "/empty_group"})
 
@@ -116,3 +119,11 @@ class TestMeta(ServerTest):
         payload = response.json()
 
         assert payload == dict((("name", "external"), ("targetFile", "another_file.h5"), ("targetUri", "path/in/the/file"), ("type", "externalLink")))
+
+    def test_soft_link(self):
+        response = self.tester.get(["meta", "test_file.h5"], params={"uri": "/soft"})
+
+        assert response.status_code == 200
+        payload = response.json()
+
+        assert payload == dict((("name", "soft"), ("targetUri", "/scalar"), ("type", "softLink")))
