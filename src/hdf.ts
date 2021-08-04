@@ -93,7 +93,7 @@ export function hdfAttrsRequest(
 export function hdfContentsRequest(
   parameters: IContentsParameters,
   settings: ServerConnection.ISettings
-): Promise<(HdfDatasetContents | HdfGroupContents) | HdfDirectoryListing> {
+): Promise<HdfContents | HdfDirectoryListing> {
   // allow the query parameters to be optional
   const { fpath, uri } = parameters;
 
@@ -127,7 +127,7 @@ export function hdfDataRequest(
 export function hdfMetaRequest(
   parameters: IMetaParameters,
   settings: ServerConnection.ISettings
-): Promise<IDatasetMeta | IGroupMeta> {
+): Promise<IMeta> {
   // allow the query parameters to be optional
   const { fpath, uri, ixstr, min_ndim } = parameters;
 
@@ -204,7 +204,7 @@ interface IParameters {
 /**
  * parameters for an hdf attributes request
  */
-export interface IAttrsParameters extends IParameters {}
+interface IAttrsParameters extends IParameters {}
 
 /**
  * parameters for an hdf contents request
@@ -241,7 +241,7 @@ type HdfType = 'dataset' | 'group' | 'soft_link' | 'external_link';
 /**
  * typings representing contents from an object in an hdf5 file
  */
-class HdfContents {
+interface IHdfBaseContents {
   /**
    * The name of the object.
    */
@@ -258,39 +258,36 @@ class HdfContents {
   uri: string;
 }
 
-export class HdfDatasetContents extends HdfContents {
+interface IHdfDatasetContents extends IHdfBaseContents {
   content: IDatasetMeta;
-
   type: 'dataset';
 }
 
-export class HdfGroupContents extends HdfContents {
+interface IHdfGroupContents extends IHdfBaseContents {
   content: IGroupMeta;
-
   type: 'group';
 }
 
-export class HdfExternalLinkContents extends HdfContents {
+interface IHdfExternalLinkContents extends IHdfBaseContents {
   content: IExternalLinkMeta;
-
   type: 'external_link';
 }
 
-export class HdfSoftLinkContents extends HdfContents {
+interface IHdfSoftLinkContents extends IHdfBaseContents {
   content: ISoftLinkMeta;
-
   type: 'soft_link';
 }
+
+export type HdfContents =
+  | IHdfDatasetContents
+  | IHdfGroupContents
+  | IHdfExternalLinkContents
+  | IHdfSoftLinkContents;
 
 /**
  * Typings representing directory contents
  */
-export type HdfDirectoryListing = (
-  | HdfDatasetContents
-  | HdfGroupContents
-  | HdfSoftLinkContents
-  | HdfExternalLinkContents
-)[];
+export type HdfDirectoryListing = HdfContents[];
 
 export type AttributeValue = any;
 
@@ -300,7 +297,7 @@ interface IAttrMeta {
   type: HdfType;
 }
 
-interface IMeta {
+interface IBaseMeta {
   attributes: IAttrMeta[];
 
   name: string;
@@ -308,7 +305,7 @@ interface IMeta {
   type: HdfType;
 }
 
-export interface IDatasetMeta extends IMeta {
+export interface IDatasetMeta extends IBaseMeta {
   dtype: string;
 
   labels: ISlice[];
@@ -322,21 +319,27 @@ export interface IDatasetMeta extends IMeta {
   type: 'dataset';
 }
 
-export interface IGroupMeta extends IMeta {
+interface IGroupMeta extends IBaseMeta {
   type: 'group';
 }
 
-export interface ISoftLinkMeta extends IMeta {
+interface ISoftLinkMeta extends IBaseMeta {
   targetUri: string;
   type: 'soft_link';
 }
 
-export interface IExternalLinkMeta extends IMeta {
+interface IExternalLinkMeta extends IBaseMeta {
   targetUri: string;
   targetFile: string;
 
   type: 'external_link';
 }
+
+export type IMeta =
+  | IDatasetMeta
+  | IGroupMeta
+  | ISoftLinkMeta
+  | IExternalLinkMeta;
 
 export function datasetMetaEmpty(): IDatasetMeta {
   return {

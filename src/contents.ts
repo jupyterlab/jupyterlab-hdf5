@@ -11,12 +11,9 @@ import { Contents, ServerConnection } from '@jupyterlab/services';
 
 import {
   hdfContentsRequest,
-  HdfDatasetContents,
   HdfDirectoryListing,
-  HdfGroupContents,
-  HdfExternalLinkContents,
   parseHdfQuery,
-  HdfSoftLinkContents,
+  HdfContents,
 } from './hdf';
 
 /**
@@ -294,14 +291,7 @@ namespace Private {
    */
   export function hdfContentsToJupyterContents(
     path: string,
-    contents:
-      | (
-          | HdfDatasetContents
-          | HdfGroupContents
-          | HdfExternalLinkContents
-          | HdfSoftLinkContents
-        )
-      | HdfDirectoryListing
+    contents: HdfContents | HdfDirectoryListing
   ): Contents.IModel {
     if (Array.isArray(contents)) {
       // If we have an array, it is a directory of HdfContents.
@@ -319,7 +309,7 @@ namespace Private {
         content: contents.map(c => {
           return hdfContentsToJupyterContents(fpath + `?uri=${c.uri}`, c);
         }),
-      } as Contents.IModel;
+      };
     } else if (contents.type === 'dataset') {
       return {
         name: contents.name,
