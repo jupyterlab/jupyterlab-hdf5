@@ -5,8 +5,8 @@
 
 import h5py
 import os
-import simplejson
 import traceback
+from h5grove.encoders import orjson_encode
 from tornado import web
 from tornado.httpclient import HTTPError
 
@@ -45,7 +45,7 @@ class HdfBaseManager:
             if isinstance(msg, dict):
                 # encode msg as json
                 msg["debugVars"] = {**msg.get("debugVars", {}), **extra}
-                msg = simplejson.dumps(msg, ignore_nan=True)
+                msg = orjson_encode(msg).decode()
             else:
                 msg = "\n".join((msg, ", ".join(f"{key}: {val}" for key, val in extra.items())))
 
@@ -71,7 +71,7 @@ class HdfBaseManager:
                 _handleErr(401, msg)
             try:
                 result = self._get(fpath, uri, **kwargs)
-            except JhdfError:
+            except JhdfError as e:
                 msg = e.args[0]
                 msg["traceback"] = traceback.format_exc()
                 msg["type"] = "JhdfError"
@@ -138,7 +138,7 @@ class HdfBaseHandler(APIHandler):
             kwargs[k] = int(kwargs[k])
 
         try:
-            self.finish(simplejson.dumps(self.manager.get(path, uri, **kwargs), ignore_nan=True))
+            self.finish(orjson_encode(self.manager.get(path, uri, **kwargs), default=jsonize))
         except HTTPError as err:
             self.set_status(err.code)
             response = err.response.body if err.response else str(err.code)
