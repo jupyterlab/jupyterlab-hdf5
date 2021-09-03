@@ -2,16 +2,16 @@
 // Distributed under the terms of the Modified BSD License.
 
 export interface ISlice {
-  start: number | null;
+  start: number;
   stop?: number | null;
-  step?: number | null;
+  step: number;
 }
 
 /**
- * analagous to the python `slice` constructor
+ * analogous to the python `slice` constructor
  */
 export function slice(
-  start: number | null,
+  start: number,
   stop?: number | null,
   step: number | null = null
 ): ISlice {
@@ -23,7 +23,7 @@ export function slice(
 }
 
 export function allSlice(): ISlice {
-  return slice(null, null);
+  return slice(0, null);
 }
 
 export function noneSlice(): ISlice {
@@ -33,7 +33,7 @@ export function noneSlice(): ISlice {
 const allSlices: ISlice[] = [allSlice(), allSlice()];
 const noneSlices: ISlice[] = [noneSlice(), noneSlice()];
 
-export const parseSlices = (strSlices: string): ISlice[] => {
+export function parseSlices(strSlices: string): ISlice[] {
   if (!strSlices) {
     return allSlices;
   }
@@ -46,10 +46,10 @@ export const parseSlices = (strSlices: string): ISlice[] => {
 
       if (strSliceArr.length === 1 && start) {
         // single index in place of a slice
-        slices.push({ start, stop: start + 1 });
+        slices.push(slice(start, start + 1));
       } else if (strSliceArr.length === 2 || strSliceArr.length === 3) {
         // ignore strides
-        slices.push({ start, stop: parseInt(strSliceArr[1]) });
+        slices.push(slice(start, parseInt(strSliceArr[1])));
       }
       return slices;
     }, []);
@@ -64,4 +64,4 @@ export const parseSlices = (strSlices: string): ISlice[] => {
   }
 
   return slices;
-};
+}
