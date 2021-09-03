@@ -93,7 +93,7 @@ export function hdfAttrsRequest(
 export function hdfContentsRequest(
   parameters: IContentsParameters,
   settings: ServerConnection.ISettings
-): Promise<(HdfDatasetContents | HdfGroupContents) | HdfDirectoryListing> {
+): Promise<HdfContents | HdfDirectoryListing> {
   // allow the query parameters to be optional
   const { fpath, uri } = parameters;
 
@@ -127,7 +127,7 @@ export function hdfDataRequest(
 export function hdfMetaRequest(
   parameters: IMetaParameters,
   settings: ServerConnection.ISettings
-): Promise<IDatasetMeta | IGroupMeta> {
+): Promise<IMeta> {
   // allow the query parameters to be optional
   const { fpath, uri, ixstr, min_ndim } = parameters;
 
@@ -204,7 +204,7 @@ interface IParameters {
 /**
  * parameters for an hdf attributes request
  */
-export interface IAttrsParameters extends IParameters {}
+interface IAttrsParameters extends IParameters {}
 
 /**
  * parameters for an hdf contents request
@@ -236,10 +236,12 @@ export interface IMetaParameters extends IParameters {
   min_ndim?: number;
 }
 
+type HdfType = 'dataset' | 'group' | 'soft_link' | 'external_link';
+
 /**
  * typings representing contents from an object in an hdf5 file
  */
-class HdfContents {
+interface IHdfBaseContents {
   /**
    * The name of the object.
    */
@@ -248,7 +250,7 @@ class HdfContents {
   /**
    * The type of the object.
    */
-  type: 'dataset' | 'group';
+  type: HdfType;
 
   /**
    * The path to the object in the hdf5 file.
@@ -256,42 +258,54 @@ class HdfContents {
   uri: string;
 }
 
-export class HdfDatasetContents extends HdfContents {
+interface IHdfDatasetContents extends IHdfBaseContents {
   content: IDatasetMeta;
-
   type: 'dataset';
 }
 
-export class HdfGroupContents extends HdfContents {
+interface IHdfGroupContents extends IHdfBaseContents {
   content: IGroupMeta;
-
   type: 'group';
 }
+
+interface IHdfExternalLinkContents extends IHdfBaseContents {
+  content: IExternalLinkMeta;
+  type: 'external_link';
+}
+
+interface IHdfSoftLinkContents extends IHdfBaseContents {
+  content: ISoftLinkMeta;
+  type: 'soft_link';
+}
+
+export type HdfContents =
+  | IHdfDatasetContents
+  | IHdfGroupContents
+  | IHdfExternalLinkContents
+  | IHdfSoftLinkContents;
 
 /**
  * Typings representing directory contents
  */
-export type HdfDirectoryListing = (HdfDatasetContents | HdfGroupContents)[];
+export type HdfDirectoryListing = HdfContents[];
 
 export type AttributeValue = any;
 
 interface IAttrMeta {
   name: string;
-
   dtype: string;
-
-  shape: number[];
+  type: HdfType;
 }
 
-interface IMeta {
+interface IBaseMeta {
   attributes: IAttrMeta[];
 
   name: string;
 
-  type: 'dataset' | 'group';
+  type: HdfType;
 }
 
-export interface IDatasetMeta extends IMeta {
+export interface IDatasetMeta extends IBaseMeta {
   dtype: string;
 
   labels: ISlice[];
@@ -305,9 +319,27 @@ export interface IDatasetMeta extends IMeta {
   type: 'dataset';
 }
 
-export interface IGroupMeta extends IMeta {
+interface IGroupMeta extends IBaseMeta {
   type: 'group';
 }
+
+interface ISoftLinkMeta extends IBaseMeta {
+  targetUri: string;
+  type: 'soft_link';
+}
+
+interface IExternalLinkMeta extends IBaseMeta {
+  targetUri: string;
+  targetFile: string;
+
+  type: 'external_link';
+}
+
+export type IMeta =
+  | IDatasetMeta
+  | IGroupMeta
+  | ISoftLinkMeta
+  | IExternalLinkMeta;
 
 export function datasetMetaEmpty(): IDatasetMeta {
   return {
@@ -321,43 +353,3 @@ export function datasetMetaEmpty(): IDatasetMeta {
     type: 'dataset',
   };
 }
-
-// /**
-//  * Typings representing a directory from the Hdf
-//  */
-// export class HdfDirectoryContents extends HdfContents {
-//   /**
-//    * The type of the contents.
-//    */
-//   type: 'dir';
-// }
-//
-// /**
-//  * Typings representing a blob from the Hdf
-//  */
-// export class HdfBlob {
-//   /**
-//    * The base64-encoded contents of the file.
-//    */
-//   content: string;
-//
-//   /**
-//    * The encoding of the contents. Always base64.
-//    */
-//   encoding: 'base64';
-//
-//   /**
-//    * The URL for the blob.
-//    */
-//   url: string;
-//
-//   /**
-//    * The unique sha for the blob.
-//    */
-//   sha: string;
-//
-//   /**
-//    * The size of the blob, in bytes.
-//    */
-//   size: number;
-// }

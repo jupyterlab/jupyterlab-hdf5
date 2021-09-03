@@ -10,7 +10,7 @@ import numpy as np
 
 from .exception import JhdfError
 
-__all__ = ["atleast_nd", "dsetChunk", "hobjAttrsDict", "hobjContentsDict", "hobjMetaDict", "hobjType", "jsonize", "parseIndex", "parseSubindex", "slicelen", "shapemeta", "uriJoin", "uriName"]
+__all__ = ["atleast_nd", "attrMetaDict", "dsetChunk", "hobjType", "jsonize", "parseIndex", "parseSubindex", "slicelen", "shapemeta", "uriJoin"]
 
 ## array handling
 def atleast_nd(ary, ndim, pos=0):
@@ -62,43 +62,6 @@ def dsetChunk(dset, ixstr=None, subixstr=None, min_ndim=None):
     return chunk
 
 
-## create dicts to be returned by the various api
-def hobjAttrsDict(hobj, attr_keys=None):
-    if attr_keys is None:
-        return dict((*hobj.attrs.items(),))
-
-    return dict((key, hobj.attrs[key]) for key in attr_keys)
-
-
-def hobjContentsDict(hobj, content=False, ixstr=None, min_ndim=None):
-    return dict(
-        (
-            # ensure that 'content' is undefined if not explicitly requested
-            *((("content", hobjMetaDict(hobj, ixstr=ixstr, min_ndim=min_ndim)),) if content else ()),
-            *_hobjDict(hobj).items(),
-            ("uri", hobj.name),
-        )
-    )
-
-
-def hobjMetaDict(hobj, ixstr=None, min_ndim=None):
-    d = dict((*_hobjDict(hobj).items(), ("attributes", [_attrMetaDict(hobj.attrs.get_id(k)) for k in sorted(hobj.attrs.keys())])))
-
-    if d["type"] == "dataset":
-        return dict(
-            sorted(
-                (
-                    *d.items(),
-                    *_dsetMetaDict(hobj, ixstr=ixstr, min_ndim=min_ndim).items(),
-                )
-            )
-        )
-    elif d["type"] == "group":
-        return dict(sorted((*d.items(), ("children", sorted([dict(**_childMetaDict(child)) for child in hobj.values()], key=lambda d: d["name"])))))
-    else:
-        return d
-
-
 def hobjType(hobj):
     if isinstance(hobj, h5py.Dataset):
         return "dataset"
@@ -108,7 +71,7 @@ def hobjType(hobj):
         return "other"
 
 
-def _attrMetaDict(attrId):
+def attrMetaDict(attrId):
     return dict(
         (
             ("name", attrId.name),
@@ -116,36 +79,6 @@ def _attrMetaDict(attrId):
             ("shape", attrId.shape),
         )
     )
-
-
-def _dsetMetaDict(dset, ixstr=None, min_ndim=None):
-    shapekeys = ("labels", "ndim", "shape", "size")
-    smeta = {k: v for k, v in shapemeta(dset.shape, dset.size, ixstr=ixstr, min_ndim=min_ndim).items() if k in shapekeys}
-
-    return dict(
-        (
-            ("dtype", dset.dtype.str),
-            *smeta.items(),
-        )
-    )
-
-
-def _hobjDict(hobj):
-    return dict(
-        (
-            ("name", uriName(hobj.name)),
-            ("type", hobjType(hobj)),
-        )
-    )
-
-
-def _childMetaDict(hobj):
-    d = dict((*_hobjDict(hobj).items(), ("attributes", [_attrMetaDict(hobj.attrs.get_id(k)) for k in sorted(hobj.attrs.keys())])))
-
-    if isinstance(hobj, h5py.Dataset):
-        return dict((*d.items(), ("shape", hobj.shape), ("dtype", hobj.dtype.str)))
-
-    return d
 
 
 ## index parsing and handling
@@ -347,7 +280,3 @@ _emptyUriRe = re.compile("//")
 
 def uriJoin(*parts):
     return _emptyUriRe.sub("/", "/".join(parts))
-
-
-def uriName(uri):
-    return uri.split("/")[-1]
