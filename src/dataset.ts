@@ -34,6 +34,7 @@ import {
   modalHdfError,
   modalResponseError,
   modalValidationFail,
+  ModalResult,
 } from './exception';
 
 import {
@@ -50,6 +51,7 @@ import { noneSlice, slice } from './slice';
 
 import { IxInput } from './toolbar';
 import { convertValuesToString, isComplexArray } from './complex';
+import { isDatasetMeta } from './utils';
 
 /**
  * The CSS class for the data grid widget.
@@ -172,7 +174,7 @@ export abstract class HdfDatasetModel extends DataModel {
       uri: this._uri,
       ixstr,
     });
-    if (!this.validateMeta(ixstr, meta)) {
+    if (!isDatasetMeta(meta) || !this.validateMeta(ixstr, meta)) {
       this._refreshed.emit(this._ixstr);
       return;
     }
@@ -202,7 +204,7 @@ export abstract class HdfDatasetModel extends DataModel {
 
   protected async getData(
     params: IDataParameters
-  ): Promise<number[][] | string[][]> {
+  ): Promise<number[][] | string[][] | ModalResult> {
     try {
       const data = await hdfDataRequest(params, this._serverSettings);
       const { dtype } = this.meta;
@@ -215,16 +217,18 @@ export abstract class HdfDatasetModel extends DataModel {
       this._refresh(datasetMetaEmpty());
 
       if (err instanceof HdfResponseError) {
-        modalHdfError(err);
+        return modalHdfError(err);
       } else if (err instanceof ServerConnection.ResponseError) {
-        modalResponseError(err);
+        return modalResponseError(err);
       } else {
         throw err;
       }
     }
   }
 
-  protected async getMeta(params: IMetaParameters): Promise<IDatasetMeta> {
+  protected async getMeta(
+    params: IMetaParameters
+  ): Promise<IDatasetMeta | ModalResult> {
     try {
       return (await hdfMetaRequest(
         params,
@@ -235,9 +239,9 @@ export abstract class HdfDatasetModel extends DataModel {
       this._refresh(datasetMetaEmpty());
 
       if (err instanceof HdfResponseError) {
-        modalHdfError(err);
+        return modalHdfError(err);
       } else if (err instanceof ServerConnection.ResponseError) {
-        modalResponseError(err);
+        return modalResponseError(err);
       } else {
         throw err;
       }
@@ -421,7 +425,12 @@ class HdfDatasetModelFromContext extends HdfDatasetModel {
    */
   private _onContextReady(): void {
     // get the fpath and the uri for this dataset
-    const { fpath, uri } = parseHdfQuery(this._context.contentsModel.path);
+    const { contentsModel } = this.context;
+    if (!contentsModel) {
+      return;
+    }
+
+    const { fpath, uri } = parseHdfQuery(contentsModel.path);
 
     // unpack the content
     const content: IDatasetMeta = this._context.model.toJSON() as any;
@@ -443,7 +452,9 @@ export class HdfDatasetModelFromPath extends HdfDatasetModel {
     super();
 
     this.getMeta(params).then(meta => {
-      this._onMetaReady(params, meta);
+      if (isDatasetMeta(meta)) {
+        this._onMetaReady(params, meta);
+      }
     });
   }
 

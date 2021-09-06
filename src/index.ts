@@ -411,8 +411,8 @@ function activateHdfDatasetPlugin(
       void tracker.save(widget);
     });
 
-    widget.title.iconClass = ft.iconClass;
-    widget.title.iconLabel = ft.iconLabel;
+    widget.title.iconClass = ft.iconClass || '';
+    widget.title.iconLabel = ft.iconLabel || '';
   });
 
   return tracker;
