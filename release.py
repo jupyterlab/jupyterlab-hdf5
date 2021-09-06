@@ -22,7 +22,8 @@ from packaging.version import parse
 
 from setupbase import get_version
 
-VERSION_FILE_PY = 'jupyterlab_hdf/_version.py'
+VERSION_FILE_PY = "jupyterlab_hdf/_version.py"
+
 
 def assertEqualVersion():
     serverVersion = parse(serverExtensionVersion())
@@ -31,59 +32,61 @@ def assertEqualVersion():
     error_msg = "Frontend ({}) and server ({}) version do not match".format(frontendVersion, serverVersion)
     assert serverVersion == frontendVersion, error_msg
 
+
 def prepLabextensionBundle():
-    subprocess.run(['jlpm', 'install'], check=True)
-    subprocess.run(['jlpm', 'clean:slate'], check=True)
+    subprocess.run(["jlpm", "install"], check=True)
+    subprocess.run(["jlpm", "clean:slate"], check=True)
+
 
 def tag(version, dry_run=False, kind=None):
-    """git tagging
-    """
-    kw = {'version': version, 'kind': kind}
-    tag = '{kind}_v{version}'.format(**kw) if kind else 'v{version}'.format(**kw)
+    """git tagging"""
+    kw = {"version": version, "kind": kind}
+    tag = "{kind}_v{version}".format(**kw) if kind else "v{version}".format(**kw)
 
     if dry_run:
         print("Would tag: {}".format(tag))
     else:
-        subprocess.run(['git', 'tag', '-a', tag], check=True)
-        subprocess.run(['git', 'push', 'upstream', tag], check=True)
+        subprocess.run(["git", "tag", "-a", tag], check=True)
+        subprocess.run(["git", "push", "--tags"], check=True)
+
 
 def pypi(wheel=True, dry_run=False):
-    """release on pypi
-    """
+    """release on pypi"""
     if wheel:
-        subprocess.run(['python', '-m', 'pip', 'install', '--upgrade', 'setuptools', 'wheel'], check=True)
+        subprocess.run(["python", "-m", "pip", "install", "--upgrade", "setuptools", "wheel"], check=True)
 
         # build the source (sdist) and binary wheel (bdist_wheel) releases
-        subprocess.run(['python', 'setup.py', 'sdist', 'bdist_wheel'], check=True)
+        subprocess.run(["python", "setup.py", "sdist", "bdist_wheel"], check=True)
     else:
         # build just the source release
-        subprocess.run(['python', 'setup.py', 'sdist'], check=True)
+        subprocess.run(["python", "setup.py", "sdist"], check=True)
 
     if dry_run:
         # check the dist
-        subprocess.run(['twine', 'check', 'dist/*'], check=True)
+        subprocess.run(["twine", "check", "dist/*"], check=True)
     else:
         # release to the production pypi server
-        subprocess.run(['twine', 'upload', 'dist/*'], check=True)
+        subprocess.run(["twine", "upload", "dist/*"], check=True)
+
 
 def npmjs(dry_run=False):
-    """release on npmjs
-    """
+    """release on npmjs"""
     if dry_run:
         # dry run build and release
-        subprocess.run(['npm', 'publish', '--access', 'public', '--dry-run'], check=True)
+        subprocess.run(["npm", "publish", "--access", "public", "--dry-run"], check=True)
     else:
         # build and release
-        subprocess.run(['npm', 'publish', '--access', 'public'], check=True)
+        subprocess.run(["npm", "publish", "--access", "public"], check=True)
+
 
 def labExtensionVersion(dry_run=False, version=None):
     if version:
-        if 'rc' in version:
-            version, rc = version.split('rc')
-            version = version + '-rc.{}'.format(rc)
+        if "rc" in version:
+            version, rc = version.split("rc")
+            version = version + "-rc.{}".format(rc)
 
-        force_ver_cmd = ['npm', '--no-git-tag-version', 'version', version, '--force', '--allow-same-version']
-        force_ver_info = ' '.join(force_ver_cmd)
+        force_ver_cmd = ["npm", "--no-git-tag-version", "version", version, "--force", "--allow-same-version"]
+        force_ver_info = " ".join(force_ver_cmd)
 
         if dry_run:
             print("Would force npm version with: {}".format(force_ver_info))
@@ -93,61 +96,58 @@ def labExtensionVersion(dry_run=False, version=None):
             subprocess.run(force_ver_cmd, check=True)
     else:
         # get single source of truth from the Typescript labextension
-        with open('package.json') as f:
+        with open("package.json") as f:
             info = json.load(f)
 
-        version = info['version']
+        version = info["version"]
 
     return version
+
 
 def serverExtensionVersion():
     # get single source of truth from the Python serverextension
     return get_version(VERSION_FILE_PY)
 
+
 def doRelease(actions, dry_run=False):
     # treat the serverextension version as the "real" single source of truth
     version = serverExtensionVersion()
 
-    if 'version' in actions:
+    if "version" in actions:
         # force the labextension version to agree with the serverextension version
         labExtensionVersion(dry_run=dry_run, version=version)
 
-    if 'tag' in actions:
+    if "tag" in actions:
         # tag with version and push the tag
         tag(dry_run=dry_run, version=version)
 
-    if 'pypi' in actions or 'npmjs' in actions:
+    if "pypi" in actions or "npmjs" in actions:
         # prep the build area for the labextension bundle
         prepLabextensionBundle()
 
-    if 'pypi' in actions:
+    if "pypi" in actions:
         # release to pypi
         pypi(dry_run=dry_run)
 
-    if 'npmjs' in actions:
+    if "npmjs" in actions:
         # release to npmjs
         npmjs(dry_run=dry_run)
+
 
 def main():
     parser = argpar.ArgumentParser(description=description)
 
-    parser.add_argument('--dry-run',
-        action='store_true',
-        help='Performs a dry run of all release actions'
-    )
-    parser.add_argument('--actions',
-        nargs='*',
-        choices={'version', 'tag', 'pypi', 'npmjs'},
-        default={'version', 'tag', 'pypi', 'npmjs'},
-        help='optionally select a subset of the release actions to perform'
+    parser.add_argument("--dry-run", action="store_true", help="Performs a dry run of all release actions")
+    parser.add_argument(
+        "--actions", nargs="*", choices={"version", "tag", "pypi", "npmjs"}, default={"version", "tag", "pypi", "npmjs"}, help="optionally select a subset of the release actions to perform"
     )
 
     parsed = vars(parser.parse_args())
-    actions = parsed['actions']
-    dry_run = parsed['dry_run']
+    actions = parsed["actions"]
+    dry_run = parsed["dry_run"]
 
     doRelease(actions, dry_run=dry_run)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
