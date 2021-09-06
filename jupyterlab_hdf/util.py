@@ -251,6 +251,8 @@ def validateSubindex(shape, size, ixstr, subixstr):
 ## json handling
 def jsonize(v):
     """Turns a value into a JSON serializable version"""
+    if isinstance(v, (int, float, str)) or v is None:
+        return v
     if isinstance(v, bytes):
         return v.decode()
     if isinstance(v, dict):
@@ -271,7 +273,7 @@ def jsonize(v):
         return [v.real, v.imag]
     if isinstance(v, h5py.Empty):
         return None
-    return v
+    raise TypeError("Cannot jsonize {}".format(type(v)))
 
 
 ## uri handling
