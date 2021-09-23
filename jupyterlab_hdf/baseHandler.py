@@ -3,10 +3,12 @@
 # Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+from typing import Union
 import h5py
 import os
 import traceback
 from h5grove.encoders import orjson_encode
+from h5grove.utils import NotFoundError
 from tornado import web
 from tornado.httpclient import HTTPError
 
@@ -33,7 +35,7 @@ class HdfBaseManager:
         raise NotImplementedError
 
     def get(self, relfpath, uri, **kwargs):
-        def _handleErr(code, msg):
+        def _handleErr(code: int, msg: Union[str, dict]):
             extra = dict(
                 (
                     ("relfpath", relfpath),
@@ -76,6 +78,8 @@ class HdfBaseManager:
                 msg["traceback"] = traceback.format_exc()
                 msg["type"] = "JhdfError"
                 _handleErr(400, msg)
+            except NotFoundError as e:
+                _handleErr(404, str(e))
             except Exception:
                 msg = f"Found and opened file, error getting contents from object specified by the uri.\n" f"Error: {traceback.format_exc()}"
                 _handleErr(500, msg)
