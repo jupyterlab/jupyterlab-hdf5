@@ -13,7 +13,7 @@ from tornado.httpclient import HTTPError
 from notebook.base.handlers import APIHandler
 from notebook.utils import url_path_join
 
-# from .config import HdfConfig
+from .config import HdfConfig
 from .exception import JhdfError
 from .responses import create_response
 from .util import jsonize
@@ -86,12 +86,16 @@ class HdfBaseManager:
 class HdfFileManager(HdfBaseManager):
     """Implements base HDF5 file handling"""
 
+    def __init__(self, log, notebook_dir, resolve_links):
+        super().__init__(log, notebook_dir)
+        self.resolve_links = resolve_links
+
     def _get(self, fpath, uri, **kwargs):
         with h5py.File(fpath, "r") as f:
             return self._getFromFile(f, uri, **kwargs)
 
     def _getFromFile(self, f, uri, **kwargs):
-        return jsonize(self._getResponse(create_response(f, uri), **kwargs))
+        return jsonize(self._getResponse(create_response(f, uri, self.resolve_links), **kwargs))
 
     def _getResponse(self, responseObj, **kwargs):
         raise NotImplementedError
@@ -109,7 +113,8 @@ class HdfBaseHandler(APIHandler):
             raise NotImplementedError
 
         self.notebook_dir = notebook_dir
-        self.manager = self.managerClass(log=self.log, notebook_dir=notebook_dir)
+        hdf_config = HdfConfig(config=self.config)
+        self.manager = self.managerClass(log=self.log, notebook_dir=notebook_dir, resolve_links=hdf_config.resolve_links)
 
     @web.authenticated
     async def get(self, path):

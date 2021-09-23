@@ -59,6 +59,24 @@ This extension has two main parts: an hdf5 filebrowser plugin, and an hdf5 datas
 
 Allows you to navigate an `.hdf5` file's groups as though they were directories in a filesystem. Any `.hdf5` file on a user's system can be opened by entering its path (relative to the Jupyterlab home directory) in the box at the top of the browser.
 
+#### Note on link resolution
+
+HDF5 files can contain links that point to entities in the same file (soft links) or to entities in a different files (external links). By default, the extension does not resolve such links.
+
+Link resolution must be enabled explicitly by setting the config field `HdfConfig.resolve_links` to `True`. For this, there are two possibilities:
+
+- Set the config field when launching JupyterLab:
+
+```
+jupyter lab --HdfConfig.resolve_links=True
+```
+
+- Add the following line to [your notebook configuration file](https://jupyter-notebook.readthedocs.io/en/stable/config_overview.html#configure-nbserver)
+
+```
+c.HdfConfig.resolve_links = True
+```
+
 ### HDF5 dataset file type
 
 When you open a dataset using the hdf5 filebrowser, a document will open that displays the contents of the dataset via a grid.

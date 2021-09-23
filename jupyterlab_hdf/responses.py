@@ -1,5 +1,6 @@
 from typing import Generic, TypeVar
 from h5grove.content import DatasetContent, EntityContent, ExternalLinkContent, GroupContent, ResolvedEntityContent, SoftLinkContent
+from h5grove.utils import LinkError
 import h5py
 import h5grove
 from .util import attrMetaDict, dsetChunk, shapemeta, uriJoin
@@ -108,13 +109,17 @@ class DatasetResponse(ResolvedEntityResponse[DatasetContent]):
 
 
 class GroupResponse(ResolvedEntityResponse[GroupContent]):
+    def __init__(self, h5grove_entity: GroupContent, resolve_links: bool):
+        super().__init__(h5grove_entity)
+        self.resolve_links = resolve_links
+
     def contents(self, content=False, ixstr=None, min_ndim=None):
         if not content:
             return super().contents(ixstr=ixstr, min_ndim=min_ndim)
 
         # Recurse one level
         return [
-            create_response(self._hobj.file, uriJoin(self.uri, suburi)).contents(
+            create_response(self.h5grove_entity._h5file, uriJoin(self.uri, suburi), self.resolve_links).contents(
                 content=False,
                 ixstr=ixstr,
                 min_ndim=min_ndim,
@@ -128,13 +133,19 @@ class GroupResponse(ResolvedEntityResponse[GroupContent]):
 
         return dict(
             sorted(
-                (("children", [create_response(self.h5grove_entity._h5file, uriJoin(self.uri, suburi)).metadata(is_child=True, **kwargs) for suburi in self._hobj.keys()]), *super().metadata().items())
+                (
+                    ("children", [create_response(self.h5grove_entity._h5file, uriJoin(self.uri, suburi), self.resolve_links).metadata(is_child=True, **kwargs) for suburi in self._hobj.keys()]),
+                    *super().metadata().items(),
+                )
             )
         )
 
 
-def create_response(h5file: h5py.File, uri: str):
-    h5grove_entity = h5grove.create_content(h5file, uri, resolve_links=False)
+def create_response(h5file: h5py.File, uri: str, resolve_links: bool):
+    try:
+        h5grove_entity = h5grove.create_content(h5file, uri, resolve_links)
+    except LinkError:
+        h5grove_entity = h5grove.create_content(h5file, uri, resolve_links=False)
 
     if isinstance(h5grove_entity, h5grove.content.ExternalLinkContent):
         return ExternalLinkResponse(h5grove_entity)
@@ -143,6 +154,6 @@ def create_response(h5file: h5py.File, uri: str):
     if isinstance(h5grove_entity, h5grove.content.DatasetContent):
         return DatasetResponse(h5grove_entity)
     elif isinstance(h5grove_entity, h5grove.content.GroupContent):
-        return GroupResponse(h5grove_entity)
+        return GroupResponse(h5grove_entity, resolve_links)
     else:
         return ResolvedEntityResponse(h5grove_entity)
