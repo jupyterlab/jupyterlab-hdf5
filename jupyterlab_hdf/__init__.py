@@ -47,4 +47,5 @@ def load_jupyter_server_extension(nb_server_app):
     Args:
         nb_server_app (NotebookApp): handle to the Notebook webserver instance.
     """
-    _load_handlers(nb_server_app.notebook_dir, nb_server_app.web_app)
+    notebook_dir = nb_server_app.root_dir if hasattr(nb_server_app, 'root_dir') else nb_server_app.notebook_dir
+    _load_handlers(notebook_dir, nb_server_app.web_app)
