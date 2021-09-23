@@ -21,9 +21,7 @@ class APITester(object):
     def _req(self, verb: str, path: List[str], body=None, params=None):
         if body is not None:
             body = json.dumps(body)
-        response = self.request(
-            verb, url_path_join(self.url, *path), data=body, params=params
-        )
+        response = self.request(verb, url_path_join(self.url, *path), data=body, params=params)
 
         if 400 <= response.status_code < 600:
             try:
@@ -46,3 +44,7 @@ class ServerTest(ServerTestBase):
     def setUp(self):
         super(ServerTest, self).setUp()
         self.tester = APITester(self.request)
+
+
+class ServerTestWithLinkResolution(ServerTest):
+    config = Config({"NotebookApp": {"nbserver_extensions": {"jupyterlab_hdf": True}}, "HdfConfig": {"resolve_links": True}})
