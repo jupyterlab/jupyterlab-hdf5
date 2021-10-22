@@ -47,6 +47,7 @@ setup_dict = dict(
     extras_require={
         "dev": [
             "black",
+            "bump2version",
             "pytest",
             "requests",
         ]
