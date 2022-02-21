@@ -38,7 +38,7 @@ setup_dict = dict(
         "Programming Language :: Python :: 3",
     ],
     install_requires=[
-        "h5grove>=0.0.8",
+        "h5grove==0.0.14",
         "h5py",
         "notebook",
         "numpy",

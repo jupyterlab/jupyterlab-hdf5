@@ -8,7 +8,7 @@ SCALAR = np.int32(56)
 ONE_D = np.arange(0, 11, dtype=np.int64)
 TWO_D = np.arange(0, 10, dtype=np.float64).reshape(2, 5) / 10.0
 THREE_D = np.arange(0, 24, dtype=np.int64).reshape(2, 3, 4)
-COMPLEX = np.array([1 + 1j, 1 + 2j, 2 + 2j, -5j, 5], dtype=np.complex)
+COMPLEX = np.array([1 + 1j, 1 + 2j, 2 + 2j, -5j, 5], dtype=complex)
 
 
 class TestData(ServerTest):

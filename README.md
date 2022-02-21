@@ -77,6 +77,8 @@ jupyter lab --HdfConfig.resolve_links=True
 c.HdfConfig.resolve_links = True
 ```
 
+Note that this will only resolve valid links. Broken links (e.g. links to a non-existent entity) will still appear as links.
+
 ### HDF5 dataset file type
 
 When you open a dataset using the hdf5 filebrowser, a document will open that displays the contents of the dataset via a grid.
