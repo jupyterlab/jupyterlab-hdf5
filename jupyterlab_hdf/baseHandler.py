@@ -8,6 +8,7 @@ import h5py
 import os
 import traceback
 from h5grove.encoders import orjson_encode
+from h5grove.models import LinkResolution
 from h5grove.utils import NotFoundError
 from tornado import web
 from tornado.httpclient import HTTPError
@@ -118,7 +119,7 @@ class HdfBaseHandler(APIHandler):
 
         self.notebook_dir = notebook_dir
         hdf_config = HdfConfig(config=self.config)
-        self.manager = self.managerClass(log=self.log, notebook_dir=notebook_dir, resolve_links=hdf_config.resolve_links)
+        self.manager = self.managerClass(log=self.log, notebook_dir=notebook_dir, resolve_links=LinkResolution.ONLY_VALID if hdf_config.resolve_links else LinkResolution.NONE)
 
     @web.authenticated
     async def get(self, path):
