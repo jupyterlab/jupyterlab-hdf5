@@ -7,7 +7,7 @@ jobs:
     name: pytest jupyterlab_hdf
     strategy:
       matrix:
-        python: [3.6, 3.7, 3.8, 3.9]
+        python: [3.7, 3.8, 3.9]
       fail-fast: false
     timeout-minutes: 120
     runs-on: ubuntu-latest
