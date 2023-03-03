@@ -18,6 +18,7 @@ class AttributeViewer extends ReactWidget {
   constructor(attributes: IAttribute[]) {
     super();
     this.attributes = attributes;
+    this.addClass('jhdf-attribute-table-container');
   }
 
   render(): JSX.Element {
@@ -36,19 +37,17 @@ class AttributeViewer extends ReactWidget {
               <td>No attributes.</td>
             </tr>
           ) : (
-            this.attributes.map(
-              ({ name, value, dtype }): JSX.Element => {
-                const valueToDisplay = isComplexDtype(dtype)
-                  ? convertValuesToString(value)
-                  : value;
-                return (
-                  <tr key={name}>
-                    <th scope="row">{name}</th>
-                    <td>{JSON.stringify(valueToDisplay, null, ' ')}</td>
-                  </tr>
-                );
-              }
-            )
+            this.attributes.map(({ name, value, dtype }): JSX.Element => {
+              const valueToDisplay = isComplexDtype(dtype)
+                ? convertValuesToString(value)
+                : value;
+              return (
+                <tr key={name}>
+                  <th scope="row">{name}</th>
+                  <td>{JSON.stringify(valueToDisplay, null, ' ')}</td>
+                </tr>
+              );
+            })
           )}
         </tbody>
       </table>
