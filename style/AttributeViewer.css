@@ -3,6 +3,10 @@
 | Distributed under the terms of the Modified BSD License.
 |----------------------------------------------------------------------------*/
 
+.jhdf-attribute-table-container {
+  overflow: scroll;
+}
+
 .jhdf-attribute-table {
   width: 100%;
   margin-bottom: 0.25rem;
