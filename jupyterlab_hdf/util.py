@@ -12,6 +12,7 @@ from .exception import JhdfError
 
 __all__ = ["atleast_nd", "attrMetaDict", "dsetChunk", "hobjType", "jsonize", "parseIndex", "parseSubindex", "slicelen", "shapemeta", "uriJoin"]
 
+
 ## array handling
 def atleast_nd(ary, ndim, pos=0):
     """
@@ -57,7 +58,7 @@ def dsetChunk(dset, ixstr=None, subixstr=None, min_ndim=None):
         chunk = dset[parseSubindex(dset.shape, dset.size, ixstr, subixstr)]
 
     if min_ndim is not None:
-        chunk = atleast_nd(chunk, min_ndim)
+        chunk = atleast_nd(chunk, min_ndim, pos=-1)
 
     return chunk
 

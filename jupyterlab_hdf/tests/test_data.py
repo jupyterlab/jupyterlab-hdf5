@@ -66,7 +66,7 @@ class TestData(ServerTest):
 
         assert response.status_code == 200
         payload = response.json()
-        assert payload == [[[1, 1], [1, 2]]]
+        assert payload == [[[1, 1]], [[1, 2]]]
 
     def test_scalar_dataset(self):
         response = self.tester.get(["data", "test_file.h5"], params={"uri": "/scalar"})

@@ -125,6 +125,7 @@ export abstract class HdfDatasetModel extends DataModel {
     const relCol = col % this._blockSize;
     const rowBlock = (row - relRow) / this._blockSize;
     const colBlock = (col - relCol) / this._blockSize;
+
     if (this._blocks[rowBlock]) {
       const block = this._blocks[rowBlock][colBlock];
       if (block !== 'busy') {
@@ -364,11 +365,11 @@ export abstract class HdfDatasetModel extends DataModel {
       this._nheader = [0, 0];
       this._labels = [slice(0, 1), slice(0, 1)];
     } else if (this._metaIx.shape.length < 2) {
-      // for 1d, use (1, size)
-      this._hassubix = [false, true];
-      this._n = [1, this._metaIx.size];
-      this._nheader = [1, 0];
-      this._labels = [slice(0, 1), this._metaIx.labels[0]];
+      // for 1d, use (size, 1)
+      this._hassubix = [true, false];
+      this._n = [this._metaIx.size, 1];
+      this._nheader = [0, 1];
+      this._labels = [this._metaIx.labels[0], slice(0, 1)];
     } else {
       // for 2d up, use standard shape
       this._hassubix = [true, true];
@@ -381,7 +382,8 @@ export abstract class HdfDatasetModel extends DataModel {
   protected _fpath: string = '';
   protected _uri: string = '';
 
-  protected _serverSettings: ServerConnection.ISettings = ServerConnection.makeSettings();
+  protected _serverSettings: ServerConnection.ISettings =
+    ServerConnection.makeSettings();
 
   protected _hassubix = [false, false];
   protected _n = [0, 0];
@@ -469,9 +471,10 @@ export class HdfDatasetModelFromPath extends HdfDatasetModel {
   }
 }
 
-function createHdfGrid(
-  dataModel: HdfDatasetModel
-): { grid: DataGrid; toolbar: Toolbar<ToolbarButton> } {
+function createHdfGrid(dataModel: HdfDatasetModel): {
+  grid: DataGrid;
+  toolbar: Toolbar<ToolbarButton>;
+} {
   const grid = new DataGrid();
   grid.dataModel = dataModel;
   grid.keyHandler = new BasicKeyHandler();
@@ -487,9 +490,11 @@ function createHdfGrid(
   return { grid, toolbar };
 }
 
-export function createHdfGridFromContext(
-  context: DocumentRegistry.Context
-): { grid: DataGrid; reveal: Promise<void>; toolbar: Toolbar<ToolbarButton> } {
+export function createHdfGridFromContext(context: DocumentRegistry.Context): {
+  grid: DataGrid;
+  reveal: Promise<void>;
+  toolbar: Toolbar<ToolbarButton>;
+} {
   const model = new HdfDatasetModelFromContext(context);
   const reveal = context.ready;
 
@@ -498,10 +503,11 @@ export function createHdfGridFromContext(
   return { grid, reveal, toolbar };
 }
 
-export function createHdfGridFromPath(params: {
-  fpath: string;
-  uri: string;
-}): { grid: DataGrid; reveal: Promise<void>; toolbar: Toolbar<ToolbarButton> } {
+export function createHdfGridFromPath(params: { fpath: string; uri: string }): {
+  grid: DataGrid;
+  reveal: Promise<void>;
+  toolbar: Toolbar<ToolbarButton>;
+} {
   const model = new HdfDatasetModelFromPath(params);
   const reveal = model.ready;
 
@@ -526,11 +532,14 @@ export class HdfDatasetMain extends MainAreaWidget<DataGrid> {
  */
 export class HdfDatasetDoc
   extends DocumentWidget<DataGrid>
-  implements IDocumentWidget<DataGrid> {
+  implements IDocumentWidget<DataGrid>
+{
   constructor(context: DocumentRegistry.Context) {
-    const { grid: content, reveal, toolbar } = createHdfGridFromContext(
-      context
-    );
+    const {
+      grid: content,
+      reveal,
+      toolbar,
+    } = createHdfGridFromContext(context);
 
     super({ content, context, reveal, toolbar });
   }
