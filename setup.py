@@ -5,7 +5,7 @@ Distributed under the terms of the Modified BSD License.
 """
 
 import setuptools
-from setupbase import create_cmdclass, ensure_python, find_packages, get_version
+from setupbase import create_cmdclass, find_packages, get_version
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -54,9 +54,5 @@ setup_dict = dict(
     },
 )
 
-try:
-    ensure_python(setup_dict["python_requires"].split(","))
-except ValueError as e:
-    raise ValueError("{:s}, to use {} you must use python {} ".format(e, setup_dict["name"], setup_dict["python_requires"]))
 
 setuptools.setup(version=get_version("jupyterlab_hdf/_version.py"), **setup_dict)
