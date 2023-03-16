@@ -93,7 +93,8 @@ export class HdfSidepanel extends Widget {
       }
     };
 
-    this._browser.node.addEventListener("dblclick", handleDblClick, true);
+    const listing = (this._browser.layout as PanelLayout).widgets[3];
+    listing.node.addEventListener("dblclick", handleDblClick, true);
   }
 
   /**
@@ -115,7 +116,7 @@ export class HdfSidepanel extends Widget {
         // appears to revert to document.body. If the user has subsequently
         // focused another element, don't focus the browser listing.
         if (document.activeElement === document.body) {
-          const listing = (this._browser.layout as PanelLayout).widgets[2];
+          const listing = (this._browser.layout as PanelLayout).widgets[3];
           listing.node.focus();
         }
       })
@@ -138,7 +139,7 @@ export class HdfSidepanel extends Widget {
 
     // If we currently have an error panel, remove it.
     if (this._errorPanel) {
-      const listing = (this._browser.layout as PanelLayout).widgets[2];
+      const listing = (this._browser.layout as PanelLayout).widgets[3];
       listing.node.removeChild(this._errorPanel.node);
       this._errorPanel.dispose();
       this._errorPanel = null;
@@ -161,7 +162,7 @@ export class HdfSidepanel extends Widget {
 
   private _initErrorPanel(msg: string) {
     this._errorPanel = new HdfErrorPanel(msg);
-    const listing = (this._browser.layout as PanelLayout).widgets[2];
+    const listing = (this._browser.layout as PanelLayout).widgets[3];
     listing.node.appendChild(this._errorPanel.node);
   }
 
