@@ -40,7 +40,7 @@ setup_dict = dict(
     install_requires=[
         "h5grove==0.0.14",
         "h5py",
-        "notebook",
+        "notebook<7",
         "numpy",
         "tornado",
     ],
