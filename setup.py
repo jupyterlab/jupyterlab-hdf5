@@ -24,7 +24,7 @@ setup_dict = dict(
     packages=find_packages(),
     cmdclass=cmdclass,
     author="Max Klein",
-    url="https://github.com/telamonian/jupyterlab-hdf5",
+    url="https://github.com/jupyterlab/jupyterlab-hdf5",
     license="BSD",
     platforms="Linux, Mac OS X, Windows",
     keywords=["Jupyter", "JupyterLab", "hdf5"],
@@ -40,7 +40,7 @@ setup_dict = dict(
     install_requires=[
         "h5grove==0.0.14",
         "h5py",
-        "notebook",
+        "notebook<7",
         "numpy",
         "tornado",
     ],
