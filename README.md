@@ -5,6 +5,12 @@
 
 # jupyterlab-hdf5
 
+## Important Notice
+
+[jupyterlab-hdf5](.) is no longer actively maintained, and will not work with JupyterLab 4 or later. [jupyterlab-h5web](https://github.com/silx-kit/jupyterlab-h5web) is the recommended replacement.
+
+## Overview
+
 Open and explore HDF5 files in JupyterLab. Can handle very large (TB) sized files. New in release v0.5.0, jlab-hdf5 can now open datasets of any dimensionality, from 0 to 32. Any 0D, 1D, or 2D slab of any dataset can easily be selected and displayed using numpy-style index syntax.
 
 ![hdf_preview][tutorial_animation]
